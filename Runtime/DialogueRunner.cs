@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -322,8 +323,26 @@ namespace Yarn.Godot
 			// our prepareForLines delegate may be called.
 			Dialogue.SetNode(startNode);
 
-			var task = lineProvider.WaitForLines();
-			_ = WaitForTask(task, ContinueDialogue);
+			if (lineProvider.LinesAvailable)
+			{
+				ContinueDialogue();
+			}
+			else
+			{
+				_ = ContinueDialogueWhenLinesAvailable();
+			}
+		}
+
+		private async Task ContinueDialogueWhenLinesAvailable()
+		{
+			// Wait until lineProvider.LinesAvailable becomes true
+			while (lineProvider.LinesAvailable == false)
+			{
+				await Task.Delay(30);
+			}
+
+			// And then run our dialogue.
+			ContinueDialogue();
 		}
 
 		/// <summary>
@@ -737,7 +756,7 @@ namespace Yarn.Godot
 				case CommandDispatchResult.StatusType.SucceededAsync:
 					// We got a coroutine to wait for. Wait for it, and call
 					// Continue.
-					_ = WaitForTask(commandTask, ContinueDialogue);
+					_ = WaitForTask(commandTask, () => ContinueDialogue(true));
 					return;
 			}
 
@@ -954,7 +973,7 @@ namespace Yarn.Godot
 			}
 		}
 
-		private void ContinueDialogue(bool dontRestart)
+		private void ContinueDialogue(bool dontRestart = false)
 		{
 			if (dontRestart == true)
 			{
@@ -964,11 +983,6 @@ namespace Yarn.Godot
 				}
 			}
 
-			ContinueDialogue();
-		}
-
-		private void ContinueDialogue()
-		{
 			CurrentLine = null;
 			Dialogue.Continue();
 		}

@@ -82,10 +82,17 @@ namespace Yarn.Godot
 		{
 		}
 
-		public virtual async Task WaitForLines()
-		{
-			await Task.CompletedTask;
-		}
+		/// <summary>
+		/// Gets a value indicating whether this line provider is ready to
+		/// provide <see cref="LocalizedLine"/> objects. The default
+		/// implementation returns <see langword="true"/>.
+		/// </summary>
+		/// <remarks>
+		/// Subclasses should return <see langword="false"/> when the
+		/// required resources needed to deliver lines are not yet ready,
+		/// and <see langword="true"/> when they are.
+		/// </remarks>
+		public virtual bool LinesAvailable => true;
 	}
 
 	/// <summary>
