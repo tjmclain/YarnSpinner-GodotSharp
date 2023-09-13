@@ -10,13 +10,13 @@ config_version=5
 
 [application]
 
-config/name="Myna.Yarn.Godot"
-config/features=PackedStringArray("4.1", "C#", "Mobile")
+config/name="YarnSpinner-Godot"
+config/features=PackedStringArray("4.1", "Mobile")
 config/icon="res://icon.svg"
 
 [dotnet]
 
-project/assembly_name="Myna.Yarn.Godot"
+project/assembly_name="YarnSpinner-Godot"
 
 [rendering]
 

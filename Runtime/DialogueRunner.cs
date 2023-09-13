@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
+using static Yarn.Godot.DialogueRunner;
 using GodotCollections = Godot.Collections;
 using GodotNode = Godot.Node;
 
@@ -227,7 +228,7 @@ namespace Yarn.Godot
 		{
 			if (yarnProject == null)
 			{
-				GD.PrintErr("Unable to set default values, there is no project set");
+				GD.PushError("Unable to set default values, there is no project set");
 				return;
 			}
 
@@ -260,7 +261,7 @@ namespace Yarn.Godot
 						}
 					default:
 						{
-							GD.PrintErr($"{pair.Key} is of an invalid type: {value.ValueCase}");
+							GD.PushError($"{pair.Key} is of an invalid type: {value.ValueCase}");
 							break;
 						}
 				}
@@ -279,7 +280,7 @@ namespace Yarn.Godot
 			// cause confusing results. Report an error and stop here.
 			if (Dialogue.IsActive)
 			{
-				GD.PrintErr($"Can't start dialogue from node {startNode}: the dialogue is currently in the middle of running. Stop the dialogue first.");
+				GD.PushError($"Can't start dialogue from node {startNode}: the dialogue is currently in the middle of running. Stop the dialogue first.");
 				return;
 			}
 
@@ -324,25 +325,6 @@ namespace Yarn.Godot
 			// TODO: wait for line provider to prepare if necessary
 			var waitForLines = lineProvider.WaitForLines();
 			_ = WaitForTask(waitForLines, ContinueDialogue);
-		}
-
-		/// <summary>
-		/// Starts running the dialogue again.
-		/// </summary>
-		/// <remarks>
-		/// If <paramref name="nodeName"/> is null, the node specified by
-		/// <see cref="startNode"/> is attempted, followed the currently
-		/// running node. If none of these options are available, an <see
-		/// cref="ArgumentNullException"/> is thrown.
-		/// </remarks>
-		/// <exception cref="ArgumentNullException">Thrown when a node to
-		/// restart the dialogue from cannot be found.</exception>
-		[Obsolete("Use " + nameof(StartDialogue) + "(nodeName) instead.")]
-		public void ResetDialogue(string nodeName = null)
-		{
-			nodeName = nodeName ?? startNode ?? CurrentNodeName ?? throw new ArgumentNullException($"Cannot reset dialogue: couldn't figure out a node to restart the dialogue from.");
-
-			StartDialogue(nodeName);
 		}
 
 		/// <summary>
@@ -583,7 +565,7 @@ namespace Yarn.Godot
 		{
 			if (dialogueViews.Count == 0 && startAutomatically)
 			{
-				GD.PrintErr($"Dialogue Runner doesn't have any dialogue views set up. No lines or options will be visible.");
+				GD.PushError($"Dialogue Runner doesn't have any dialogue views set up. No lines or options will be visible.");
 			}
 
 			foreach (var view in dialogueViews)
@@ -611,7 +593,7 @@ namespace Yarn.Godot
 			{
 				if (Dialogue.IsActive)
 				{
-					GD.PrintErr($"DialogueRunner wanted to load a Yarn Project in its Start method, but the Dialogue was already running one. The Dialogue Runner may not behave as you expect.");
+					GD.PushError($"DialogueRunner wanted to load a Yarn Project in its Start method, but the Dialogue was already running one. The Dialogue Runner may not behave as you expect.");
 				}
 
 				// Load this new Yarn Project.
@@ -654,7 +636,7 @@ namespace Yarn.Godot
 				},
 				LogErrorMessage = delegate (string message)
 				{
-					GD.PrintErr(message);
+					GD.PushError(message);
 				},
 
 				LineHandler = HandleLine,
@@ -697,7 +679,7 @@ namespace Yarn.Godot
 				{
 					// Parsing the markup failed. We'll log a warning, and
 					// produce a markup result that just contains the raw text.
-					GD.PrintErr($"Failed to parse markup in \"{text}\": {e.Message}");
+					GD.PushError($"Failed to parse markup in \"{text}\": {e.Message}");
 					localisedLine.Text = new Yarn.Markup.MarkupParseResult
 					{
 						Text = text,
@@ -766,13 +748,13 @@ namespace Yarn.Godot
 			switch (dispatchResult.Status)
 			{
 				case CommandDispatchResult.StatusType.NoTargetFound:
-					GD.PrintErr($"Can't call command {commandName}: failed to find a game object named {parts.ElementAtOrDefault(1)}", this);
+					GD.PushError($"Can't call command {commandName}: failed to find a game object named {parts.ElementAtOrDefault(1)}", this);
 					break;
 				case CommandDispatchResult.StatusType.TargetMissingComponent:
-					GD.PrintErr($"Can't call command {commandName}, because {parts.ElementAtOrDefault(1)} doesn't have the correct component");
+					GD.PushError($"Can't call command {commandName}, because {parts.ElementAtOrDefault(1)} doesn't have the correct component");
 					break;
 				case CommandDispatchResult.StatusType.InvalidParameterCount:
-					GD.PrintErr($"Can't call command {commandName}: incorrect number of parameters");
+					GD.PushError($"Can't call command {commandName}: incorrect number of parameters");
 					break;
 				case CommandDispatchResult.StatusType.CommandUnknown:
 					// Attempt a last-ditch dispatch by invoking our 'onCommand'
@@ -799,7 +781,7 @@ namespace Yarn.Godot
 
 			if (text == null)
 			{
-				GD.PrintErr($"Dialogue Runner couldn't expand substitutions in Yarn Project [{yarnProject.ResourceName}] node [{CurrentNodeName}] with line ID [{CurrentLine.TextID}]. "
+				GD.PushError($"Dialogue Runner couldn't expand substitutions in Yarn Project [{yarnProject.ResourceName}] node [{CurrentNodeName}] with line ID [{CurrentLine.TextID}]. "
 					+ "This usually happens because it couldn't find text in the Localization. The line may not be tagged properly. "
 					+ "Try re-importing this Yarn Program. "
 					+ "For now, Dialogue Runner will swap in CurrentLine.RawText.");
@@ -817,7 +799,7 @@ namespace Yarn.Godot
 			{
 				// Parsing the markup failed. We'll log a warning, and
 				// produce a markup result that just contains the raw text.
-				GD.PrintErr($"Failed to parse markup in \"{text}\": {e.Message}");
+				GD.PushError($"Failed to parse markup in \"{text}\": {e.Message}");
 				CurrentLine.Text = new Yarn.Markup.MarkupParseResult
 				{
 					Text = text,
@@ -913,7 +895,7 @@ namespace Yarn.Godot
 					}
 				}
 
-				GD.PrintErr($"Can't run selected option ({optionIndex}) as a line: couldn't find the option's associated {nameof(Line)} object");
+				GD.PushError($"Can't run selected option ({optionIndex}) as a line: couldn't find the option's associated {nameof(Line)} object");
 				ContinueDialogue();
 			}
 			else
@@ -932,7 +914,7 @@ namespace Yarn.Godot
 		{
 			if (lineProvider == null)
 			{
-				GD.PrintErr("lineProvider == null");
+				GD.PushError("lineProvider == null");
 			}
 		}
 
@@ -996,7 +978,7 @@ namespace Yarn.Godot
 		{
 			if (CurrentLine == null)
 			{
-				GD.PrintErr("Dialogue runner was asked to advance but there is no current line");
+				GD.PushError("Dialogue runner was asked to advance but there is no current line");
 				return;
 			}
 
@@ -1181,15 +1163,96 @@ namespace Yarn.Godot
 			return results;
 		}
 
+		/// <summary>
+		/// Loads all variables from the <see cref="PlayerPrefs"/> object into
+		/// the Dialogue Runner's variable storage.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This method loads a string containing JSON from the <see
+		/// cref="PlayerPrefs"/> object under the key <see cref="SaveKey"/>,
+		/// deserializes that JSON, and then uses the resulting object to set
+		/// all variables in <see cref="VariableStorage"/>.
+		/// </para>
+		/// <para>
+		/// The loaded information can be stored via the <see
+		/// cref="SaveStateToPlayerPrefs(string)"/> method.
+		/// </para>
+		/// </remarks>
+		/// <param name="saveFilePath">The key to use when storing the
+		/// variables.</param>
+		/// <returns><see langword="true"/> if the variables were successfully
+		/// loaded from the player preferences; <see langword="false"/>
+		/// otherwise.</returns>
+		/// <seealso
+		/// cref="VariableStorageBehaviour.SetAllVariables(Dictionary{string,
+		/// float}, Dictionary{string, string}, Dictionary{string, bool},
+		/// bool)"/>
+		public bool LoadStateFromUserData(string saveFilePath = "yarn_variables.json")
+		{
+			string path = $"user://{saveFilePath}";
+			if (!FileAccess.FileExists(saveFilePath))
+			{
+				GD.PushWarning($"!FileAccess.FileExists; saveFilePath = '{saveFilePath}'");
+				return false;
+			}
+
+			using var file = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+			string json = file.GetAsText();
+			if (string.IsNullOrEmpty(json))
+			{
+				GD.PushWarning($"string.IsNullOrEmpty(json); saveFilePath = '{saveFilePath}'");
+				return false;
+			}
+
+			var dictionaries = DeserializeAllVariablesFromJSON(json);
+			variableStorage.SetAllVariables(dictionaries.Item1, dictionaries.Item2, dictionaries.Item3);
+			return true;
+		}
+
+		/// <summary>
+		/// Saves all variables in the Dialogue Runner's variable storage into
+		/// the <see cref="PlayerPrefs"/> object.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// This method serializes all variables in <see
+		/// cref="VariableStorage"/> into a string containing JSON, and then
+		/// stores that string in the <see cref="PlayerPrefs"/> object under the
+		/// key <paramref name="SaveKey"/>.
+		/// </para>
+		/// <para>
+		/// The stored information can be restored via the <see
+		/// cref="LoadStateFromPlayerPrefs(string)"/> method.
+		/// </para>
+		/// </remarks>
+		/// <param name="saveFilePath">The key to use when storing the
+		/// variables.</param>
+		/// <seealso cref="VariableStorageBehaviour.GetAllVariables"/>
+		public void SaveStateToUserData(string saveFilePath = "yarn_variables.json")
+		{
+			string path = $"user://{saveFilePath}";
+			using var file = FileAccess.Open(path, FileAccess.ModeFlags.Write);
+
+			var data = SerializeAllVariablesToJSON();
+			file.StoreLine(data);
+		}
+
 		// takes in a JSON string and converts it into a tuple of dictionaries
 		// intended to let you just dump these straight into the variable storage
 		// throws exceptions if unable to convert or if the conversion half works
 		public (Dictionary<string, float>, Dictionary<string, string>, Dictionary<string, bool>) DeserializeAllVariablesFromJSON(string jsonData)
 		{
+			if (string.IsNullOrEmpty(jsonData))
+			{
+				GD.PushError("string.IsNullOrEmpty(jsonData)");
+				return default;
+			}
+
 			SaveData data = (SaveData)Json.ParseString(jsonData);
 			if (data == null)
 			{
-				GD.PrintErr("SaveData data == null");
+				GD.PushError("SaveData data == null");
 				return default;
 			}
 

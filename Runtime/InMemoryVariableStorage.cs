@@ -250,6 +250,24 @@ namespace Yarn.Godot
 
 		public override void SetAllVariables(Dictionary<string, float> floats, Dictionary<string, string> strings, Dictionary<string, bool> bools, bool clear = true)
 		{
+			if (floats == null)
+			{
+				GD.PushError("floats == null");
+				return;
+			}
+
+			if (strings == null)
+			{
+				GD.PushError("strings == null");
+				return;
+			}
+
+			if (bools == null)
+			{
+				GD.PushError("bools == null");
+				return;
+			}
+
 			if (clear)
 			{
 				variables.Clear();
