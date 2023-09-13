@@ -322,9 +322,8 @@ namespace Yarn.Godot
 			// our prepareForLines delegate may be called.
 			Dialogue.SetNode(startNode);
 
-			// TODO: wait for line provider to prepare if necessary
-			var waitForLines = lineProvider.WaitForLines();
-			_ = WaitForTask(waitForLines, ContinueDialogue);
+			var task = lineProvider.WaitForLines();
+			_ = WaitForTask(task, ContinueDialogue);
 		}
 
 		/// <summary>
@@ -906,6 +905,12 @@ namespace Yarn.Godot
 
 		private static async Task WaitForTask(Task task, Action onTaskComplete)
 		{
+			if (task == null)
+			{
+				GD.PushError("task == null");
+				return;
+			}
+
 			await task;
 			onTaskComplete?.Invoke();
 		}
@@ -1033,7 +1038,11 @@ namespace Yarn.Godot
 		{
 			// A dialogue view just completed dismissing its line. Remove
 			// it from the set of active views.
-			ActiveDialogueViews.Remove(dialogueView);
+			if (!ActiveDialogueViews.Remove(dialogueView))
+			{
+				GD.PushError($"!ActiveDialogueViews.Remove '{dialogueView.Name}'");
+				return;
+			}
 
 			// Have all of the views completed dismissal?
 			if (ActiveDialogueViews.Count == 0)
