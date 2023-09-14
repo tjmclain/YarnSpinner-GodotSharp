@@ -5,19 +5,10 @@
     <RootNamespace>Yarn.Godot</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="Editor\Icons\Asset Icons\LineMetadata Icon.png" />
-    <Content Include="Editor\Icons\Asset Icons\Localization Icon.png" />
-    <Content Include="Editor\Icons\Asset Icons\LocalizationDatabase Icon.png" />
-    <Content Include="Editor\Icons\Asset Icons\YarnProject Icon.png" />
-    <Content Include="Editor\Icons\Asset Icons\YarnScript Icon.png" />
+    <Compile Remove="Editor\Icons\**" />
+    <EmbeddedResource Remove="Editor\Icons\**" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis">
-      <HintPath>Editor\Analysis\DLLs\Microsoft.CodeAnalysis.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp">
-      <HintPath>Editor\Analysis\DLLs\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Yarn.Antlr4.Runtime.Standard">
       <HintPath>Runtime\DLLs\Yarn.Antlr4.Runtime.Standard.dll</HintPath>
     </Reference>
