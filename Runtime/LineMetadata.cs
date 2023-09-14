@@ -10,7 +10,7 @@ using StringDictionary = Godot.Collections.Dictionary<string, string>;
 namespace Yarn.Godot
 {
 	[Serializable]
-	public partial class LineMetadata : GodotObject
+	public partial class LineMetadata : RefCounted
 	{
 		[Export]
 		private StringDictionary _lineMetadata = new();
@@ -35,7 +35,7 @@ namespace Yarn.Godot
 					continue;
 				}
 
-				_lineMetadata.Add(entry.ID, String.Join(" ", entry.Metadata));
+				_lineMetadata.Add(entry.ID, string.Join(" ", entry.Metadata));
 			}
 		}
 

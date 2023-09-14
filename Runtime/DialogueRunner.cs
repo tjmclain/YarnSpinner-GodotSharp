@@ -1264,7 +1264,7 @@ namespace Yarn.Godot
 		// takes in a JSON string and converts it into a tuple of dictionaries
 		// intended to let you just dump these straight into the variable storage
 		// throws exceptions if unable to convert or if the conversion half works
-		public (Dictionary<string, float>, Dictionary<string, string>, Dictionary<string, bool>) DeserializeAllVariablesFromJSON(string jsonData)
+		public static (Dictionary<string, float>, Dictionary<string, string>, Dictionary<string, bool>) DeserializeAllVariablesFromJSON(string jsonData)
 		{
 			if (string.IsNullOrEmpty(jsonData))
 			{
@@ -1340,7 +1340,7 @@ namespace Yarn.Godot
 		}
 
 		[Serializable]
-		public partial class SaveData : GodotObject
+		public partial class SaveData : RefCounted
 		{
 			public string[] floatKeys;
 			public float[] floatValues;
