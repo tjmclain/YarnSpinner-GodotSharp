@@ -6,6 +6,7 @@ using System.Diagnostics;
 namespace Yarn.Godot
 {
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
+	[GlobalClass, Icon("res://Editor/Icons/Asset Icons/YarnProject Icon.png")]
 	public partial class YarnProject : Resource
 	{
 		[Export]

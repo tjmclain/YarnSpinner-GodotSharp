@@ -1,9 +1,16 @@
-<Project Sdk="Godot.NET.Sdk/4.1.1">
+﻿<Project Sdk="Godot.NET.Sdk/4.1.1">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>Yarn.Godot</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Editor\Icons\Asset Icons\LineMetadata Icon.png" />
+    <Content Include="Editor\Icons\Asset Icons\Localization Icon.png" />
+    <Content Include="Editor\Icons\Asset Icons\LocalizationDatabase Icon.png" />
+    <Content Include="Editor\Icons\Asset Icons\YarnProject Icon.png" />
+    <Content Include="Editor\Icons\Asset Icons\YarnScript Icon.png" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>Editor\Analysis\DLLs\Microsoft.CodeAnalysis.dll</HintPath>
@@ -68,5 +75,8 @@
     <Reference Include="YarnSpinner.Compiler">
       <HintPath>Runtime\DLLs\YarnSpinner.Compiler.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Editor\Importers\" />
   </ItemGroup>
 </Project>

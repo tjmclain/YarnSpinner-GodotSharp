@@ -15,7 +15,6 @@ namespace Yarn.Godot.ActionAnalyser
 		public int Column;
 	}
 
-
 	public struct Range
 	{
 		public Position Start;
@@ -39,7 +38,6 @@ namespace Yarn.Godot.ActionAnalyser
 			};
 		}
 	}
-
 
 	public enum ActionType
 	{
@@ -77,19 +75,9 @@ namespace Yarn.Godot.ActionAnalyser
 		/// </summary>
 		Sync,
 		/// <summary>
-		/// The action may operate asynchronously, and Dialogue Runners should
-		/// check the return value of the action to determine whether to block
-		/// on the method call or not.
-		/// </summary>
-		/// <remarks>
-		/// This is only valid for <see cref="Action"/> objects whose <see
-		/// cref="Action.Type"/> is <see cref="ActionType.Command"/>.
-		/// </remarks>
-		MaybeAsyncCoroutine,
-		/// <summary>
 		/// The action operates asynchronously using a coroutine.
 		/// </summary>
-		AsyncCoroutine,
+		Async,
 	}
 
 	public struct Parameter
@@ -273,7 +261,6 @@ namespace Yarn.Godot.ActionAnalyser
 				default:
 					failureReason = new Diagnostic("Functions must return numbers, strings, or bools", methodDeclaration.ReturnType);
 					return false;
-
 			}
 
 			failureReason = null;
@@ -349,7 +336,7 @@ namespace Yarn.Godot.ActionAnalyser
 				SyntaxFactory.IdentifierName(dialogueRunnerVariableName),
 				SyntaxFactory.Token(SyntaxKind.DotToken),
 				nameSyntax
-				);
+			);
 
 			ExpressionSyntax methodReferenceExpression = GetReferenceSyntaxForRegistration();
 
@@ -387,16 +374,14 @@ namespace Yarn.Godot.ActionAnalyser
 
 			if (IsStatic)
 			{
-
 				// If the method is static, we can use the reference to the method directly.
 				return methodReference;
-
 			}
 			else
 			{
 				// If the method is not static, we must create a MethodInfo for this method, like this:
 				// typeof(ContainingType)
-				//    .GetMethod(nameof(ContainingType.Method), 
+				//    .GetMethod(nameof(ContainingType.Method),
 				//               new[] { typeof(MethodParam1), typeof(MethodParam2)} )
 
 				// Create an expression that gets a MethodInfo for the action's method.
@@ -467,5 +452,4 @@ namespace Yarn.Godot.ActionAnalyser
 			}
 		}
 	}
-
 }

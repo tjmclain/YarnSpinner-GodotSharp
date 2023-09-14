@@ -12,11 +12,11 @@ namespace Yarn.Godot.ActionAnalyser
 {
 	public class Analyser
 	{
-		const string toolName = "YarnActionAnalyzer";
-		const string toolVersion = "1.0.0.0";
-		const string registrationMethodName = "RegisterActions";
-		const string targetParameterName = "target";
-		const string initialisationMethodName = "AddRegisterFunction";
+		private const string toolName = "YarnActionAnalyzer";
+		private const string toolVersion = "1.0.0.0";
+		private const string registrationMethodName = "RegisterActions";
+		private const string targetParameterName = "target";
+		private const string initialisationMethodName = "AddRegisterFunction";
 
 		/// <summary>
 		/// The name of a scripting define symbol that, if set, indicates that Yarn actions specific to unit tests should be generated.
@@ -48,15 +48,13 @@ namespace Yarn.Godot.ActionAnalyser
 				MetadataReference.CreateFromFile(
 					typeof(object).Assembly.Location),
 				MetadataReference.CreateFromFile(
-					GetTypeByName("Yarn.Unity.YarnCommandAttribute").Assembly.Location),
+					GetTypeByName("Yarn.Godot.YarnCommandAttribute").Assembly.Location),
 				MetadataReference.CreateFromFile(
-					GetTypeByName("UnityEngine.MonoBehaviour").Assembly.Location),
-				MetadataReference.CreateFromFile(
-					typeof(System.Collections.IEnumerator).Assembly.Location),
+					GetTypeByName("Godot.Node").Assembly.Location),
 				MetadataReference.CreateFromFile(
 					Path.Combine(systemAssemblyPath, "System.dll")),
 				MetadataReference.CreateFromFile(
-					typeof(System.Attribute).Assembly.Location),
+					typeof(Attribute).Assembly.Location),
 			};
 
 			var compilation = CSharpCompilation.Create("YarnActionAnalysis")
@@ -82,7 +80,7 @@ namespace Yarn.Godot.ActionAnalyser
 			return output;
 		}
 
-		public static string GenerateRegistrationFileSource(IEnumerable<Action> actions, string @namespace = "Yarn.Unity.Generated", string className = "ActionRegistration")
+		public static string GenerateRegistrationFileSource(IEnumerable<Action> actions, string @namespace = "Yarn.Godot.Generated", string className = "ActionRegistration")
 		{
 			var namespaceDecl = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(@namespace));
 
@@ -98,7 +96,6 @@ namespace Yarn.Godot.ActionAnalyser
 				registrationMethod
 			);
 
-
 			namespaceDecl = namespaceDecl.AddMembers(classDeclaration);
 
 			return namespaceDecl.NormalizeWhitespace().ToFullString();
@@ -111,93 +108,6 @@ namespace Yarn.Godot.ActionAnalyser
 					SyntaxFactory.Token(SyntaxKind.VoidKeyword)
 				),
 				SyntaxFactory.Identifier(initialisationMethodName)
-			)
-			.WithAttributeLists(
-				SyntaxFactory.List(
-					new AttributeListSyntax[]{
-						SyntaxFactory.AttributeList(
-							SyntaxFactory.SingletonSeparatedList(
-								SyntaxFactory.Attribute(
-									SyntaxFactory.QualifiedName(
-										SyntaxFactory.AliasQualifiedName(
-											SyntaxFactory.IdentifierName(
-												SyntaxFactory.Token(SyntaxKind.GlobalKeyword)
-											),
-											SyntaxFactory.IdentifierName("UnityEditor")
-										),
-										SyntaxFactory.IdentifierName("InitializeOnLoadMethod")
-									)
-								)
-							)
-						)
-						.WithOpenBracketToken(
-							SyntaxFactory.Token(
-								SyntaxFactory.TriviaList(
-									SyntaxFactory.Trivia(
-										SyntaxFactory.IfDirectiveTrivia(
-											SyntaxFactory.IdentifierName("UNITY_EDITOR"),
-											true,
-											true,
-											true
-										)
-									)
-								),
-								SyntaxKind.OpenBracketToken,
-								SyntaxFactory.TriviaList()
-							)
-						),
-						SyntaxFactory.AttributeList(
-							SyntaxFactory.SingletonSeparatedList(
-								SyntaxFactory.Attribute(
-									SyntaxFactory.QualifiedName(
-										SyntaxFactory.AliasQualifiedName(
-											SyntaxFactory.IdentifierName(
-												SyntaxFactory.Token(SyntaxKind.GlobalKeyword)
-											),
-											SyntaxFactory.IdentifierName("UnityEngine")
-										),
-										SyntaxFactory.IdentifierName("RuntimeInitializeOnLoadMethod")
-									)
-								)
-								.WithArgumentList(
-									SyntaxFactory.AttributeArgumentList(
-										SyntaxFactory.SingletonSeparatedList(
-											SyntaxFactory.AttributeArgument(
-												SyntaxFactory.MemberAccessExpression(
-													SyntaxKind.SimpleMemberAccessExpression,
-													SyntaxFactory.MemberAccessExpression(
-														SyntaxKind.SimpleMemberAccessExpression,
-														SyntaxFactory.AliasQualifiedName(
-															SyntaxFactory.IdentifierName(
-																SyntaxFactory.Token(SyntaxKind.GlobalKeyword)
-															),
-															SyntaxFactory.IdentifierName("UnityEngine")
-														),
-														SyntaxFactory.IdentifierName("RuntimeInitializeLoadType")
-													),
-													SyntaxFactory.IdentifierName("BeforeSceneLoad")
-												)
-											)
-										)
-									)
-								)
-							)
-						)
-						.WithOpenBracketToken(
-							SyntaxFactory.Token(
-								SyntaxFactory.TriviaList(
-									SyntaxFactory.Trivia(
-										SyntaxFactory.EndIfDirectiveTrivia(
-											true
-										)
-									)
-								),
-								SyntaxKind.OpenBracketToken,
-								SyntaxFactory.TriviaList()
-							)
-						)
-					}
-				)
 			)
 			.WithModifiers(
 				SyntaxFactory.TokenList(
@@ -272,7 +182,7 @@ namespace Yarn.Godot.ActionAnalyser
 				SyntaxFactory.Identifier(registrationMethodName), // method name
 				null, // type parameter list
 				SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(
-					SyntaxFactory.Parameter(SyntaxFactory.Identifier(targetParameterName)).WithType(SyntaxFactory.ParseTypeName("global::Yarn.Unity.IActionRegistration"))
+					SyntaxFactory.Parameter(SyntaxFactory.Identifier(targetParameterName)).WithType(SyntaxFactory.ParseTypeName("global::Yarn.Godot.IActionRegistration"))
 				)), // parameters
 				SyntaxFactory.List<TypeParameterConstraintClauseSyntax>(), // type parameter constraints
 				registrationMethodBody, // body
@@ -347,7 +257,7 @@ namespace Yarn.Godot.ActionAnalyser
 				.Where(i => i.Symbol != null).ToList();
 
 			var dialogueRunnerCalls = methodInvocations
-				.Where(info => info.Symbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::Yarn.Unity.DialogueRunner").ToList();
+				.Where(info => info.Symbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::Yarn.Godot.DialogueRunner").ToList();
 
 			var addCommandCalls = methodInvocations.Where(
 				info => info.Symbol.Name == "AddCommandHandler"
@@ -367,7 +277,6 @@ namespace Yarn.Godot.ActionAnalyser
 					// TODO: handle case of 'we couldn't figure out the constant value here'
 					continue;
 				}
-
 
 				if (!(model.GetSymbolInfo(targetSyntax.Expression).Symbol is IMethodSymbol targetSymbol))
 				{
@@ -394,7 +303,6 @@ namespace Yarn.Godot.ActionAnalyser
 
 		private static IEnumerable<Action> GetAttributeActions(CompilationUnitSyntax root, SemanticModel model)
 		{
-
 			var methodInfos = root
 				.DescendantNodes()
 				.OfType<MethodDeclarationSyntax>()
@@ -463,7 +371,7 @@ namespace Yarn.Godot.ActionAnalyser
 		}
 
 		/// <summary>
-		/// Returns a value indicating the Unity async type for this action.
+		/// Returns a value indicating the async type for this action.
 		/// </summary>
 		/// <param name="symbol">The method symbol to test.</param>
 		/// <returns></returns>
@@ -476,26 +384,18 @@ namespace Yarn.Godot.ActionAnalyser
 				return AsyncType.Sync;
 			}
 
-			// If the method returns IEnumerator, it is a coroutine, and therefore async.
-			if (returnType.SpecialType == SpecialType.System_Collections_IEnumerator)
-			{
-				return AsyncType.AsyncCoroutine;
-			}
-
 			// If the method returns a Coroutine, then it is potentially async
 			// (because if it returns null, it's sync, and if it returns non-null,
 			// it's async)
-			if (returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::UnityEngine.Coroutine")
+			if (returnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.Threading.Task")
 			{
-				return AsyncType.MaybeAsyncCoroutine;
+				return AsyncType.Async;
 			}
 
 			// If it's anything else, then this action is invalid. Return the
 			// default value; other parts of the action detection process will throw
 			// errors.
 			return default;
-
-
 		}
 
 		private static IEnumerable<Parameter> GetParameters(IMethodSymbol symbol)
@@ -592,5 +492,4 @@ namespace Yarn.Godot.ActionAnalyser
 			return null;
 		}
 	}
-
 }
