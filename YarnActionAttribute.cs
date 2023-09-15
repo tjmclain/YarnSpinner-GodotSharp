@@ -20,6 +20,6 @@ namespace Yarn.Godot
 		/// </remarks>
 		public string Name { get; set; }
 
-		public YarnActionAttribute(string name = null) => Name = name;
+		public YarnActionAttribute(string name) => Name = name;
 	}
 }

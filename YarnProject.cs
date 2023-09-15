@@ -15,6 +15,9 @@ namespace Yarn.Godot
 		[Export]
 		public LineMetadata lineMetadata;
 
+		[Export]
+		public LocalizationType localizationType;
+
 		/// <summary>
 		/// The cached result of deserializing <see
 		/// cref="compiledYarnProgram"/>.
@@ -140,16 +143,16 @@ namespace Yarn.Godot
 			Dictionary<string, List<string>> headers = new Dictionary<string, List<string>>();
 			foreach (var pair in rawHeaders)
 			{
-				List<string> values;
-
-				if (headers.TryGetValue(pair.Key, out values))
+				if (headers.TryGetValue(pair.Key, out List<string> values))
 				{
 					values.Add(pair.Value);
 				}
 				else
 				{
-					values = new List<string>();
-					values.Add(pair.Value);
+					values = new List<string>
+					{
+						pair.Value
+					};
 				}
 				headers[pair.Key] = values;
 			}
@@ -165,15 +168,6 @@ namespace Yarn.Godot
 		public Node GetNode(string nodeName)
 		{
 			return Program.Nodes.TryGetValue(nodeName, out Node node) ? node : null;
-		}
-
-		/// <summary>
-		/// Gets the Yarn Program stored in this project.
-		/// /// </summary>
-		[System.Obsolete("Use the Program property instead, which caches its return value.")]
-		public Program GetProgram()
-		{
-			return Program.Parser.ParseFrom(compiledYarnProgram);
 		}
 
 		/// <summary>
@@ -195,5 +189,11 @@ namespace Yarn.Godot
 				return cachedProgram;
 			}
 		}
+	}
+
+	public enum LocalizationType
+	{
+		YarnInternal,
+		Unity,
 	}
 }

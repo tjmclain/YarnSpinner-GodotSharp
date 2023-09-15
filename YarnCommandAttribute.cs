@@ -117,9 +117,11 @@ namespace Yarn.Godot
 		/// static, this parameter will be ignored.
 		/// </para>
 		/// </remarks>
-		public string Injector { get; set; }
+		public string Injector { get; set; } = string.Empty;
 
-		public YarnCommandAttribute(string name = null) => Name = name;
+		public YarnCommandAttribute(string name) : base(name)
+		{
+		}
 	}
 	#endregion Class/Interface
 }
