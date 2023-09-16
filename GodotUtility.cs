@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using Godot;
 
 using GodotNode = Godot.Node;
@@ -11,14 +7,19 @@ namespace Yarn.Godot
 {
 	public static class GodotUtility
 	{
-		public static GodotNode GetCurrentScene()
+		public static SceneTree GetSceneTree()
 		{
 			if (Engine.GetMainLoop() is not SceneTree sceneTree)
 			{
-				GD.PrintErr("Engine.GetMainLoop() is not SceneTree sceneTree");
-				return null;
+				throw new ArgumentException("Engine.GetMainLoop() is not SceneTree sceneTree");
 			}
 
+			return sceneTree;
+		}
+
+		public static GodotNode GetCurrentScene()
+		{
+			var sceneTree = GetSceneTree();
 			var currentScene = sceneTree.CurrentScene;
 			if (currentScene == null)
 			{
