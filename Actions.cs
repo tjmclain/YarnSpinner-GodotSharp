@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	using Converter = Func<string, object>;
 

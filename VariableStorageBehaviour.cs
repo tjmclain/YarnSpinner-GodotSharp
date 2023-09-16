@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 using GodotNode = Godot.Node;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	/// <summary>
 	/// A <see cref="MonoBehaviour"/> that a <see cref="DialogueRunner"/>

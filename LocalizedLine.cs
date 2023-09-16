@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	[Serializable]
 	public partial class LocalizedLine : RefCounted

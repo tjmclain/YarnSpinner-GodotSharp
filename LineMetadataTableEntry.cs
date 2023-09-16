@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CsvHelper;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	/// <summary>
 	/// Struct holding information about a line and its associated metadata.

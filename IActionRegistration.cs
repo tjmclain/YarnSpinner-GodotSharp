@@ -3,7 +3,7 @@ using System.Collections;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	public interface IActionRegistration
 	{

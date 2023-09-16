@@ -3,7 +3,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using Godot;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	public partial class StringTableEntry : RefCounted
 	{

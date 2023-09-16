@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	public class DialogueOption
 	{

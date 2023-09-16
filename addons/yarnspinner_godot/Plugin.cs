@@ -2,7 +2,7 @@
 using Godot;
 using System;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	[Tool]
 	public partial class Plugin : EditorPlugin

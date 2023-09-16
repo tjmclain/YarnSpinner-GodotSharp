@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	public interface ICommandDispatcher : IActionRegistration
 	{

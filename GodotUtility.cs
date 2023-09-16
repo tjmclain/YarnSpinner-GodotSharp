@@ -7,7 +7,7 @@ using Godot;
 
 using GodotNode = Godot.Node;
 
-namespace Yarn.GodotEngine
+namespace Yarn.Godot
 {
 	public static class GodotUtility
 	{
