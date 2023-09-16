@@ -2,7 +2,7 @@
 using Godot;
 using Godot.Collections;
 
-namespace Yarn.Godot.Editor
+namespace Yarn.GodotEngine.Editor
 {
 	[Tool]
 	public partial class YarnProjectImporter : EditorImportPlugin

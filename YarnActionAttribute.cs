@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class YarnActionAttribute : Attribute

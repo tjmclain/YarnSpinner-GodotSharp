@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
 	[GlobalClass, Icon("res://Editor/Icons/Asset Icons/YarnProject Icon.png")]

@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
-using Yarn.Godot.LineProviders;
+using Yarn.GodotEngine.LineProviders;
 using GodotCollections = Godot.Collections;
 using GodotNode = Godot.Node;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	/// <summary>
 	/// The DialogueRunner component acts as the interface between your game and Yarn Spinner.

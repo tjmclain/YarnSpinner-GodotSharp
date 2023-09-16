@@ -1,4 +1,4 @@
-namespace Yarn.Godot.LineProviders
+namespace Yarn.GodotEngine.LineProviders
 {
 	public partial class TextLineProvider : LineProviderBehaviour
 	{
