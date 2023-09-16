@@ -6,23 +6,23 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
-using Yarn.Godot.LineProviders;
-using GodotCollections = Godot.Collections;
-using GodotNode = Godot.Node;
+using Yarn.GodotEngine.LineProviders;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	/// <summary>
 	/// The DialogueRunner component acts as the interface between your game and Yarn Spinner.
 	/// </summary>
 	// https://yarnspinner.dev/docs/unity/components/dialogue-runner/
-	public partial class DialogueRunner : GodotNode, IActionRegistration
+	public partial class DialogueRunner : Godot.Node, IActionRegistration
 	{
 		/// <summary>
 		/// The underlying object that executes Yarn instructions and provides lines, options and commands.
 		/// </summary>
 		/// <remarks>Automatically created on first access.</remarks>
 		private Dialogue _dialogue;
+
+		private ICommandDispatcher _commandDispatcher;
 
 		/// <summary>
 		/// A Unity event that is called when a node starts running.
@@ -93,7 +93,7 @@ namespace Yarn.Godot
 		public VariableStorageBehaviour VariableStorage { get; private set; }
 
 		[Export]
-		public GodotCollections.Array<DialogueViewBase> DialogueViews { get; set; }
+		public Godot.Collections.Array<DialogueViewBase> DialogueViews { get; set; }
 
 		[Export]
 		public string StartNode { get; set; } = Dialogue.DefaultStartNodeName;
@@ -118,9 +118,11 @@ namespace Yarn.Godot
 		/// <summary>
 		/// Gets the underlying <see cref="Dialogue"/> object that runs the Yarn code.
 		/// </summary>
-		public Dialogue Dialogue => _dialogue ??= CreateDialogueInstance();
+		public Dialogue Dialogue
+			=> _dialogue ??= CreateDialogueInstance();
 
-		public ICommandDispatcher CommandDispatcher { get; private set; }
+		public ICommandDispatcher CommandDispatcher
+			=> _commandDispatcher ??= CreateCommandDispatcherInstance();
 
 		/// <summary>
 		/// The <see cref="LocalizedLine"/> currently being displayed on the dialogue views.
@@ -323,7 +325,7 @@ namespace Yarn.Godot
 			if (!IsNodeReady())
 			{
 				GD.Print("!IsNodeReady; await Ready signal");
-				await ToSignal(this, GodotNode.SignalName.Ready);
+				await ToSignal(this, Godot.Node.SignalName.Ready);
 			}
 
 			if (YarnProject.NodeNames.Contains(startNode) == false)
@@ -822,7 +824,7 @@ namespace Yarn.Godot
 			}
 
 			// Create the main Dialogue runner, and pass our variableStorage to it
-			var dialogue = new Dialogue(VariableStorage)
+			_dialogue = new Dialogue(VariableStorage)
 			{
 				// Set up the logging system.
 				LogDebugMessage = delegate (string message)
@@ -852,11 +854,17 @@ namespace Yarn.Godot
 				PrepareForLinesHandler = PrepareForLines
 			};
 
-			var actions = new Actions(this, dialogue.Library);
-			CommandDispatcher = actions;
-			actions.RegisterActions();
+			CreateCommandDispatcherInstance();
 
-			return dialogue;
+			return _dialogue;
+		}
+
+		private ICommandDispatcher CreateCommandDispatcherInstance()
+		{
+			var actions = new Actions(this, Dialogue.Library);
+			_commandDispatcher = actions;
+			actions.RegisterActions();
+			return _commandDispatcher;
 		}
 
 		private void HandleDialogueComplete()

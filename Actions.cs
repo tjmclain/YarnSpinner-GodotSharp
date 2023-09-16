@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	using Converter = Func<string, object>;
 

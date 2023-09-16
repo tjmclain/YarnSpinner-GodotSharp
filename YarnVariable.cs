@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	public partial class YarnVariable : RefCounted
 	{

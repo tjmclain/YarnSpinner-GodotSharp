@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using GodotNode = Godot.Node;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	/// <summary>
 	/// A <see cref="MonoBehaviour"/> that can present lines and options to the user, when it

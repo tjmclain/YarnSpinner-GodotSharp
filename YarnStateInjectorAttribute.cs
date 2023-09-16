@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	/// <summary>
 	/// Inject state for any commands in this class using this static method.

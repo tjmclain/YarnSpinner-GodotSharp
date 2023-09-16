@@ -4,7 +4,7 @@ using System;
 
 using GodotCollections = Godot.Collections;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	/// <summary>
 	/// A simple implementation of VariableStorageBehaviour.

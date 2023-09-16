@@ -1,6 +1,6 @@
 using System;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	public class LanguageAttribute : Attribute
 	{
