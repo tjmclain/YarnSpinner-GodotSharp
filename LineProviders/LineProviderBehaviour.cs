@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using GodotNode = Godot.Node;
 
-namespace Yarn.Godot.LineProviders
+namespace Yarn.GodotEngine.LineProviders
 {
 	/// <summary>
 	/// A <see cref="MonoBehaviour"/> that produces <see cref="LocalizedLine"/> s, for use in

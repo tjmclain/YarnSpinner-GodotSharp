@@ -7,7 +7,7 @@ using Godot;
 
 using StringDictionary = Godot.Collections.Dictionary<string, string>;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
 	[Serializable]
 	public partial class LineMetadata : RefCounted

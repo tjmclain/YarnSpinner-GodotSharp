@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.Godot
+namespace Yarn.GodotEngine
 {
     /// <summary>
     /// Marks the method as a function to be registered with the running
