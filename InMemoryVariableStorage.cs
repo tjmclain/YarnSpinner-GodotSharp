@@ -34,15 +34,15 @@ namespace Yarn.GodotEngine
 	public partial class InMemoryVariableStorage : VariableStorageBehaviour
 	{
 		[Export]
-		public GodotCollections.Dictionary<string, YarnVariable> Variables = new();
+		public GodotCollections.Dictionary<string, Variable> Variables = new();
 
-		public void SetValue(string variableName, YarnVariableType type, string value)
+		public void SetValue(string variableName, VariableType type, string value)
 		{
 			ValidateVariableName(variableName);
 
 			if (!Variables.TryGetValue(variableName, out var variable))
 			{
-				variable = new YarnVariable()
+				variable = new Variable()
 				{
 					Name = variableName
 				};
@@ -55,13 +55,13 @@ namespace Yarn.GodotEngine
 
 		#region VariableStorageBehaviour
 		public override void SetValue(string variableName, string stringValue)
-			=> SetValue(variableName, YarnVariableType.String, stringValue);
+			=> SetValue(variableName, VariableType.String, stringValue);
 
 		public override void SetValue(string variableName, float floatValue)
-			=> SetValue(variableName, YarnVariableType.Number, floatValue.ToString());
+			=> SetValue(variableName, VariableType.Number, floatValue.ToString());
 
 		public override void SetValue(string variableName, bool boolValue)
-			=> SetValue(variableName, YarnVariableType.Boolean, boolValue.ToString());
+			=> SetValue(variableName, VariableType.Boolean, boolValue.ToString());
 
 		/// <summary>
 		/// Retrieves a <see cref="Value"/> by name.
@@ -76,13 +76,13 @@ namespace Yarn.GodotEngine
 		/// variableName is not a valid variable name.</exception>
 		public override bool TryGetValue<T>(string variableName, out T result)
 		{
-			static Type VariableTypeToSystemType(YarnVariableType type)
+			static Type VariableTypeToSystemType(VariableType type)
 			{
 				return type switch
 				{
-					YarnVariableType.String => typeof(string),
-					YarnVariableType.Number => typeof(float),
-					YarnVariableType.Boolean => typeof(bool),
+					VariableType.String => typeof(string),
+					VariableType.Number => typeof(float),
+					VariableType.Boolean => typeof(bool),
 					_ => throw new ArgumentException("invalid YarnVariableType; type = " + type),
 				};
 			}

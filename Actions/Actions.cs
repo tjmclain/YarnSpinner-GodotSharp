@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Yarn.GodotEngine
+namespace Yarn.GodotEngine.Actions
 {
 	using Converter = Func<string, object>;
 
@@ -169,7 +169,7 @@ namespace Yarn.GodotEngine
 					{
 						requirementDescription = $"{min} {DiagnosticUtility.EnglishPluraliseNounCount(max, "parameter")}";
 					}
-					message = $"{this.Name} requires {requirementDescription}, but {argumentCount} {DiagnosticUtility.EnglishPluraliseWasVerb(argumentCount)} provided.";
+					message = $"{Name} requires {requirementDescription}, but {argumentCount} {DiagnosticUtility.EnglishPluraliseWasVerb(argumentCount)} provided.";
 					result = default;
 					return false;
 				}
@@ -241,7 +241,7 @@ namespace Yarn.GodotEngine
 						commandTask = default;
 						return new CommandDispatchResult
 						{
-							Message = $"{this.Name} needs a target, but none was specified",
+							Message = $"{Name} needs a target, but none was specified",
 							Status = CommandDispatchResult.StatusType.InvalidParameterCount
 						};
 					}
@@ -275,7 +275,7 @@ namespace Yarn.GodotEngine
 						commandTask = default;
 						return new CommandDispatchResult
 						{
-							Message = $"{this.Name} can't be called on {nodeName}, because it doesn't have a {this.DeclaringType.Name}",
+							Message = $"{Name} can't be called on {nodeName}, because it doesn't have a {DeclaringType.Name}",
 							Status = CommandDispatchResult.StatusType.TargetMissingComponent
 						};
 					}
@@ -294,10 +294,10 @@ namespace Yarn.GodotEngine
 				else
 				{
 					// We don't know what to call this method on.
-					throw new InvalidOperationException($"Internal error: {nameof(CommandRegistration)} \"{this.Name}\" has no {nameof(Target)}, but method is not static and ${DynamicallyFindsTarget} is false");
+					throw new InvalidOperationException($"Internal error: {nameof(CommandRegistration)} \"{Name}\" has no {nameof(Target)}, but method is not static and ${DynamicallyFindsTarget} is false");
 				}
 
-				if (this.TryParseArgs(parameters.ToArray(), out var finalParameters, out var errorMessage) == false)
+				if (TryParseArgs(parameters.ToArray(), out var finalParameters, out var errorMessage) == false)
 				{
 					commandTask = default;
 					return new CommandDispatchResult
@@ -307,7 +307,7 @@ namespace Yarn.GodotEngine
 					};
 				}
 
-				var returnValue = this.Method.Invoke(target, finalParameters);
+				var returnValue = Method.Invoke(target, finalParameters);
 
 				if (returnValue is Task task)
 				{
@@ -369,7 +369,7 @@ namespace Yarn.GodotEngine
 				{ typeof(int), "number" },
 				{ typeof(float), "number" },
 				{ typeof(double), "number" },
-				{ typeof(Decimal), "number" },
+				{ typeof(decimal), "number" },
 				{ typeof(string), "string" },
 				{ typeof(bool), "bool" },
 			};
@@ -608,7 +608,7 @@ namespace Yarn.GodotEngine
 			};
 		}
 
-		internal static HashSet<System.Action<IActionRegistration>> ActionRegistrationMethods = new HashSet<Action<IActionRegistration>>();
+		internal static HashSet<Action<IActionRegistration>> ActionRegistrationMethods = new HashSet<Action<IActionRegistration>>();
 
 		public static void AddRegistrationMethod(Action<IActionRegistration> registerActions)
 		{
@@ -631,37 +631,37 @@ namespace Yarn.GodotEngine
 
 		public void AddCommandHandler(string commandName, Func<IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1>(string commandName, Func<T1, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1, T2>(string commandName, Func<T1, T2, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1, T2, T3>(string commandName, Func<T1, T2, T3, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1, T2, T3, T4>(string commandName, Func<T1, T2, T3, T4, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1, T2, T3, T4, T5>(string commandName, Func<T1, T2, T3, T4, T5, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		public void AddCommandHandler<T1, T2, T3, T4, T5, T6>(string commandName, Func<T1, T2, T3, T4, T5, T6, IEnumerator> handler)
 		{
-			this.AddCommandHandler(commandName, (Delegate)handler);
+			AddCommandHandler(commandName, (Delegate)handler);
 		}
 
 		/// <summary>

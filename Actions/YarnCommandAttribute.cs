@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.GodotEngine
+namespace Yarn.GodotEngine.Actions
 {
 	#region Class/Interface
 
@@ -23,7 +23,7 @@ namespace Yarn.GodotEngine
 	/// one is found, it is checked to see if any of the <see
 	/// cref="MonoBehaviour"/>s attached to the class has a <see
 	/// cref="YarnCommandAttribute"/> whose <see
-	/// cref="YarnCommandAttribute.CommandString"/> matching the first word of
+	/// cref="CommandString"/> matching the first word of
 	/// the command.
 	/// </para>
 	/// <para>If the method is static, it will not try to inject an

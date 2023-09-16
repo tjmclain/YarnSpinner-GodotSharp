@@ -852,7 +852,7 @@ namespace Yarn.GodotEngine
 				PrepareForLinesHandler = PrepareForLines
 			};
 
-			var actions = new Actions(this, dialogue.Library);
+			var actions = new Actions.Actions(this, dialogue.Library);
 			CommandDispatcher = actions;
 			actions.RegisterActions();
 

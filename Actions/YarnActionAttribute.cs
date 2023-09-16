@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yarn.GodotEngine
+namespace Yarn.GodotEngine.Actions
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
 	public class YarnActionAttribute : Attribute

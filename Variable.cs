@@ -3,13 +3,13 @@ using System;
 
 namespace Yarn.GodotEngine
 {
-	public partial class YarnVariable : RefCounted
+	public partial class Variable : RefCounted
 	{
 		[Export]
 		public string Name = "";
 
 		[Export]
-		public YarnVariableType Type = YarnVariableType.String;
+		public VariableType Type = VariableType.String;
 
 		[Export]
 		public string Value = "";
