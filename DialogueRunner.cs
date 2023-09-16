@@ -6,9 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Godot;
-using GodotCollections = Godot.Collections;
-using GodotNode = Godot.Node;
-using FileAccess = Godot.FileAccess;
+using Yarn.GodotEngine.LineProviders;
 
 namespace Yarn.GodotEngine
 {
@@ -17,7 +15,7 @@ namespace Yarn.GodotEngine
     /// Yarn Spinner.
     /// </summary>
     // https://yarnspinner.dev/docs/unity/components/dialogue-runner/
-    public partial class DialogueRunner : GodotNode, IActionRegistration
+    public partial class DialogueRunner : Godot.Node, IActionRegistration
     {
         /// <summary>
         /// The <see cref="YarnProject"/> asset that should be loaded on
@@ -50,7 +48,7 @@ namespace Yarn.GodotEngine
         /// The View classes that will present the dialogue to the user.
         /// </summary>
         [Export]
-        public GodotCollections.Array<DialogueViewBase> dialogueViews = new();
+        public Godot.Collections.Array<DialogueViewBase> dialogueViews = new();
 
         /// <summary>The name of the node to start from.</summary>
         /// <remarks>
