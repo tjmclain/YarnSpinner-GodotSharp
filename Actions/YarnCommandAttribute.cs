@@ -13,7 +13,7 @@ namespace Yarn.GodotEngine.Actions
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// When a <see cref="DialogueRunner"/> receives a <see cref="Command"/>,
+	/// When a <see cref="DialogueRunner"/> receives a <see cref="Yarn.Command"/>,
 	/// and no command handler has been installed for the command, it splits it
 	/// by spaces, and then checks to see if the second word, if any, is the
 	/// name of an object.
