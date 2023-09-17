@@ -138,7 +138,6 @@ namespace Yarn.GodotEngine.Editor.Importers
 				});
 
 			yarnProgram.StringTableEntries = new(stringTableEntries);
-			yarnProgram.SerializedStringTableEntries = Json.Stringify(stringTableEntries.ToArray());
 
 			string fileName = $"{savePath}.{_GetSaveExtension()}";
 			return ResourceSaver.Save(yarnProgram, fileName);
