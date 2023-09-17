@@ -1,7 +1,46 @@
-[gd_resource type="Resource" script_class="YarnProject" load_steps=2 format=3 uid="uid://coukyhncrjyrq"]
+[gd_resource type="Resource" script_class="YarnProject" load_steps=9 format=3 uid="uid://coukyhncrjyrq"]
 
 [ext_resource type="Script" path="res://Yarn.GodotEngine/YarnProject.cs" id="1_6ky8k"]
+[ext_resource type="Script" path="res://Yarn.GodotEngine/Variable.cs" id="1_o6mgs"]
+[ext_resource type="Script" path="res://Yarn.GodotEngine/StringTableEntry.cs" id="2_4r4f2"]
+[ext_resource type="Script" path="res://Yarn.GodotEngine/YarnProgram.cs" id="3_76dnj"]
+
+[sub_resource type="Resource" id="Resource_rxqoc"]
+script = ExtResource("1_o6mgs")
+Name = "$variable"
+Type = 2
+Value = "True"
+
+[sub_resource type="Resource" id="Resource_ymuu3"]
+script = ExtResource("2_4r4f2")
+Language = ""
+Id = "line:cffbae8e"
+Text = "This is a line of action description."
+File = "res://yarn_program.yarn"
+Node = "Start_ospPox4jqirU1S"
+LineNumber = "6"
+Lock = "37b62664"
+Comment = ""
+MetaData = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_50q7p"]
+script = ExtResource("2_4r4f2")
+Language = ""
+Id = "line:59cba9f9"
+Text = "Hero: I am here to save the day!"
+File = "res://yarn_program.yarn"
+Node = "Start_ospPox4jqirU1S"
+LineNumber = "9"
+Lock = "c68268c5"
+Comment = "Line metadata: hello:world"
+MetaData = PackedStringArray("hello:world")
+
+[sub_resource type="Resource" id="Resource_h5u7t"]
+script = ExtResource("3_76dnj")
+Declarations = [SubResource("Resource_rxqoc")]
+StringTableEntries = [SubResource("Resource_ymuu3"), SubResource("Resource_50q7p")]
+Errors = PackedStringArray()
 
 [resource]
 script = ExtResource("1_6ky8k")
-Programs = []
+Programs = [SubResource("Resource_h5u7t")]

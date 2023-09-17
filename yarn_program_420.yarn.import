@@ -12,4 +12,4 @@ dest_files=["res://.godot/imported/yarn_program_420.yarn-af88595f7c431dcf5064b4d
 
 [params]
 
-translationPath=""
+translationsDirPath="res://translations/"

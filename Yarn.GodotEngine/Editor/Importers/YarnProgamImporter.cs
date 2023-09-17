@@ -11,7 +11,8 @@ namespace Yarn.GodotEngine.Editor.Importers
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
-		private const string _translationsDirPathOption = "translationsDirPath";
+		private const string _baseLanguageOption = "base_language";
+		private const string _translationsDirectoryOption = "translations_directory";
 
 		public override string _GetImporterName()
 		{
@@ -66,7 +67,12 @@ namespace Yarn.GodotEngine.Editor.Importers
 			{
 				new Dictionary
 				{
-					{ "name", _translationsDirPathOption },
+					{ "name", _baseLanguageOption },
+					{ "default_value", "en" }
+				},
+				new Dictionary
+				{
+					{ "name", _translationsDirectoryOption },
 					{ "default_value", "res://translations/" },
 				}
 			};
@@ -152,8 +158,9 @@ namespace Yarn.GodotEngine.Editor.Importers
 			yarnProgram.StringTableEntries = new(stringTableEntries);
 
 			// Create or find translations
-			var translationsDirPath = options[_translationsDirPathOption].ToString();
+			var translationsDirPath = options[_translationsDirectoryOption].ToString();
 			// TODO: create translations csv
+			var language = options[_baseLanguageOption];
 
 			string fileName = $"{savePath}.{_GetSaveExtension()}";
 			return ResourceSaver.Save(yarnProgram, fileName);
