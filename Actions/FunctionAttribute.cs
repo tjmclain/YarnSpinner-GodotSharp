@@ -29,7 +29,7 @@ namespace Yarn.GodotEngine.Actions
 	/// will be done for you automatically when your code compiles.
 	/// </para>
 	/// </remarks>
-	public class YarnFunctionAttribute : YarnActionAttribute
+	public class FunctionAttribute : ActionAttribute
 	{
 		[Obsolete("Use " + nameof(Name) + " instead.")]
 		public string FunctionName
@@ -38,7 +38,7 @@ namespace Yarn.GodotEngine.Actions
 			set => Name = value;
 		}
 
-		public YarnFunctionAttribute(string name) : base(name)
+		public FunctionAttribute(string name) : base(name)
 		{
 		}
 	}

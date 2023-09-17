@@ -22,7 +22,7 @@ namespace Yarn.GodotEngine.Actions
 	/// By default, it checks for any <see cref="GameObject"/>s in the scene. If
 	/// one is found, it is checked to see if any of the <see
 	/// cref="MonoBehaviour"/>s attached to the class has a <see
-	/// cref="YarnCommandAttribute"/> whose <see
+	/// cref="CommandAttribute"/> whose <see
 	/// cref="CommandString"/> matching the first word of
 	/// the command.
 	/// </para>
@@ -92,7 +92,7 @@ namespace Yarn.GodotEngine.Actions
 	/// will be done for you automatically when your code compiles.
 	/// </para>
 	/// </remarks>
-	public class YarnCommandAttribute : YarnActionAttribute
+	public class CommandAttribute : ActionAttribute
 	{
 		[Obsolete("Use " + nameof(Name) + " instead.")]
 		public string CommandString
@@ -119,7 +119,7 @@ namespace Yarn.GodotEngine.Actions
 		/// </remarks>
 		public string Injector { get; set; } = string.Empty;
 
-		public YarnCommandAttribute(string name) : base(name)
+		public CommandAttribute(string name) : base(name)
 		{
 		}
 	}

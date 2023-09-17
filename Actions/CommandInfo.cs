@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace Yarn.GodotEngine.Actions
 {
 	using Converter = Func<string, object>;
+	using GodotNode = Godot.Node;
 
-	public class Command
+	public class CommandInfo
 	{
-		public Command(string name, Delegate implementation)
+		public CommandInfo(string name, Delegate implementation)
 		{
 			Name = name;
 			Method = implementation.Method;
@@ -18,7 +21,7 @@ namespace Yarn.GodotEngine.Actions
 			Converters = CreateConverters(Method);
 		}
 
-		public Command(string name, MethodInfo method)
+		public CommandInfo(string name, MethodInfo method)
 		{
 			if (!method.IsStatic)
 			{
@@ -105,7 +108,7 @@ namespace Yarn.GodotEngine.Actions
 			}
 			else
 			{
-				commandTask = null;
+				commandTask = default;
 				return new CommandDispatchResult
 				{
 					Status = CommandDispatchResult.StatusType.SucceededSync
@@ -121,10 +124,12 @@ namespace Yarn.GodotEngine.Actions
 
 				// well, I mean...
 				if (targetType == typeof(string))
-				{ return arg => arg; }
+				{
+					return arg => arg;
+				}
 
 				// find the GameObject.
-				if (typeof(Node).IsAssignableFrom(targetType))
+				if (typeof(GodotNode).IsAssignableFrom(targetType))
 				{
 					return arg => GodotUtility.GetNode(arg);
 				}
@@ -148,8 +153,13 @@ namespace Yarn.GodotEngine.Actions
 
 						// We can't parse the argument.
 						throw new ArgumentException(
-							$"Can't convert the given parameter at position {index + 1} (\"{arg}\") to parameter " +
-							$"{parameter.Name} of type {typeof(bool).FullName}.");
+							new StringBuilder()
+							.Append("Can't convert the given parameter at ")
+							.Append($"position {index + 1} '{arg}' ")
+							.Append($"to parameter {parameter.Name} ")
+							.Append($"of type {typeof(bool).FullName}")
+							.ToString()
+						);
 					};
 				}
 
@@ -160,28 +170,29 @@ namespace Yarn.GodotEngine.Actions
 					{
 						return Convert.ChangeType(arg, targetType, CultureInfo.InvariantCulture);
 					}
-					catch (Exception e)
+					catch (Exception ex)
 					{
 						throw new ArgumentException(
-							$"Can't convert the given parameter at position {index + 1} (\"{arg}\") to parameter " +
-							$"{parameter.Name} of type {targetType.FullName}: {e}", e);
+							new StringBuilder()
+							.Append("Can't convert the given parameter at ")
+							.Append($"position {index + 1} (\"{arg}\") ")
+							.Append($"to parameter {parameter.Name} ")
+							.Append($"of type {targetType.FullName}: ")
+							.Append(ex.Message)
+							.ToString(),
+							ex
+						);
 					}
 				};
 			}
 
 			ParameterInfo[] parameterInfos = method.GetParameters();
+			Converter[] result = new Converter[parameterInfos.Length];
 
-			Converter[] result = (Func<string, object>[])Array.CreateInstance(
-				typeof(Func<string, object>),
-				parameterInfos.Length
-			);
-
-			int i = 0;
-
-			foreach (var parameterInfo in parameterInfos)
+			for (int i = 0; i < parameterInfos.Length; i++)
 			{
-				result[i] = CreateConverter(parameterInfo, i);
-				i++;
+				var info = parameterInfos[i];
+				result[i] = CreateConverter(info, i);
 			}
 			return result;
 		}

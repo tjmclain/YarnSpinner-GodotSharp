@@ -10,7 +10,7 @@ namespace Yarn.GodotEngine.LineProviders
 				TextID = line.ID,
 				RawText = text,
 				Substitutions = line.Substitutions,
-				Metadata = YarnProject.lineMetadata.GetMetadata(line.ID),
+				Metadata = YarnProject.LineMetadata[line.ID],
 			};
 		}
 	}

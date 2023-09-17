@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Yarn.GodotEngine.Actions
 {
 	[AttributeUsage(AttributeTargets.Method, Inherited = false)]
-	public class YarnActionAttribute : Attribute
+	public class ActionAttribute : Attribute
 	{
 		/// <summary>
 		/// The name of the command or function, as it exists in Yarn.
@@ -20,6 +20,6 @@ namespace Yarn.GodotEngine.Actions
 		/// </remarks>
 		public string Name { get; set; }
 
-		public YarnActionAttribute(string name) => Name = name;
+		public ActionAttribute(string name) => Name = name;
 	}
 }
