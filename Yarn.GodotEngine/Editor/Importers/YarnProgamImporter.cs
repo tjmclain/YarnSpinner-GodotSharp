@@ -1,9 +1,7 @@
 #if TOOLS
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using Antlr4.Runtime.Atn;
 using Godot;
 using Godot.Collections;
 using Yarn.Compiler;
@@ -13,6 +11,8 @@ namespace Yarn.GodotEngine.Editor.Importers
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
+		private const string _translationsDirPathOption = "translationsDirPath";
+
 		public override string _GetImporterName()
 		{
 			return typeof(YarnProgramImporter).FullName;
@@ -62,7 +62,19 @@ namespace Yarn.GodotEngine.Editor.Importers
 
 		public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
 		{
-			return new Array<Dictionary>();
+			return new Array<Dictionary>
+			{
+				new Dictionary
+				{
+					{ "name", _translationsDirPathOption },
+					{ "default_value", "res://translations/" },
+				}
+			};
+		}
+
+		public override bool _GetOptionVisibility(string path, StringName optionName, Dictionary options)
+		{
+			return true;
 		}
 
 		public override Error _Import(
@@ -139,9 +151,12 @@ namespace Yarn.GodotEngine.Editor.Importers
 
 			yarnProgram.StringTableEntries = new(stringTableEntries);
 
+			// Create or find translations
+			var translationsDirPath = options[_translationsDirPathOption].ToString();
+			// TODO: create translations csv
+
 			string fileName = $"{savePath}.{_GetSaveExtension()}";
 			return ResourceSaver.Save(yarnProgram, fileName);
-
 		}
 
 		/// <summary>
@@ -153,7 +168,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 		/// <returns>The hash of <paramref name="inputString"/>.</returns>
 		private static byte[] GetHash(string inputString)
 		{
-			using (HashAlgorithm algorithm = SHA256.Create())
+			using (var algorithm = System.Security.Cryptography.SHA256.Create())
 			{
 				return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
 			}

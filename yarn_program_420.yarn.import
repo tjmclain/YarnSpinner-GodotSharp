@@ -1,0 +1,15 @@
+[remap]
+
+importer="Yarn.GodotEngine.Editor.Importers.YarnProgramImporter"
+type="Resource"
+uid="uid://b3jwsk2718cvr"
+path="res://.godot/imported/yarn_program_420.yarn-af88595f7c431dcf5064b4dad2fb3da3.tres"
+
+[deps]
+
+source_file="res://yarn_program_420.yarn"
+dest_files=["res://.godot/imported/yarn_program_420.yarn-af88595f7c431dcf5064b4dad2fb3da3.tres"]
+
+[params]
+
+translationPath=""
