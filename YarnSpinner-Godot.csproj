@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<EnableDynamicLoading>true</EnableDynamicLoading>
-		<RootNamespace>Yarn.GodotEngine</RootNamespace>
 		<PackageOutputPath>$(GodotProjectDir)addons\yarnspinner_godot\bin\</PackageOutputPath>
 	</PropertyGroup>
 	<ItemGroup>
