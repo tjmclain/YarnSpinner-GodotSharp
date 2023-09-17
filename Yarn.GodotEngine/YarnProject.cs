@@ -8,26 +8,20 @@ namespace Yarn.GodotEngine
 	using NodeHeaders = Dictionary<string, List<string>>;
 
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
-	[GlobalClass, Icon("res://Editor/Icons/Asset Icons/YarnProject Icon.png")]
+	[GlobalClass, Icon("res://addons/yarnspinner_godot/Icons/Asset Icons/YarnProject Icon.png")]
 	public partial class YarnProject : Resource
 	{
-		[Export]
-		public byte[] CompiledYarnProgram { get; set; } = Array.Empty<byte>();
-
-		[Export]
-		public Godot.Collections.Dictionary<string, string[]> LineMetadata { get; set; } = new();
-
-		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
-
 		/// <summary>
 		/// The cached result of deserializing <see cref="CompiledYarnProgram"/>.
 		/// </summary>
-		private Program _cachedProgram = null;
+		private Program _program = null;
 
-		/// <summary>
-		/// The cached result of reading the default values from the <see cref="Program"/>.
-		/// </summary>
-		private Dictionary<string, IConvertible> _initialValues;
+		private Dictionary<string, StringTableEntry> _stringTableEntries = new();
+
+		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
+
+		[Export]
+		public Godot.Collections.Array<YarnProgram> Programs { get; set; } = new();
 
 		/// <summary>
 		/// Gets the Yarn Program stored in this project.
@@ -36,8 +30,7 @@ namespace Yarn.GodotEngine
 		/// The first time this is called, the program stored in <see cref="CompiledYarnProgram"/>
 		/// is deserialized and cached. Future calls to this method will return the cached value.
 		/// </remarks>
-		public Program Program
-			=> _cachedProgram ??= Program.Parser.ParseFrom(CompiledYarnProgram);
+		public Program Program => _program ?? CompileProgram();
 
 		/// <summary>
 		/// The names of all nodes contained within the <see cref="Program"/>.
@@ -46,50 +39,8 @@ namespace Yarn.GodotEngine
 					? Program.Nodes.Keys.ToArray()
 					: Array.Empty<string>();
 
-		/// <summary>
-		/// The default values of all declared or inferred variables in the <see cref="Program"/>.
-		/// Organised by their name as written in the yarn files.
-		/// </summary>
-		public Dictionary<string, IConvertible> GetInitialValues()
-		{
-			if (_initialValues != null)
-			{
-				return _initialValues;
-			}
-
-			_initialValues = new Dictionary<string, IConvertible>();
-
-			foreach (var pair in Program.InitialValues)
-			{
-				var value = pair.Value;
-				switch (value.ValueCase)
-				{
-					case Operand.ValueOneofCase.StringValue:
-						{
-							_initialValues[pair.Key] = value.StringValue;
-							break;
-						}
-					case Operand.ValueOneofCase.BoolValue:
-						{
-							_initialValues[pair.Key] = value.BoolValue;
-							break;
-						}
-					case Operand.ValueOneofCase.FloatValue:
-						{
-							_initialValues[pair.Key] = value.FloatValue;
-							break;
-						}
-					default:
-						{
-							GD.PrintErr(
-								$"{pair.Key} is of an invalid type: {value.ValueCase}"
-							);
-							break;
-						}
-				}
-			}
-			return _initialValues;
-		}
+		public Dictionary<string, StringTableEntry> StringTableEntries
+			=> _stringTableEntries;
 
 		/// <summary>
 		/// Gets the headers for the requested node.
@@ -146,6 +97,33 @@ namespace Yarn.GodotEngine
 		public Node GetNode(string nodeName)
 		{
 			return Program.Nodes.TryGetValue(nodeName, out Node node) ? node : null;
+		}
+
+		public Program CompileProgram()
+		{
+			if (Programs.Count == 0)
+			{
+				GD.PushError("CompileProgram: Programs.Count == 0");
+				_program = new Program();
+				return _program;
+			}
+
+			// Compile program
+			var filePaths = Programs
+				.Select(x => x.ResourcePath)
+				.Select(x => ProjectSettings.GlobalizePath(x));
+
+			var job = Compiler.CompilationJob.CreateFromFiles(filePaths);
+			var compilation = Compiler.Compiler.Compile(job);
+
+			_program = compilation.Program;
+
+			// Combine string table entries
+			_stringTableEntries = Programs
+				.SelectMany(x => x.StringTableEntries)
+				.ToDictionary(x => x.Id, x => x);
+
+			return _program;
 		}
 	}
 }

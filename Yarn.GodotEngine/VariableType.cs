@@ -8,6 +8,7 @@ namespace Yarn.GodotEngine
 {
 	public enum VariableType
 	{
+		Invalid = -1,
 		String,
 		Number,
 		Boolean
