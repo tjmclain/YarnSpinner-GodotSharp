@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dnkldn4877mox"
+
+[deps]
+
+files=["res://translations/yarn_program_420.en.translation"]
+
+source_file="res://translations/yarn_program_420.csv"
+dest_files=["res://translations/yarn_program_420.en.translation"]
+
+[params]
+
+compress=true
+delimiter=0

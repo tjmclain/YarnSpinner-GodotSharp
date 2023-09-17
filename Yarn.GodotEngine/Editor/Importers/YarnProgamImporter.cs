@@ -5,14 +5,20 @@ using System.Text;
 using Godot;
 using Godot.Collections;
 using Yarn.Compiler;
+using System.IO;
+using System;
+using System.Threading.Tasks.Sources;
 
 namespace Yarn.GodotEngine.Editor.Importers
 {
+	using FileAccess = Godot.FileAccess;
+
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
+		private const string _exportTranslationOption = "export_translation_file";
 		private const string _baseLanguageOption = "base_language";
-		private const string _translationsDirectoryOption = "translations_directory";
+		private const string _translationsDirOption = "translations_directory";
 
 		public override string _GetImporterName()
 		{
@@ -67,18 +73,27 @@ namespace Yarn.GodotEngine.Editor.Importers
 			{
 				new Dictionary
 				{
-					{ "name", _baseLanguageOption },
-					{ "default_value", "en" }
+					{ "name", _exportTranslationOption },
+					{ "default_value", false },
 				},
 				new Dictionary
 				{
-					{ "name", _translationsDirectoryOption },
+					{ "name", _baseLanguageOption },
+					{ "default_value", "en" },
+				},
+				new Dictionary
+				{
+					{ "name", _translationsDirOption },
 					{ "default_value", "res://translations/" },
 				}
 			};
 		}
 
-		public override bool _GetOptionVisibility(string path, StringName optionName, Dictionary options)
+		public override bool _GetOptionVisibility(
+			string path,
+			StringName optionName,
+			Dictionary options
+		)
 		{
 			return true;
 		}
@@ -91,6 +106,147 @@ namespace Yarn.GodotEngine.Editor.Importers
 			Array<string> genFiles
 		)
 		{
+			Error ExportTranslationFile(
+				IEnumerable<StringTableEntry> stringTableEntries,
+				out string filePath
+			)
+			{
+				filePath = string.Empty;
+				if (!stringTableEntries.Any())
+				{
+					GD.PushError("stringTableEntries.Count() == 0");
+					return Error.InvalidData;
+				}
+
+				if (!options.TryGetValue(_exportTranslationOption, out var exportOption))
+				{
+					GD.PushError("!options.TryGetValue(_exportTranslationOption)");
+					return Error.InvalidData;
+				}
+
+				if (!exportOption.AsBool())
+				{
+					// user disabled translation export
+					return Error.Ok;
+				}
+
+				if (!options.TryGetValue(_translationsDirOption, out var translationsDirOption))
+				{
+					GD.PushError("!options.TryGetValue(_translationsDirOption)");
+					return Error.InvalidData;
+				}
+
+				string translationsDir = translationsDirOption.AsString();
+				if (string.IsNullOrEmpty(translationsDir))
+				{
+					GD.PushError("string.IsNullOrEmpty(translationsDir)");
+					return Error.InvalidData;
+				}
+
+				// remove trailing slash for consistency
+				if (translationsDir.EndsWith("/"))
+				{
+					translationsDir = translationsDir.Left(translationsDir.Length - 1);
+				}
+
+				if (!options.TryGetValue(_baseLanguageOption, out var baseLanguageOption))
+				{
+					GD.PushError("!options.TryGetValue(_baseLanguageOption)");
+					return Error.InvalidData;
+				}
+
+				string baseLanguage = baseLanguageOption.AsString();
+				if (string.IsNullOrEmpty(baseLanguage))
+				{
+					GD.PushError("string.IsNullOrEmpty(baseLanguage)");
+					return Error.InvalidData;
+				}
+
+				string fileName = string.Empty;
+				try
+				{
+					fileName = Path.GetFileNameWithoutExtension(sourceFile);
+				}
+				catch (Exception ex)
+				{
+					GD.PushError(ex);
+					return Error.InvalidData;
+				}
+
+				if (string.IsNullOrEmpty(fileName))
+				{
+					GD.PushError("string.IsNullOrEmpty(fileName)");
+					return Error.InvalidData;
+				}
+
+				if (!DirAccess.DirExistsAbsolute(translationsDir))
+				{
+					var makeDirErr = DirAccess.MakeDirAbsolute(translationsDir);
+					if (makeDirErr != Error.Ok)
+					{
+						GD.PushError($"!DirAccess.MakeDirAbsolute ({translationsDir}); error = {makeDirErr}");
+						return makeDirErr;
+					}
+				}
+
+				filePath = $"{translationsDir}/{fileName}.csv";
+				using var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Write);
+
+				if (file == null)
+				{
+					GD.PushError($"file == null ({filePath}); error = {FileAccess.GetOpenError()}");
+					return FileAccess.GetOpenError();
+				}
+
+				// TODO: read existing translations and compare against string table entries
+
+				var headers = new HashSet<string>
+				{
+					"key",
+					baseLanguage
+				};
+
+				var languages = TranslationServer.GetLoadedLocales();
+				foreach (var lc in languages)
+				{
+					headers.Add(lc);
+				}
+
+				file.StoreCsvLine(headers.ToArray());
+				foreach (var entry in stringTableEntries)
+				{
+					string[] line = new string[]
+					{
+						entry.Id,
+						entry.Text
+					};
+					file.StoreCsvLine(line);
+				}
+
+				GD.Print($"Exported translation at '{filePath}'");
+				file.Close();
+
+				// TODO: this isn't working the way I expect.
+				// The CSV I export has an "X" next to it, and I can't open it.
+				// I get these errors:
+				// 1)	Failed loading resource: res://translations/yarn_program_420.csv.
+				//		Make sure resources have been imported by opening the project in the editor at least once.
+				// 2)	editor/editor_node.cpp:1225 - Condition "!res.is_valid()" is true. Returning: ERR_CANT_OPEN
+				// Maybe make a post about this on the forums?
+				using var dummyScript = new EditorScript();
+				using var fs = dummyScript.GetEditorInterface().GetResourceFilesystem();
+				fs.UpdateFile(filePath);
+
+				var importErr = AppendImportExternalResource(filePath);
+				if (importErr != Error.Ok)
+				{
+					GD.PushError($"!AppendImportExternalResource '{filePath}'; error = {importErr}");
+					return importErr;
+				}
+
+				return Error.Ok;
+			}
+
 			using var file = FileAccess.Open(sourceFile, FileAccess.ModeFlags.Read);
 			if (file.GetError() != Error.Ok)
 			{
@@ -157,10 +313,19 @@ namespace Yarn.GodotEngine.Editor.Importers
 
 			yarnProgram.StringTableEntries = new(stringTableEntries);
 
-			// Create or find translations
-			var translationsDirPath = options[_translationsDirectoryOption].ToString();
-			// TODO: create translations csv
-			var language = options[_baseLanguageOption];
+			// Export translations file
+			var exportTranslationsResult = ExportTranslationFile(
+				stringTableEntries,
+				out string translationsFile
+			);
+
+			if (exportTranslationsResult != Error.Ok)
+			{
+				return exportTranslationsResult;
+			}
+
+			yarnProgram.TranslationsFile = translationsFile;
+
 
 			string fileName = $"{savePath}.{_GetSaveExtension()}";
 			return ResourceSaver.Save(yarnProgram, fileName);

@@ -7,6 +7,9 @@ namespace Yarn.GodotEngine
 	public partial class YarnProgram : Resource
 	{
 		[Export]
+		public string TranslationsFile { get; set; } = string.Empty;
+
+		[Export]
 		public Godot.Collections.Array<Variable> Declarations { get; set; } = new();
 
 		[Export]
