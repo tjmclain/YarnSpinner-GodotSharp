@@ -493,15 +493,14 @@ namespace Yarn.GodotEngine.Editor.Importers
 			var translations = new List<string>(translationsSetting.AsStringArray());
 
 			bool changed = false;
-			string projectRoot = ProjectSettings.GlobalizePath("res://"); // cache the root path for replacement
 			foreach (var file in files)
 			{
-				// NOTE: LocalizePath isn't working for some reason. It's just giving me back the global path. Ask about this on Discord?
+				// NOTE: LocalizePath isn't working for some reason. It's just giving me back the
+				//       global path. So, I'm using my own utility method. I should ask about this
+				//       on Discord or Github and get a better answer. This works, but it's not ideal.
 				// string localPath = ProjectSettings.LocalizePath(file);
+				string localPath = GodotUtility.LocalizePath(file);
 
-				// Because LocalizePath doesn't work, I have to do a manual replacement. Ah well,
-				string localPath = file.Replace('\\', '/');
-				localPath = localPath.Replace(projectRoot, "res://");
 				if (translations.Contains(localPath))
 				{
 					continue;

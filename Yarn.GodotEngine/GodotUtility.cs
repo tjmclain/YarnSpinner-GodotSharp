@@ -66,6 +66,17 @@ namespace Yarn.GodotEngine
 			return null;
 		}
 
+		// NOTE (2023-09-18): ProjectSettings.LocalizePath was not working for me. I would pass in a
+		// valid global path to an asset under the project directory, but I would get the global
+		// path back, not a 'res://' relative path. So, for now, I have to do the replacement manually.
+		public static string LocalizePath(string globalPath)
+		{
+			string projectRoot = ProjectSettings.GlobalizePath("res://");
+			return globalPath
+				.Replace('\\', '/')
+				.Replace(projectRoot, "res://");
+		}
+
 		// Godot prefers snake case names, but C# uses pascal and camel case names
 		public static string CSharpNameToGodotName(string value)
 		{
@@ -95,8 +106,8 @@ namespace Yarn.GodotEngine
 
 				if (c == '.')
 				{
-					// dots (e.g. in namespaces) should become slashes (e.g. paths) this delimiter marks
-					// the start of a new word, so reset our 'startOfWord' flag
+					// dots (e.g. in namespaces) should become slashes (e.g. paths) this delimiter
+					// marks the start of a new word, so reset our 'startOfWord' flag
 					prev = '/';
 					sb.Append(prev);
 					continue;
@@ -132,7 +143,6 @@ namespace Yarn.GodotEngine
 					sb.Append(prev);
 					continue;
 				}
-
 
 				if (c == '_')
 				{
