@@ -2,14 +2,14 @@
 
 importer="csv_translation"
 type="Translation"
-uid="uid://dnkldn4877mox"
+uid="uid://d1k3816h0pfgr"
 
 [deps]
 
-files=["res://translations/yarn_program_420.en.translation"]
+files=["res://translations/yarn_program_420.en.translation", "res://translations/yarn_program_420.jp.translation"]
 
 source_file="res://translations/yarn_program_420.csv"
-dest_files=["res://translations/yarn_program_420.en.translation"]
+dest_files=["res://translations/yarn_program_420.en.translation", "res://translations/yarn_program_420.jp.translation"]
 
 [params]
 

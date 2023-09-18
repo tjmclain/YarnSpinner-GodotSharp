@@ -13,8 +13,13 @@ namespace Yarn.GodotEngine
 		public override void _EnterTree()
 		{
 			// Initialization of the plugin goes here.
-			GD.Print("_EnterTree");
+			GD.Print("Yarn.GodotEngine.Plugin: _EnterTree");
 
+			// Initialize custom project settings
+			var editorInterface = GetEditorInterface();
+			Editor.EditorSettings.AddProperties(editorInterface);
+
+			// Initialize custom importers
 			_yarnProgramImporter = new YarnProgramImporter();
 			AddImportPlugin(_yarnProgramImporter);
 		}
@@ -22,8 +27,13 @@ namespace Yarn.GodotEngine
 		public override void _ExitTree()
 		{
 			// Clean-up of the plugin goes here.
-			GD.Print("_ExitTree");
+			GD.Print("Yarn.GodotEngine.Plugin: _ExitTree");
 
+			// Deinitiliaze custom project settings
+			var editorInterface = GetEditorInterface();
+			Editor.EditorSettings.RemoveProperties(editorInterface);
+
+			// Deinitialize custom importers
 			RemoveImportPlugin(_yarnProgramImporter);
 		}
 	}

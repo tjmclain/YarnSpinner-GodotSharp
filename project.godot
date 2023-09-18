@@ -22,6 +22,12 @@ project/assembly_name="YarnSpinner-Godot"
 
 enabled=PackedStringArray("res://addons/yarnspinner_godot/plugin.cfg")
 
+[internationalization]
+
+locale/translation_remaps={}
+locale/translations=PackedStringArray("res://translations/yarn_program_420.en.translation")
+locale/locale_filter_mode=0
+
 [rendering]
 
 renderer/rendering_method="mobile"
