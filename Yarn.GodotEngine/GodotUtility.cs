@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Godot;
 
 using GodotNode = Godot.Node;
@@ -7,6 +8,8 @@ namespace Yarn.GodotEngine
 {
 	public static class GodotUtility
 	{
+		private const char NullChar = '\0';
+
 		public static SceneTree GetSceneTree()
 		{
 			if (Engine.GetMainLoop() is not SceneTree sceneTree)
@@ -61,6 +64,101 @@ namespace Yarn.GodotEngine
 			}
 
 			return null;
+		}
+
+		// Godot prefers snake case names, but C# uses pascal and camel case names
+		public static string CSharpNameToGodotName(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				GD.PushError("string.IsNullOrEmpty(value)");
+				return string.Empty;
+			}
+
+			char prev = NullChar;
+
+			var sb = new StringBuilder();
+			foreach (char c in value)
+			{
+				if (char.IsUpper(c))
+				{
+					// insert underscore before uppercase characters
+					if (prev != NullChar && prev != '.')
+					{
+						sb.Append('_');
+					}
+
+					prev = char.ToLower(c);
+					sb.Append(prev);
+					continue;
+				}
+
+				if (c == '.')
+				{
+					// dots (e.g. in namespaces) should become slashes (e.g. paths) this delimiter marks
+					// the start of a new word, so reset our 'startOfWord' flag
+					prev = '/';
+					sb.Append(prev);
+					continue;
+				}
+
+				prev = c;
+				sb.Append(prev);
+			}
+
+			string result = sb.ToString();
+			GD.Print($"{value} -> {result}");
+			return result;
+		}
+
+		public static string VariableNameToFriendlyName(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				GD.PushError("string.IsNullOrEmpty(value)");
+				return string.Empty;
+			}
+
+			char prev = NullChar;
+			var sb = new StringBuilder();
+			foreach (char c in value)
+			{
+				if (char.IsLower(c))
+				{
+					prev = (prev == NullChar || prev == ' ')
+						? char.ToUpper(c)
+						: char.ToLower(c);
+
+					sb.Append(prev);
+					continue;
+				}
+
+
+				if (c == '_')
+				{
+					if (prev != NullChar && prev != ' ')
+					{
+						prev = ' ';
+						sb.Append(prev);
+					}
+					continue;
+				}
+
+				if (char.IsUpper(c))
+				{
+					if (prev != NullChar && !char.IsUpper(prev))
+					{
+						sb.Append(' ');
+					}
+				}
+
+				prev = c;
+				sb.Append(prev);
+			}
+
+			string result = sb.ToString();
+			GD.Print($"{value} -> {result}");
+			return result;
 		}
 	}
 }

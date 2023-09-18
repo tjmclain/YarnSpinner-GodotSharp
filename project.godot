@@ -25,7 +25,7 @@ enabled=PackedStringArray("res://addons/yarnspinner_godot/plugin.cfg")
 [internationalization]
 
 locale/translation_remaps={}
-locale/translations=PackedStringArray("res://translations/yarn_program_420.en.translation")
+locale/translations=PackedStringArray("res://translations/yarn_program.en.translation", "res://translations/yarn_program.jp.translation", "res://translations/yarn_program.fr.translation")
 locale/locale_filter_mode=0
 
 [rendering]

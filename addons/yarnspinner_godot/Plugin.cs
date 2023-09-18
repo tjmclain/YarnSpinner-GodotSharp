@@ -2,13 +2,18 @@
 using Godot;
 using System;
 using Yarn.GodotEngine.Editor.Importers;
+using Yarn.GodotEngine.Editor.Tests;
 
 namespace Yarn.GodotEngine
 {
 	[Tool]
 	public partial class Plugin : EditorPlugin
 	{
+		// importers
 		private YarnProgramImporter _yarnProgramImporter;
+
+		// commands
+		private ProjectSettingsTranslationTest _translationTestsCommand;
 
 		public override void _EnterTree()
 		{
@@ -22,6 +27,10 @@ namespace Yarn.GodotEngine
 			// Initialize custom importers
 			_yarnProgramImporter = new YarnProgramImporter();
 			AddImportPlugin(_yarnProgramImporter);
+
+			// Initialize commands
+			_translationTestsCommand = new ProjectSettingsTranslationTest();
+			_translationTestsCommand.AddToCommandPalette();
 		}
 
 		public override void _ExitTree()
@@ -35,6 +44,9 @@ namespace Yarn.GodotEngine
 
 			// Deinitialize custom importers
 			RemoveImportPlugin(_yarnProgramImporter);
+
+			// Deinitialize
+			_translationTestsCommand?.RemoveFromCommandPalette();
 		}
 	}
 }

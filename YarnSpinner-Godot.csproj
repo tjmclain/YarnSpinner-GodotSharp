@@ -86,7 +86,4 @@
 		<None Include="Yarn.GodotEngine\DLLs\YarnSpinner.Compiler.dll" />
 		<None Include="Yarn.GodotEngine\DLLs\YarnSpinner.dll" />
 	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Tests\" />
-	</ItemGroup>
 </Project>

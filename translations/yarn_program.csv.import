@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bpffpl3hisxme"
+
+[deps]
+
+files=["res://translations/yarn_program.en.translation", "res://translations/yarn_program.jp.translation", "res://translations/yarn_program.fr.translation"]
+
+source_file="res://translations/yarn_program.csv"
+dest_files=["res://translations/yarn_program.en.translation", "res://translations/yarn_program.jp.translation", "res://translations/yarn_program.fr.translation"]
+
+[params]
+
+compress=true
+delimiter=0
