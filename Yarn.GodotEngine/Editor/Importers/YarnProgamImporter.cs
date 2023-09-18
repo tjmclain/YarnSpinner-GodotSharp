@@ -7,11 +7,12 @@ using Godot.Collections;
 using Yarn.Compiler;
 using System.IO;
 using System;
-using System.Threading.Tasks.Sources;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Yarn.GodotEngine.Editor.Importers
 {
 	using FileAccess = Godot.FileAccess;
+	using StringDict = System.Collections.Generic.Dictionary<string, string>;
 
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
@@ -124,7 +125,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 					translationsDir = translationsDir.Left(translationsDir.Length - 1);
 				}
 
-				GD.Print("translationsDir = " + translationsDir);
+				GD.Print("- translationsDir = " + translationsDir);
 
 				var baseLocaleSetting = editorSettings.Get(EditorSettings.BaseLocaleProperty);
 				string baseLanguage = baseLocaleSetting.AsString();
@@ -134,7 +135,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 					return Error.InvalidData;
 				}
 
-				GD.Print("baseLanguage = " + baseLanguage);
+				GD.Print("- baseLanguage = " + baseLanguage);
 
 				string fileName = string.Empty;
 				try
@@ -163,21 +164,52 @@ namespace Yarn.GodotEngine.Editor.Importers
 					}
 				}
 
+				var rows = new System.Collections.Generic.Dictionary<string, StringDict>();
+				var headers = new HashSet<string>
+				{
+					"key",
+					baseLanguage
+				};
+
 				filePath = $"{translationsDir}/{fileName}.csv";
+
+				// Try to read existing translations and load them into our rows dict
+				if (FileAccess.FileExists(filePath))
+				{
+					using (var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Read))
+					{
+						string[] headerValues = file.GetCsvLine();
+						foreach (string header in headerValues)
+						{
+							headers.Add(header);
+						}
+
+						while (file.GetPosition() < file.GetLength())
+						{
+							var row = new StringDict();
+							string[] values = file.GetCsvLine();
+							for (int i = 0; i < headerValues.Length; i++)
+							{
+								string key = headerValues[i];
+								string value = values[i];
+								row[key] = value;
+							}
+
+							string id = values[0];
+							rows[id] = row;
+						}
+					}
+				}
+
+				// Write translations from string entries
 				using (var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Write))
 				{
 					if (file == null)
 					{
-						GD.PushError($"file == null ({filePath}); error = {FileAccess.GetOpenError()}");
-						return FileAccess.GetOpenError();
+						var error = FileAccess.GetOpenError();
+						GD.PushError($"!FileAccess.Open '{filePath}'; error = {error}");
+						return error;
 					}
-
-					// TODO: read existing translations and compare against string table entries
-					var headers = new HashSet<string>
-					{
-						"key",
-						baseLanguage
-					};
 
 					var localesSetting = editorSettings.Get(EditorSettings.SupportedLocalesProperty);
 					var locales = localesSetting.AsStringArray();
@@ -186,24 +218,43 @@ namespace Yarn.GodotEngine.Editor.Importers
 						headers.Add(lc);
 					}
 
-					GD.Print("locales = " + locales.Join(", "));
+					GD.Print("- locales = " + locales.Join(", "));
 
-					file.StoreCsvLine(headers.ToArray());
+					// Reconcile new and existing entries
+					// TODO: cleanup ids that don't exist in incoming entries
 					foreach (var entry in stringTableEntries)
 					{
-						string[] line = new string[headers.Count];
-						line[0] = entry.Id;
-						line[1] = entry.Text;
-						for (int i = 2; i < line.Length; i++)
+						if (rows.TryGetValue(entry.Id, out var row))
 						{
-							// TODO: populate additional locales with temp strings
-							line[i] = entry.Text;
+							row[baseLanguage] = entry.Text;
+							continue;
 						}
 
-						file.StoreCsvLine(line);
+						rows[entry.Id] = new StringDict()
+						{
+							{ "key", entry.Id },
+							{ baseLanguage, entry.Text }
+						};
 					}
 
-					GD.Print($"Exported translation at '{filePath}'");
+					// Write header row
+					file.StoreCsvLine(headers.ToArray());
+
+					var enumerator = rows.GetEnumerator();
+					while (enumerator.MoveNext())
+					{
+						var row = enumerator.Current.Value;
+						var values = new List<string>(headers.Count);
+						foreach (string key in headers)
+						{
+							row.TryGetValue(key, out string value);
+							values.Add(value);
+						}
+
+						file.StoreCsvLine(values.ToArray());
+					}
+
+					GD.Print($"- Exported translation at '{filePath}'");
 				}
 
 				// NOTE: if I don't include this, AppendImportExternalResource 
@@ -221,10 +272,14 @@ namespace Yarn.GodotEngine.Editor.Importers
 				return Error.Ok;
 			}
 
+			GD.Print($"Importing '{sourceFile}'");
+
 			using var file = FileAccess.Open(sourceFile, FileAccess.ModeFlags.Read);
-			if (file.GetError() != Error.Ok)
+			if (file == null)
 			{
-				return Error.Failed;
+				var fileError = FileAccess.GetOpenError();
+				GD.PushError($"!FileAccess.Open '{sourceFile}'; error = {fileError}");
+				return fileError;
 			}
 
 			var yarnProgram = new YarnProgram();
@@ -312,6 +367,8 @@ namespace Yarn.GodotEngine.Editor.Importers
 				GD.PushError($"!ResourceSaver.Save '{fileName}'; err = " + saveResult);
 				return saveResult;
 			}
+
+			GD.Print($"- Saved yarn program resource '{fileName}'");
 
 			return Error.Ok;
 		}

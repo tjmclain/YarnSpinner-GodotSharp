@@ -1,3 +1,4 @@
-key,en,jp
-line:db6e3e35,This is a line of text.,This is a line of text.
-line:4d5e3942,Character: And this is a character dialogue line.,Character: And this is a character dialogue line.
+key,en,jp,fr
+line:db6e3e35,This is a line of text.,ohayou gozaimasu,
+line:4d5e3942,Character: And this is a character dialogue line.,,bonjour
+line:9573caf9,This is a line I just added to test translations.,namae wa nan desu ka,
