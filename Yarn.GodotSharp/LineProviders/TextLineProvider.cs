@@ -1,4 +1,5 @@
 using System;
+using Godot;
 
 namespace Yarn.GodotSharp.LineProviders
 {
@@ -6,11 +7,21 @@ namespace Yarn.GodotSharp.LineProviders
 	{
 		public override LocalizedLine GetLocalizedLine(Line line)
 		{
+			string fallbackText = string.Empty;
+			string[] metadata = Array.Empty<string>();
+
+			var stringTable = YarnProject.StringTable;
+			if (stringTable.TryGetValue(line.ID, out var entry))
+			{
+				fallbackText = entry.Text;
+				metadata = entry.MetaData;
+			}
+
 			var text = Tr(line.ID);
-			var entries = YarnProject.StringTable;
-			string[] metadata = entries.TryGetValue(line.ID, out var entry)
-				? entry.MetaData
-				: Array.Empty<string>();
+			if (text == line.ID)
+			{
+				text = fallbackText;
+			}
 
 			return new LocalizedLine()
 			{
