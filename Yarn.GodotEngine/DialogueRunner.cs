@@ -461,7 +461,7 @@ namespace Yarn.GodotEngine
 		/// Forward the line to the dialogue UI.
 		/// </summary>
 		/// <param name="line">The line to send to the dialogue views.</param>
-		private async void HandleLine(Line line)
+		private async Task HandleLine(Line line)
 		{
 			var cancelLineSource = new CancellationTokenSource();
 
@@ -535,7 +535,7 @@ namespace Yarn.GodotEngine
 			ContinueDialogue();
 		}
 
-		private async void HandleOptions(OptionSet optionSet)
+		private async Task HandleOptions(OptionSet optionSet)
 		{
 			var options = optionSet.Options;
 			if (options == null)
@@ -627,7 +627,7 @@ namespace Yarn.GodotEngine
 			if (RunSelectedOptionAsLine)
 			{
 				var option = optionSet.Options.FirstOrDefault(x => x.ID == selectedOption.DialogueOptionID);
-				HandleLine(option.Line);
+				await HandleLine(option.Line);
 			}
 			else
 			{
@@ -838,17 +838,11 @@ namespace Yarn.GodotEngine
 					GD.PushError(message);
 				},
 
-				LineHandler = HandleLine,
+				LineHandler = (line) => _ = HandleLine(line),
 				CommandHandler = HandleCommand,
-				OptionsHandler = HandleOptions,
-				NodeStartHandler = (node) =>
-				{
-					EmitSignal(SignalName.OnNodeStart, node);
-				},
-				NodeCompleteHandler = (node) =>
-				{
-					EmitSignal(SignalName.OnNodeComplete, node);
-				},
+				OptionsHandler = (options) => _ = HandleOptions(options),
+				NodeStartHandler = (node) => EmitSignal(SignalName.OnNodeStart, node),
+				NodeCompleteHandler = (node) => EmitSignal(SignalName.OnNodeComplete, node),
 				DialogueCompleteHandler = HandleDialogueComplete,
 				PrepareForLinesHandler = HandlePrepareForLines
 			};
