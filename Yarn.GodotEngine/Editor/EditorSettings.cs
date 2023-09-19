@@ -1,9 +1,11 @@
+#if TOOLS
 using Godot;
 using System;
 using System.Diagnostics;
 
 namespace Yarn.GodotEngine.Editor
 {
+	[Tool]
 	public static class EditorSettings
 	{
 		public const string TranslationsDirectoryProperty = "yarn_spinner/translations_directory";
@@ -75,3 +77,4 @@ namespace Yarn.GodotEngine.Editor
 		}
 	}
 }
+#endif

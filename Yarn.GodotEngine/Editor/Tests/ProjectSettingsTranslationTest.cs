@@ -21,5 +21,5 @@ namespace Yarn.GodotEngine.Editor.Tests
 			}
 		}
 	}
-#endif
 }
+#endif

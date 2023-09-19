@@ -1,64 +1,48 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Yarn.GodotEngine.Actions
 {
 	using Converter = Func<string, object>;
 	using GodotNode = Godot.Node;
 
-	public class CommandInfo
+	public partial class CommandInfo : ActionInfo
 	{
-		public CommandInfo(string name, Delegate implementation)
-		{
-			Name = name;
-			Method = implementation.Method;
-			Target = implementation.Target;
-			Converters = CreateConverters(Method);
-		}
+		#region Public Constructors
 
-		public CommandInfo(string name, MethodInfo method)
+		public CommandInfo(string name, MethodInfo method) : base(name, method)
 		{
-			if (!method.IsStatic)
-			{
-				throw new ArgumentException($"Cannot register method {GetFullMethodName(method)} as a command; methods must be static");
-			}
-
-			Name = name;
-			Method = method;
 			Target = null;
-
 			Converters = CreateConverters(method);
 		}
 
-		public enum CommandType
+		public CommandInfo(ActionInfo other) : base(other)
 		{
-			/// <summary>
-			/// The method returns <see cref="void"/>.
-			/// </summary>
-			IsVoid,
-
-			/// <summary> The method returns a <see cref="Task"/> object. </summary> <remarks>
-			IsTask,
-
-			/// <summary>
-			/// The method is not a valid command (that is, it does not return <see cref="void"/> or
-			/// <see cref="Task"/>.)
-			/// </summary>
-			Invalid,
+			Target = null;
+			Converters = CreateConverters(MethodInfo);
 		}
 
-		public Converter[] Converters { get; private set; } = Array.Empty<Converter>();
-		public Type DeclaringType => Method.DeclaringType;
-		public bool IsStatic => Method.IsStatic;
-		public MethodInfo Method { get; private set; }
+		#endregion Public Constructors
+
+		#region Enums
+
+		public enum CommandType
+		{
+			Invalid = -1,
+			IsVoid,
+			IsTask,
+		}
+
+		#endregion Enums
+
+		#region Properties
+
 		public object Target { get; private set; }
-		public string Name { get; private set; }
-		public Type ReturnType => Method.ReturnType;
+		public Converter[] Converters { get; private set; } = Array.Empty<Converter>();
 
 		public CommandType Type
 		{
@@ -78,12 +62,16 @@ namespace Yarn.GodotEngine.Actions
 			}
 		}
 
+		#endregion Properties
+
+		#region Public Methods
+
 		public CommandDispatchResult Invoke(List<string> parameters, out Task commandTask)
 		{
 			object target = !IsStatic ? Target : null;
 			if (!IsStatic && target == null)
 			{
-				throw new ArgumentException("!IsStatic && target == null; method = " + GetFullMethodName(Method));
+				throw new ArgumentException("!IsStatic && target == null; method = " + GetFullMethodName(MethodInfo));
 			}
 
 			if (TryParseArgs(parameters.ToArray(), out var finalParameters, out var errorMessage) == false)
@@ -96,8 +84,7 @@ namespace Yarn.GodotEngine.Actions
 				};
 			}
 
-			var returnValue = Method.Invoke(target, finalParameters);
-
+			var returnValue = MethodInfo.Invoke(target, finalParameters);
 			if (returnValue is Task task)
 			{
 				commandTask = task;
@@ -115,6 +102,10 @@ namespace Yarn.GodotEngine.Actions
 				};
 			}
 		}
+
+		#endregion Public Methods
+
+		#region Private Methods
 
 		private static Converter[] CreateConverters(MethodInfo method)
 		{
@@ -199,7 +190,7 @@ namespace Yarn.GodotEngine.Actions
 
 		private (int Min, int Max) GetParameterCount()
 		{
-			var parameters = Method.GetParameters();
+			var parameters = MethodInfo.GetParameters();
 			int optional = 0;
 			foreach (var parameter in parameters)
 			{
@@ -219,7 +210,7 @@ namespace Yarn.GodotEngine.Actions
 		/// </summary>
 		private bool TryParseArgs(string[] args, out object[] result, out string message)
 		{
-			var parameters = Method.GetParameters();
+			var parameters = MethodInfo.GetParameters();
 
 			var (min, max) = GetParameterCount();
 
@@ -318,5 +309,7 @@ namespace Yarn.GodotEngine.Actions
 		}
 
 		#endregion Diagnostic Utility Methods
+
+		#endregion Private Methods
 	}
 }

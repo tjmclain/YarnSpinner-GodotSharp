@@ -1,33 +1,34 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
-using Yarn.GodotEngine.LineProviders;
 using Yarn.GodotEngine.Actions;
+using Yarn.GodotEngine.LineProviders;
 
 namespace Yarn.GodotEngine
 {
-	using Expression = System.Linq.Expressions.Expression;
-
 	/// <summary>
 	/// The DialogueRunner component acts as the interface between your game and Yarn Spinner.
 	/// </summary>
 	// https://yarnspinner.dev/docs/unity/components/dialogue-runner/
 	public partial class DialogueRunner : Godot.Node
 	{
+		#region Fields
+
+		private readonly Dictionary<string, CommandInfo> _commands = new();
+
 		/// <summary>
 		/// The underlying object that executes Yarn instructions and provides lines, options and commands.
 		/// </summary>
 		/// <remarks>Automatically created on first access.</remarks>
 		private Dialogue _dialogue;
 
-		private readonly Dictionary<string, CommandInfo> _commands = new();
+		#endregion Fields
 
 		#region Signals
+
 		/// <summary>
 		/// A Unity event that is called when a node starts running.
 		/// </summary>
@@ -86,9 +87,19 @@ namespace Yarn.GodotEngine
 		/// <seealso cref="YarnCommandAttribute"/>
 		[Signal]
 		public delegate void OnCommandEventHandler(string commandName);
-		#endregion
+
+		#endregion Signals
+
+		#region Properties
 
 		#region Exports
+
+		[Export]
+		public string StartNode { get; set; } = Dialogue.DefaultStartNodeName;
+
+		[Export]
+		public bool RunSelectedOptionAsLine { get; set; } = false;
+
 		[Export]
 		public YarnProject YarnProject { get; private set; }
 
@@ -99,17 +110,20 @@ namespace Yarn.GodotEngine
 		public VariableStorageBehaviour VariableStorage { get; private set; }
 
 		[Export]
+		public ActionLibrary ActionLibrary { get; private set; }
+
+		[Export]
 		public Godot.Collections.Array<DialogueViewBase> DialogueViews { get; set; } = new();
-
-		[Export]
-		public string StartNode { get; set; } = Dialogue.DefaultStartNodeName;
-
-		[Export]
-		public bool RunSelectedOptionAsLine { get; set; } = false;
 
 		[Export(PropertyHint.None, "If true, will print GD.Print messages every time it enters a node, and other frequent events")]
 		public bool VerboseLogging { get; set; }
-		#endregion
+
+		#endregion Exports
+
+		/// <summary>
+		/// Gets the underlying <see cref="Dialogue"/> object that runs the Yarn code.
+		/// </summary>
+		public Dialogue Dialogue => _dialogue ??= CreateDialogueInstance();
 
 		/// <summary>
 		/// Gets a value that indicates if the dialogue is actively running.
@@ -123,23 +137,22 @@ namespace Yarn.GodotEngine
 		public string CurrentNodeName => Dialogue.CurrentNode;
 
 		/// <summary>
-		/// Gets the underlying <see cref="Dialogue"/> object that runs the Yarn code.
-		/// </summary>
-		public Dialogue Dialogue => _dialogue ??= CreateDialogueInstance();
-
-		/// <summary>
 		/// The <see cref="LocalizedLine"/> currently being displayed on the dialogue views.
 		/// </summary>
 		public LocalizedLine CurrentLine { get; private set; }
 
+		#endregion Properties
+
+		#region Public Methods
+
 		#region Getter Methods
+
 		/// <summary>
 		/// Returns `true` when a node named `nodeName` has been loaded.
 		/// </summary>
 		/// <param name="nodeName">The name of the node.</param>
 		/// <returns>`true` if the node is loaded, `false` otherwise/</returns>
-		public bool NodeExists(string nodeName)
-			=> Dialogue.NodeExists(nodeName);
+		public bool NodeExists(string nodeName) => Dialogue.NodeExists(nodeName);
 
 		/// <summary>
 		/// Returns the collection of tags that the node associated with the node named `nodeName`.
@@ -148,11 +161,12 @@ namespace Yarn.GodotEngine
 		/// <returns>
 		/// The collection of tags associated with the node, or `null` if no node with that name exists.
 		/// </returns>
-		public IEnumerable<string> GetTagsForNode(string nodeName)
-			=> Dialogue.GetTagsForNode(nodeName);
-		#endregion
+		public IEnumerable<string> GetTagsForNode(string nodeName) => Dialogue.GetTagsForNode(nodeName);
+
+		#endregion Getter Methods
 
 		#region Setter Methods
+
 		/// <summary>
 		/// Replaces this DialogueRunner's yarn project with the provided project.
 		/// </summary>
@@ -229,26 +243,20 @@ namespace Yarn.GodotEngine
 				}
 			}
 		}
-		#endregion
+
+		#endregion Setter Methods
 
 		#region Godot.Node Methods
+
 		public override void _EnterTree()
 		{
-			// Register Commands and Functions
-			_commands.Clear();
-			RegisterActionsInAssembly();
-
 			// Create a line provider if we're missing one
 			if (LineProvider == null)
 			{
 				LineProvider = new TextLineProvider();
 				AddChild(LineProvider);
 
-				// Let the user know what we're doing.
-				if (VerboseLogging)
-				{
-					GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(TextLineProvider).Name}.", this);
-				}
+				GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(TextLineProvider).Name}");
 			}
 
 			// Initialize our yarn project
@@ -262,10 +270,40 @@ namespace Yarn.GodotEngine
 				// Load this new Yarn Project.
 				SetProject(YarnProject);
 			}
+
+			// Register Commands and Functions
+			if (ActionLibrary == null)
+			{
+				ActionLibrary = new ActionLibrary();
+				ActionLibrary.Refresh();
+
+				GD.Print($"Dialogue Runner has no ActionLibrary; creating a {typeof(ActionLibrary).Name}");
+			}
+			else if (Engine.IsEditorHint())
+			{
+				// Always run a search for actions if we're running in the editor
+				ActionLibrary.Refresh();
+			}
+
+			_commands.Clear();
+			foreach (var command in ActionLibrary.Commands)
+			{
+				var commandInfo = new CommandInfo(command);
+				_commands[commandInfo.Name] = commandInfo;
+			}
+
+			var library = Dialogue.Library;
+			foreach (var function in ActionLibrary.Functions)
+			{
+				var implementation = function.CreateDelegate();
+				library.RegisterFunction(function.Name, implementation);
+			}
 		}
-		#endregion
+
+		#endregion Godot.Node Methods
 
 		#region Dialogue Control Methods
+
 		/// <summary>
 		/// Start the dialogue from a specific node.
 		/// </summary>
@@ -322,7 +360,6 @@ namespace Yarn.GodotEngine
 		{
 			Dialogue.Stop();
 		}
-		#endregion
 
 		/// <summary>
 		/// Unloads all nodes from the <see cref="Dialogue"/>.
@@ -337,115 +374,12 @@ namespace Yarn.GodotEngine
 			Dialogue.UnloadAll();
 		}
 
-		#region Action Registration
-		public void RegisterActionsInAssembly()
-		{
-			var assembly = Assembly.GetExecutingAssembly();
-			var types = assembly.GetTypes();
-			var methods = types.SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public));
-			foreach (var method in methods)
-			{
-				var commandAttribute = method.GetCustomAttribute<CommandAttribute>();
-				if (commandAttribute != null)
-				{
-					RegisterCommand(commandAttribute.Name, method);
-					continue;
-				}
+		#endregion Dialogue Control Methods
 
-				var functionAttribute = method.GetCustomAttribute<FunctionAttribute>();
-				if (functionAttribute != null)
-				{
-					RegisterFunction(functionAttribute.Name, method);
-					continue;
-				}
-			}
-		}
-
-		public void RegisterCommand(string commandName, Delegate handler)
-		{
-			if (_commands.ContainsKey(commandName))
-			{
-				GD.PrintErr($"Failed to register command {commandName}: a command by this name has already been registered.");
-				return;
-			}
-			else
-			{
-				_commands.Add(commandName, new CommandInfo(commandName, handler));
-			}
-		}
-
-		public void RegisterCommand(string commandName, MethodInfo methodInfo)
-		{
-			if (_commands.ContainsKey(commandName))
-			{
-				GD.PrintErr($"Failed to register command {commandName}: a command by this name has already been registered.");
-				return;
-			}
-
-			_commands[commandName] = new CommandInfo(commandName, methodInfo);
-		}
-
-		public void RegisterFunction(string name, Delegate implementation)
-		{
-			var library = Dialogue.Library;
-			if (library.FunctionExists(name))
-			{
-				GD.PrintErr($"Cannot add function {name}: one already exists");
-				return;
-			}
-			library.RegisterFunction(name, implementation);
-		}
-
-		public void RegisterFunction(string name, MethodInfo methodInfo)
-		{
-			var library = Dialogue.Library;
-			if (library.FunctionExists(name))
-			{
-				GD.PrintErr($"Cannot add function {name}: one already exists");
-				return;
-			}
-
-			// Construct a delegate from a methodinfo
-			// NOTE: this will ONLY work with STATIC METHODS
-			// SEE: https://stackoverflow.com/questions/940675/getting-a-delegate-from-methodinfo
-			var returnType = methodInfo.ReturnType;
-			bool isAction = returnType.Equals(typeof(void));
-			Func<Type[], Type> getType = isAction
-				? Expression.GetActionType
-				: Expression.GetFuncType;
-
-			var types = methodInfo.GetParameters().Select(x => x.ParameterType);
-			if (!isAction)
-			{
-				types = types.Concat(new[] { returnType });
-			}
-
-			var type = getType(types.ToArray());
-			var implementation = Delegate.CreateDelegate(type, methodInfo);
-			library.RegisterFunction(name, implementation);
-		}
-
-		public void UnregisterCommand(string commandName)
-		{
-			if (_commands.Remove(commandName) == false)
-			{
-				GD.PrintErr($"Can't remove command {commandName}, because no command with this name is currently registered.");
-			}
-		}
-
-		public void UnregisterFunction(string name)
-		{
-			var library = Dialogue.Library;
-			if (library.FunctionExists(name) == false)
-			{
-				GD.PrintErr($"Cannot remove function {name}: no function with that name exists in the library");
-				return;
-			}
-			library.DeregisterFunction(name);
-		}
-		#endregion
+		#endregion Public Methods
 
 		#region Dialogue Callback Handlers
+
 		private void HandleCommand(Command command)
 		{
 			CommandDispatchResult DispatchCommand(string commandText, out Task commandTask)
@@ -455,8 +389,7 @@ namespace Yarn.GodotEngine
 
 				if (parameters.Count == 0)
 				{
-					// No text was found inside the command, so we won't be able to
-					// find it.
+					// No text was found inside the command, so we won't be able to find it.
 					commandTask = default;
 					return new CommandDispatchResult
 					{
@@ -466,9 +399,8 @@ namespace Yarn.GodotEngine
 
 				if (_commands.TryGetValue(parameters[0], out var commandInfo))
 				{
-					// The first part of the command is the command name itself. Remove
-					// it to get the collection of parameters that were passed to the
-					// command.
+					// The first part of the command is the command name itself. Remove it to get
+					// the collection of parameters that were passed to the command.
 					parameters.RemoveAt(0);
 
 					return commandInfo.Invoke(parameters, out commandTask);
@@ -741,7 +673,10 @@ namespace Yarn.GodotEngine
 			CurrentLine = null;
 			Dialogue.Continue();
 		}
-		#endregion
+
+		#endregion Dialogue Callback Handlers
+
+		#region Private Methods
 
 		private static async Task WaitForTask(Task task, Action onTaskComplete)
 		{
@@ -921,5 +856,7 @@ namespace Yarn.GodotEngine
 
 			return dialogue;
 		}
+
+		#endregion Private Methods
 	}
 }

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dra78mnguoo64"
-path="res://.godot/imported/LocalizationDatabase Icon.png-a360ef8a0f8ab182c1a3f0ebdf41081a.ctex"
+uid="uid://0p7flxvvs2f5"
+path="res://.godot/imported/YarnScriptIcon.png-c8fb81f2fca89c50302de2ffee07ab4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/Icons/Asset Icons/LocalizationDatabase Icon.png"
-dest_files=["res://.godot/imported/LocalizationDatabase Icon.png-a360ef8a0f8ab182c1a3f0ebdf41081a.ctex"]
+source_file="res://addons/yarnspinner_godot/icons/YarnScriptIcon.png"
+dest_files=["res://.godot/imported/YarnScriptIcon.png-c8fb81f2fca89c50302de2ffee07ab4c.ctex"]
 
 [params]
 

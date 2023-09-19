@@ -7,8 +7,6 @@ using Godot.Collections;
 using Yarn.Compiler;
 using System.IO;
 using System;
-using Google.Protobuf.WellKnownTypes;
-using System.Diagnostics;
 
 namespace Yarn.GodotEngine.Editor.Importers
 {
@@ -98,7 +96,6 @@ namespace Yarn.GodotEngine.Editor.Importers
 		{
 			// Export translations helper method
 
-
 			// Start import
 			GD.Print($"Importing '{sourceFile}'");
 
@@ -168,7 +165,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 					};
 				});
 
-			yarnProgram.StringTableEntries = new(stringTableEntries);
+			yarnProgram.StringTable = new(stringTableEntries);
 
 			// Export translations file
 			string translationsFile = string.Empty;
@@ -212,7 +209,6 @@ namespace Yarn.GodotEngine.Editor.Importers
 			if (exportTranslations.AsBool())
 			{
 				AddTranslationsToTranslationServer(translationsFile);
-
 			}
 
 			return Error.Ok;
@@ -458,7 +454,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 				GD.Print($"Exported translation at '{filePath}'");
 			}
 
-			// NOTE: if I don't include this, AppendImportExternalResource 
+			// NOTE: if I don't include this, AppendImportExternalResource
 			// below returns a 'FileNotFound' error
 			var fs = editorInterface.GetResourceFilesystem();
 			fs.UpdateFile(filePath);
@@ -486,7 +482,7 @@ namespace Yarn.GodotEngine.Editor.Importers
 				return;
 			}
 
-			// there's no exposed property for this, so we have to get it via name 
+			// there's no exposed property for this, so we have to get it via name
 			string settingName = "internationalization/locale/translations";
 
 			var translationsSetting = ProjectSettings.GetSetting(settingName, System.Array.Empty<string>());

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ActionLibrary" load_steps=2 format=3 uid="uid://bgj2vq3qh8w6y"]
+
+[ext_resource type="Script" path="res://Yarn.GodotEngine/Actions/ActionLibrary.cs" id="1_t5qhp"]
+
+[resource]
+script = ExtResource("1_t5qhp")
+Commands = []
+Functions = []
+SearchUsingOverrideAssemblyNames = false
+OverrideAssemblyNames = PackedStringArray()

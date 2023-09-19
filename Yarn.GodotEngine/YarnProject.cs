@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Yarn.GodotEngine.Editor;
 
 namespace Yarn.GodotEngine
 {
 	using NodeHeaders = Dictionary<string, List<string>>;
 
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
-	[GlobalClass, Icon("res://addons/yarnspinner_godot/Icons/Asset Icons/YarnProject Icon.png")]
+	[GlobalClass, Icon("res://addons/yarnspinner_godot/Icons/YarnProjectIcon.png")]
 	public partial class YarnProject : Resource
 	{
 		/// <summary>
@@ -17,7 +16,7 @@ namespace Yarn.GodotEngine
 		/// </summary>
 		private Program _program = null;
 
-		private Dictionary<string, StringTableEntry> _stringTableEntries = new();
+		private Dictionary<string, StringTableEntry> _stringTable = new();
 
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
@@ -40,8 +39,7 @@ namespace Yarn.GodotEngine
 					? Program.Nodes.Keys.ToArray()
 					: Array.Empty<string>();
 
-		public Dictionary<string, StringTableEntry> StringTableEntries
-			=> _stringTableEntries;
+		public Dictionary<string, StringTableEntry> StringTable => _stringTable;
 
 		/// <summary>
 		/// Gets the headers for the requested node.
@@ -111,7 +109,7 @@ namespace Yarn.GodotEngine
 
 			// Compile program
 			var filePaths = Programs
-				.Select(x => x.ResourcePath)
+				.Select(x => x.SourceFile)
 				.Select(x => ProjectSettings.GlobalizePath(x));
 
 			var job = Compiler.CompilationJob.CreateFromFiles(filePaths);
@@ -120,8 +118,8 @@ namespace Yarn.GodotEngine
 			_program = compilation.Program;
 
 			// Combine string table entries
-			_stringTableEntries = Programs
-				.SelectMany(x => x.StringTableEntries)
+			_stringTable = Programs
+				.SelectMany(x => x.StringTable)
 				.ToDictionary(x => x.Id, x => x);
 
 			return _program;

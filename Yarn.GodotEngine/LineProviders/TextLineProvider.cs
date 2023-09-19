@@ -7,7 +7,7 @@ namespace Yarn.GodotEngine.LineProviders
 		public override LocalizedLine GetLocalizedLine(Line line)
 		{
 			var text = Tr(line.ID);
-			var entries = YarnProject.StringTableEntries;
+			var entries = YarnProject.StringTable;
 			string[] metadata = entries.TryGetValue(line.ID, out var entry)
 				? entry.MetaData
 				: Array.Empty<string>();

@@ -3,31 +3,26 @@ using Godot;
 
 namespace Yarn.GodotEngine
 {
-	[Serializable]
-	public partial class LocalizedLine : RefCounted
+	public class LocalizedLine
 	{
 		/// <summary>
 		/// DialogueLine's ID
 		/// </summary>
-		[Export]
 		public string TextID = "";
 
 		/// <summary>
 		/// DialogueLine's inline expression's substitution
 		/// </summary>
-		[Export]
 		public string[] Substitutions = Array.Empty<string>();
 
 		/// <summary>
 		/// DialogueLine's text
 		/// </summary>
-		[Export]
 		public string RawText = "";
 
 		/// <summary>
 		/// Any metadata associated with this line.
 		/// </summary>
-		[Export]
 		public string[] Metadata = Array.Empty<string>();
 
 		/// <summary>

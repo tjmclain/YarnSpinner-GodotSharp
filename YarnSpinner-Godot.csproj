@@ -3,7 +3,7 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<EnableDynamicLoading>true</EnableDynamicLoading>
 		<RootNamespace></RootNamespace>
-		<PackageOutputPath>$(GodotProjectDir)addons\yarnspinner_godot\bin\</PackageOutputPath>
+		<Configurations>Debug;ExportDebug;ExportRelease</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="Yarn.Antlr4.Runtime.Standard">
@@ -85,5 +85,8 @@
 		<None Include="Yarn.GodotEngine\DLLs\Yarn.System.Threading.Tasks.Extensions.dll" />
 		<None Include="Yarn.GodotEngine\DLLs\YarnSpinner.Compiler.dll" />
 		<None Include="Yarn.GodotEngine\DLLs\YarnSpinner.dll" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Yarn.GodotEngine\Editor\Inspectors\" />
 	</ItemGroup>
 </Project>

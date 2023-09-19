@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5k2wvvhli5bg"
-path="res://.godot/imported/YarnSpinnerLogo.png-b0a34bbc50997679c76b97c729cd6d1c.ctex"
+uid="uid://cayinkxcdt5te"
+path="res://.godot/imported/YarnScript Icon.png-fd61261ab81def73a7bfdf8ee3f9efcb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/icons/YarnSpinnerLogo.png"
-dest_files=["res://.godot/imported/YarnSpinnerLogo.png-b0a34bbc50997679c76b97c729cd6d1c.ctex"]
+source_file="res://addons/yarnspinner_godot/icons/YarnScript Icon.png"
+dest_files=["res://.godot/imported/YarnScript Icon.png-fd61261ab81def73a7bfdf8ee3f9efcb.ctex"]
 
 [params]
 

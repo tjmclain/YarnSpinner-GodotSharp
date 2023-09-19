@@ -18,10 +18,6 @@ config/icon="res://icon.svg"
 
 project/assembly_name="YarnSpinner-Godot"
 
-[editor_plugins]
-
-enabled=PackedStringArray("res://addons/yarnspinner_godot/plugin.cfg")
-
 [internationalization]
 
 locale/translation_remaps={}

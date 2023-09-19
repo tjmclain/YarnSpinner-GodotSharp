@@ -1,12 +1,15 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YarnSpinner-Godot", "YarnSpinner-Godot.csproj", "{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}"
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34031.279
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YarnSpinner-Godot", "YarnSpinner-Godot.csproj", "{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-	Debug|Any CPU = Debug|Any CPU
-	ExportDebug|Any CPU = ExportDebug|Any CPU
-	ExportRelease|Any CPU = ExportRelease|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -15,5 +18,8 @@ Global
 		{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
 		{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
 		{7DC73181-2B1E-433A-87A0-6F08E1B8D48C}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

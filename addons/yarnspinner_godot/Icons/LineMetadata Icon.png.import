@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b5k2wvvhli5bg"
-path="res://.godot/imported/YarnSpinnerLogo.png-b0a34bbc50997679c76b97c729cd6d1c.ctex"
+uid="uid://cttj33slkdq88"
+path="res://.godot/imported/LineMetadata Icon.png-54039008690579d5f8aa0ff11a93139a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/icons/YarnSpinnerLogo.png"
-dest_files=["res://.godot/imported/YarnSpinnerLogo.png-b0a34bbc50997679c76b97c729cd6d1c.ctex"]
+source_file="res://addons/yarnspinner_godot/icons/LineMetadata Icon.png"
+dest_files=["res://.godot/imported/LineMetadata Icon.png-54039008690579d5f8aa0ff11a93139a.ctex"]
 
 [params]
 
