@@ -149,7 +149,7 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				if (key == PropertyName.MetaData)
+				if (key == PropertyName.Metadata)
 				{
 					entry.Metadata = kvp.Value.Split(_metadataDelimiter);
 					continue;
@@ -185,9 +185,9 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				if (property == PropertyName.MetaData)
+				if (property == PropertyName.Metadata)
 				{
-					row[PropertyName.MetaData] = Metadata.Join(_metadataDelimiter);
+					row[PropertyName.Metadata] = Metadata.Join(_metadataDelimiter);
 					continue;
 				}
 
