@@ -467,8 +467,6 @@ namespace Yarn.GodotSharp
 		/// <param name="line">The line to send to the dialogue views.</param>
 		private async Task HandleLine(Line line)
 		{
-			var interruptLineSource = new CancellationTokenSource();
-
 			// Get the localized line from our line provider
 			CurrentLine = LineProvider.GetLocalizedLine(line);
 
@@ -503,6 +501,8 @@ namespace Yarn.GodotSharp
 				};
 			}
 
+			using var cts = new CancellationTokenSource();
+
 			// Send line to all active dialogue views
 			var views = DialogueViews.Select(x => x as IRunLineHandler);
 			var tasks = new List<Task>();
@@ -514,8 +514,8 @@ namespace Yarn.GodotSharp
 				}
 
 				var task = Task.Run(
-					() => view.RunLine(CurrentLine, interruptLineSource),
-					interruptLineSource.Token
+					() => view.RunLine(CurrentLine, () => cts.Cancel()),
+					cts.Token
 				);
 				tasks.Add(task);
 			}
@@ -523,6 +523,7 @@ namespace Yarn.GodotSharp
 			await Task.WhenAll(tasks);
 
 			tasks.Clear();
+
 			foreach (var view in views)
 			{
 				if (view == null)
@@ -530,14 +531,14 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				var task = !interruptLineSource.IsCancellationRequested
+				var task = !cts.IsCancellationRequested
 					? view.DismissLine(CurrentLine)
 					: view.InterruptLine(CurrentLine);
 
 				tasks.Add(task);
 			}
 
-			interruptLineSource.Dispose();
+			await Task.WhenAll(tasks);
 
 			ContinueDialogue();
 		}
@@ -565,9 +566,11 @@ namespace Yarn.GodotSharp
 			DialogueOption[] dialogueOptions = new DialogueOption[numOptions];
 			for (int i = 0; i < numOptions; i++)
 			{
+				var option = options[i];
+
 				// Localize the line associated with the option
-				var localisedLine = LineProvider.GetLocalizedLine(options[i].Line);
-				var text = Dialogue.ExpandSubstitutions(localisedLine.RawText, options[i].Line.Substitutions);
+				var localisedLine = LineProvider.GetLocalizedLine(option.Line);
+				var text = Dialogue.ExpandSubstitutions(localisedLine.RawText, option.Line.Substitutions);
 
 				Dialogue.LanguageCode = TranslationServer.GetLocale();
 
@@ -587,49 +590,51 @@ namespace Yarn.GodotSharp
 					};
 				}
 
-				dialogueOptions[i] = new DialogueOption
-				{
-					TextID = optionSet.Options[i].Line.ID,
-					DialogueOptionID = optionSet.Options[i].ID,
-					Line = localisedLine,
-					IsAvailable = optionSet.Options[i].IsAvailable,
-				};
+				dialogueOptions[i] = new DialogueOption(option, localisedLine);
 			}
 
+			int selectedOptionIndex = -1;
+
+			using var cts = new CancellationTokenSource();
+
 			var views = DialogueViews.Select(x => x as IRunOptionsHandler);
-			var tasks = new List<Task<DialogueOption>>();
+			var tasks = new List<Task>();
 			foreach (var dialogueView in views)
 			{
 				if (dialogueView == null)
 					continue;
 
-				var task = dialogueView.RunOptions(dialogueOptions);
+				var task = Task.Run(
+					() => dialogueView.RunOptions(dialogueOptions, (index) =>
+					{
+						selectedOptionIndex = index;
+						cts.Cancel();
+					}),
+					cts.Token
+				);
 				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
 
-			DialogueOption selectedOption = null;
-			foreach (var task in tasks)
+			if (selectedOptionIndex < 0 || selectedOptionIndex >= numOptions)
 			{
-				var result = task.Result;
-				if (result == null)
-				{
-					continue;
-				}
-
-				selectedOption = result;
-				break;
-			}
-
-			if (selectedOption == null)
-			{
-				GD.PushError("options.Options.Length == 0");
+				GD.PushError($"selectedOptionIndex ({selectedOptionIndex}) is out of range; numOptions = {numOptions}");
 				Dialogue.SetSelectedOption(0);
 				ContinueDialogue();
 				return;
 			}
 
+			tasks.Clear();
+			foreach (var view in views)
+			{
+				var task = view.DismissOptions(dialogueOptions, selectedOptionIndex);
+				tasks.Add(task);
+			}
+
+			await Task.WhenAll(tasks);
+
+			var selectedOption = dialogueOptions[selectedOptionIndex];
 			Dialogue.SetSelectedOption(selectedOption.DialogueOptionID);
 
 			if (RunSelectedOptionAsLine)

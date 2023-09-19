@@ -65,6 +65,7 @@
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
+		<None Include=".gitattributes" />
 		<None Include="addons\yarnspinner_godot\plugin.cfg" />
 		<None Include="Yarn.GodotSharp\DLLs\Yarn.Antlr4.Runtime.Standard.dll" />
 		<None Include="Yarn.GodotSharp\DLLs\Yarn.CsvHelper.dll" />

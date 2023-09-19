@@ -26,7 +26,7 @@ namespace Yarn.GodotSharp
 	{
 		#region Public Methods
 
-		Task RunLine(LocalizedLine line, CancellationTokenSource interruptLineSource);
+		Task RunLine(LocalizedLine line, Action interruptLine);
 
 		Task InterruptLine(LocalizedLine line);
 
@@ -39,7 +39,9 @@ namespace Yarn.GodotSharp
 	{
 		#region Public Methods
 
-		Task<DialogueOption> RunOptions(DialogueOption[] options);
+		Task RunOptions(DialogueOption[] options, Action<int> selectOption);
+
+		Task DismissOptions(DialogueOption[] options, int selectedOptionIndex);
 
 		#endregion Public Methods
 	}
@@ -153,7 +155,7 @@ namespace Yarn.GodotSharp
 		/// <seealso cref="InterruptLine(LocalizedLine, Action)"/>
 		/// <seealso cref="DismissLine(Action)"/>
 		/// <seealso cref="RunOptions(DialogueOption[], Action{int})"/>
-		public virtual async Task RunLine(LocalizedLine dialogueLine, CancellationTokenSource interruptLineSource)
+		public virtual async Task RunLine(LocalizedLine dialogueLine, Action interruptLine)
 		{
 			await Task.CompletedTask;
 		}
@@ -296,10 +298,14 @@ namespace Yarn.GodotSharp
 		/// <param name="onOptionSelected">
 		/// A method that should be called when the user has made a selection.
 		/// </param>
-		public virtual async Task<DialogueOption> RunOptions(DialogueOption[] dialogueOptions)
+		public virtual async Task RunOptions(DialogueOption[] dialogueOptions, Action<int> selectOption)
 		{
 			await Task.CompletedTask;
-			return null;
+		}
+
+		public virtual async Task DismissOptions(DialogueOption[] dialogueOptions, int selectedOptionIndex)
+		{
+			await Task.CompletedTask;
 		}
 
 		/// <summary>

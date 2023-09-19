@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.CommandLine.Help.DefaultHelpText;
 
 namespace Yarn.GodotSharp
 {
@@ -24,9 +25,20 @@ namespace Yarn.GodotSharp
 		public LocalizedLine Line;
 
 		/// <summary>
-		/// Indicates whether this value should be presented as available
-		/// or not.
+		/// Indicates whether this value should be presented as available or not.
 		/// </summary>
 		public bool IsAvailable;
+
+		public DialogueOption()
+		{
+		}
+
+		public DialogueOption(OptionSet.Option option, LocalizedLine localizedLine)
+		{
+			TextID = option.Line.ID;
+			DialogueOptionID = option.ID;
+			Line = localizedLine;
+			IsAvailable = option.IsAvailable;
+		}
 	}
 }
