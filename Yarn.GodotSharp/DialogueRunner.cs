@@ -9,11 +9,13 @@ using Yarn.GodotSharp.LineProviders;
 
 namespace Yarn.GodotSharp
 {
+	using GodotNode = Godot.Node;
+
 	/// <summary>
 	/// The DialogueRunner component acts as the interface between your game and Yarn Spinner.
 	/// </summary>
 	// https://yarnspinner.dev/docs/unity/components/dialogue-runner/
-	public partial class DialogueRunner : Godot.Node
+	public partial class DialogueRunner : GodotNode
 	{
 		#region Fields
 
@@ -113,7 +115,7 @@ namespace Yarn.GodotSharp
 		public ActionLibrary ActionLibrary { get; private set; }
 
 		[Export]
-		public Godot.Collections.Array<DialogueViewBase> DialogueViews { get; set; } = new();
+		public Godot.Collections.Array<GodotNode> DialogueViews { get; set; } = new();
 
 		[Export(PropertyHint.None, "If true, will print GD.Print messages every time it enters a node, and other frequent events")]
 		public bool VerboseLogging { get; set; }
@@ -334,9 +336,10 @@ namespace Yarn.GodotSharp
 			EmitSignal(SignalName.OnDialogueStart);
 
 			// Signal that we're starting up.
-			foreach (var dialogueView in DialogueViews)
+			var views = DialogueViews.Select(x => x as IDialogueStartedHandler);
+			foreach (var dialogueView in views)
 			{
-				if (dialogueView == null || dialogueView.CanProcess() == false)
+				if (dialogueView == null)
 				{
 					continue;
 				}
@@ -454,6 +457,7 @@ namespace Yarn.GodotSharp
 				default:
 					throw new ArgumentOutOfRangeException($"Internal error: Unknown command dispatch result status {dispatchResult}");
 			}
+
 			ContinueDialogue();
 		}
 
@@ -463,7 +467,7 @@ namespace Yarn.GodotSharp
 		/// <param name="line">The line to send to the dialogue views.</param>
 		private async Task HandleLine(Line line)
 		{
-			var cancelLineSource = new CancellationTokenSource();
+			var interruptLineSource = new CancellationTokenSource();
 
 			// Get the localized line from our line provider
 			CurrentLine = LineProvider.GetLocalizedLine(line);
@@ -500,16 +504,19 @@ namespace Yarn.GodotSharp
 			}
 
 			// Send line to all active dialogue views
-			var views = new List<DialogueViewBase>(DialogueViews);
+			var views = DialogueViews.Select(x => x as IRunLineHandler);
 			var tasks = new List<Task>();
 			foreach (var view in views)
 			{
-				if (view == null || view.CanProcess() == false)
+				if (view == null)
 				{
 					continue;
 				}
 
-				var task = view.RunLine(CurrentLine, cancelLineSource);
+				var task = Task.Run(
+					() => view.RunLine(CurrentLine, interruptLineSource),
+					interruptLineSource.Token
+				);
 				tasks.Add(task);
 			}
 
@@ -518,19 +525,19 @@ namespace Yarn.GodotSharp
 			tasks.Clear();
 			foreach (var view in views)
 			{
-				if (view == null || view.CanProcess() == false)
+				if (view == null)
 				{
 					continue;
 				}
 
-				var task = !cancelLineSource.IsCancellationRequested
+				var task = !interruptLineSource.IsCancellationRequested
 					? view.DismissLine(CurrentLine)
-					: view.CancelLine(CurrentLine);
+					: view.InterruptLine(CurrentLine);
 
 				tasks.Add(task);
 			}
 
-			cancelLineSource.Dispose();
+			interruptLineSource.Dispose();
 
 			ContinueDialogue();
 		}
@@ -589,10 +596,11 @@ namespace Yarn.GodotSharp
 				};
 			}
 
+			var views = DialogueViews.Select(x => x as IRunOptionsHandler);
 			var tasks = new List<Task<DialogueOption>>();
-			foreach (var dialogueView in DialogueViews)
+			foreach (var dialogueView in views)
 			{
-				if (dialogueView == null || dialogueView.CanProcess() == false)
+				if (dialogueView == null)
 					continue;
 
 				var task = dialogueView.RunOptions(dialogueOptions);
@@ -637,9 +645,10 @@ namespace Yarn.GodotSharp
 
 		private void HandleDialogueComplete()
 		{
-			foreach (var dialogueView in DialogueViews)
+			var views = DialogueViews.Select(x => x as IDialogueCompleteHandler);
+			foreach (var dialogueView in views)
 			{
-				if (dialogueView == null || dialogueView.CanProcess() == false)
+				if (dialogueView == null)
 					continue;
 
 				dialogueView.DialogueComplete();

@@ -116,8 +116,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 			var exportTranslations = options[_exportTranslationOption];
 			if (exportTranslations.AsBool())
 			{
-				var stringTableEntries = yarnProgram.StringTable.Values.ToArray();
-
+				var stringTableEntries = yarnProgram.StringTable.ToArray();
 				var exportTranslationsResult = ExportTranslationFile(
 					sourceFile,
 					stringTableEntries,

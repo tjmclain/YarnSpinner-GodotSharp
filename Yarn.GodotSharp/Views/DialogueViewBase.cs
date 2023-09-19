@@ -2,10 +2,48 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using GodotNode = Godot.Node;
-
 namespace Yarn.GodotSharp
 {
+	public interface IDialogueStartedHandler
+	{
+		#region Public Methods
+
+		void DialogueStarted();
+
+		#endregion Public Methods
+	}
+
+	public interface IDialogueCompleteHandler
+	{
+		#region Public Methods
+
+		void DialogueComplete();
+
+		#endregion Public Methods
+	}
+
+	public interface IRunLineHandler
+	{
+		#region Public Methods
+
+		Task RunLine(LocalizedLine line, CancellationTokenSource interruptLineSource);
+
+		Task InterruptLine(LocalizedLine line);
+
+		Task DismissLine(LocalizedLine line);
+
+		#endregion Public Methods
+	}
+
+	public interface IRunOptionsHandler
+	{
+		#region Public Methods
+
+		Task<DialogueOption> RunOptions(DialogueOption[] options);
+
+		#endregion Public Methods
+	}
+
 	/// <summary>
 	/// A <see cref="MonoBehaviour"/> that can present lines and options to the user, when it
 	/// receives them from a <see cref="DialogueRunner"/>.
@@ -19,7 +57,7 @@ namespace Yarn.GodotSharp
 	/// </para>
 	/// <para>
 	/// To use this class, subclass it, and override its methods. Some of the more common methods
-	/// you may wish to override are: <see cref="RunLine"/>, <see cref="CancelLine"/>, <see
+	/// you may wish to override are: <see cref="RunLine"/>, <see cref="InterruptLine"/>, <see
 	/// cref="DismissLine"/> and <see cref="RunOptions"/>.
 	/// </para>
 	/// <para>
@@ -41,8 +79,10 @@ namespace Yarn.GodotSharp
 	/// </remarks>
 	/// <seealso cref="LineProviderBehaviour"/>
 	/// <seealso cref="DialogueRunner._dialogueViews"/>
-	public abstract partial class DialogueViewBase : GodotNode
+	public partial class DialogueViewBase : Godot.Node, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
 	{
+		#region Public Methods
+
 		/// <summary>
 		/// Called by the <see cref="DialogueRunner"/> to signal that dialogue has started.
 		/// </summary>
@@ -94,7 +134,7 @@ namespace Yarn.GodotSharp
 		/// </para>
 		/// <para style="danger">
 		/// The <paramref name="onDialogueLineFinished"/> method should only be called when <see
-		/// cref="RunLine"/> finishes its presentation normally. If <see cref="CancelLine"/> has
+		/// cref="RunLine"/> finishes its presentation normally. If <see cref="InterruptLine"/> has
 		/// been called, you must call the completion handler that it receives, and not the
 		/// completion handler that <see cref="RunLine"/> has received.
 		/// </para>
@@ -113,7 +153,7 @@ namespace Yarn.GodotSharp
 		/// <seealso cref="InterruptLine(LocalizedLine, Action)"/>
 		/// <seealso cref="DismissLine(Action)"/>
 		/// <seealso cref="RunOptions(DialogueOption[], Action{int})"/>
-		public virtual async Task RunLine(LocalizedLine dialogueLine, CancellationTokenSource cancelLineSource)
+		public virtual async Task RunLine(LocalizedLine dialogueLine, CancellationTokenSource interruptLineSource)
 		{
 			await Task.CompletedTask;
 		}
@@ -145,9 +185,9 @@ namespace Yarn.GodotSharp
 		/// be dismissed.
 		/// </para>
 		/// <para style="danger">
-		/// When <see cref="CancelLine"/> is called, you must not call the completion handler that
-		/// <see cref="RunLine"/> has previously received - this completion handler is no longer
-		/// valid. Call this method's <paramref name="onDialogueLineFinished"/> instead.
+		/// When <see cref="InterruptLine"/> is called, you must not call the completion handler
+		/// that <see cref="RunLine"/> has previously received - this completion handler is no
+		/// longer valid. Call this method's <paramref name="onDialogueLineFinished"/> instead.
 		/// </para>
 		/// <para style="note">
 		/// The default implementation of this method immediately calls the <paramref
@@ -161,7 +201,7 @@ namespace Yarn.GodotSharp
 		/// </param>
 		/// <seealso cref="RunLine(LocalizedLine, Action)"/>
 		/// <seealso cref="DismissLine(Action)"/>
-		public virtual async Task CancelLine(LocalizedLine dialogueLine)
+		public virtual async Task InterruptLine(LocalizedLine dialogueLine)
 		{
 			await Task.CompletedTask;
 		}
@@ -287,44 +327,6 @@ namespace Yarn.GodotSharp
 			// Default implementation does nothing.
 		}
 
-		/// <summary>
-		/// Called by <see cref="DialogueAdvanceInput"/> to signal that the user has requested that
-		/// the dialogue advance.
-		/// </summary>
-		/// <remarks>
-		/// <para>
-		/// When this method is called, the Dialogue View should advance the dialogue. Advancing the
-		/// dialogue can mean different things, depending on the nature of the dialogue view, and
-		/// its current state.
-		/// </para>
-		/// <para>
-		/// In many situations, if the Dialogue View hasn't yet finished presenting its line (that
-		/// is, the <see cref="RunLine(LocalizedLine, Action)"/> method has been called, but it
-		/// hasn't yet called its completion handler), it's sufficient to call the <see
-		/// cref="RequestInterrupt"/> method, which tells the Dialogue Runner to interrupt the
-		/// current line.
-		/// </para>
-		/// <para>'Advancing' the dialogue may not always mean <em>finishing</em> the line's presentation.</para>
-		/// <para>
-		/// For example, in the <em>Legend of Zelda</em> series of games, lines of dialogue are
-		/// displayed one character at a time in a text box, until the line has finished appearing.
-		/// At this point, the text box displays a button to continue; when the user presses the
-		/// primary input button (typically the <c>A</c> button), the line is dismissed. However, if
-		/// this button is pressed <em>while the line is still appearing</em>, the rest of the line
-		/// appears all at once, and the button appears. Finally, if a secondary input button
-		/// (typically the <c>B</c> button) is pressed at any point, the line is
-		/// <em>interrupted</em>, and the dialogue proceeds to the next line immediately.
-		/// </para>
-		/// <para>
-		/// <see cref="UserRequestedViewAdvancement"/> is designed to give your Dialogue View an
-		/// opportunity to decide whether it wants to interrupt the entire line for all views, or
-		/// simply speed up the delivery of <em>this</em> view.
-		/// </para>
-		/// <para style="note">The default implementation of this method does nothing.</para>
-		/// </remarks>
-		public virtual void UserRequestedViewAdvancement()
-		{
-			// default implementation does nothing
-		}
+		#endregion Public Methods
 	}
 }
