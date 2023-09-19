@@ -7,20 +7,15 @@ namespace Yarn.GodotSharp.LineProviders
 	{
 		public override LocalizedLine GetLocalizedLine(Line line)
 		{
-			string fallbackText = string.Empty;
+			// TODO: translate text
+			string text = string.Empty;
 			string[] metadata = Array.Empty<string>();
 
 			var stringTable = YarnProject.StringTable;
 			if (stringTable.TryGetValue(line.ID, out var entry))
 			{
-				fallbackText = entry.Text;
-				metadata = entry.MetaData;
-			}
-
-			var text = Tr(line.ID);
-			if (text == line.ID)
-			{
-				text = fallbackText;
+				text = entry.Text;
+				metadata = entry.Metadata;
 			}
 
 			return new LocalizedLine()

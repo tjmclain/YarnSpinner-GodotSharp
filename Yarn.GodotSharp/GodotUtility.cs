@@ -170,5 +170,14 @@ namespace Yarn.GodotSharp
 			GD.Print($"{value} -> {result}");
 			return result;
 		}
+
+		public static bool TryTranslateString(StringName key, out StringName value)
+			=> TryTranslateString(key, null, out value);
+
+		public static bool TryTranslateString(StringName key, string context, out StringName value)
+		{
+			value = TranslationServer.Translate(key, context);
+			return !string.IsNullOrEmpty(value) && value != key;
+		}
 	}
 }

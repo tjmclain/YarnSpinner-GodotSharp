@@ -1,4 +1,4 @@
-key,en,jp,fr
-line:4f4ca5bb,This is a line of text.,,
-line:d97ca2cc,Character: And this is a character dialogue line.,,
-line:1e6a9468,This is a line I just added to test translations.,,
+Id,Text,File,Node,LineNumber,Lock,Comment,MetaData,es,jp
+line:4f4ca5bb,This is a line of text.,res://yarn_program.yarn,Start_qEDMN5Uq2ksR,4,14376d31,,,,
+line:d97ca2cc,Character: And this is a character dialogue line.,res://yarn_program.yarn,Start_qEDMN5Uq2ksR,6,6321ab01,,,,
+line:1e6a9468,This is a line I just added to test translations.,res://yarn_program.yarn,End_QFe5AI8iPz2KVoaRJO,15,c16b4e3d,,,,

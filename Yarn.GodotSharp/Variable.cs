@@ -6,47 +6,52 @@ namespace Yarn.GodotSharp
 {
 	public partial class Variable : Resource
 	{
+		public enum Type
+		{
+			Invalid = -1,
+			String,
+			Number,
+			Boolean
+		}
+
 		[Export]
 		public string Name = "";
 
 		[Export]
-		public VariableType Type = VariableType.String;
+		public Type VariableType = Type.String;
 
 		[Export]
 		public string Value = "";
 
-		public static bool TryCreateFromDeclaration(
-			Declaration declaration,
-			out Variable variable
-		)
+		public static bool TryCreateFromDeclaration(Declaration declaration, out Variable variable)
 		{
-			static bool TryGetVariableType(Declaration declaration, out VariableType type)
+			static bool TryGetVariableType(Declaration declaration, out Type type)
 			{
 				string typeName = declaration.Type.Name;
 				if (typeName == BuiltinTypes.String.Name)
 				{
-					type = VariableType.String;
+					type = Type.String;
 					return true;
 				}
 
 				if (typeName == BuiltinTypes.Number.Name)
 				{
-					type = VariableType.Number;
+					type = Type.Number;
 					return true;
 				}
 
 				if (typeName == BuiltinTypes.Boolean.Name)
 				{
-					type = VariableType.Boolean;
+					type = Type.Boolean;
 					return true;
 				}
 
 				GD.PushError($"invalid variable type: {declaration.Name} = {typeName}");
-				type = VariableType.Invalid;
+				type = Type.Invalid;
 				return false;
 			}
 
-			if (!TryGetVariableType(declaration, out VariableType type))
+			if (!TryGetVariableType(declaration, out Type type))
 			{
 				variable = default;
 				return false;
@@ -55,20 +60,10 @@ namespace Yarn.GodotSharp
 			variable = new Variable()
 			{
 				Name = declaration.Name,
-				Type = type,
-				Value = declaration.DefaultValue.ToString()
+				VariableType = type,
+				Value = declaration.DefaultValue.ToString(),
 			};
 			return true;
-		}
-
-		public float ToNumber()
-		{
-			return float.Parse(Value);
-		}
-
-		public bool ToBoolean()
-		{
-			return bool.Parse(Value);
 		}
 	}
 }

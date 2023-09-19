@@ -10,25 +10,24 @@ namespace Yarn.GodotSharp
 	/// A simple implementation of VariableStorageBehaviour.
 	/// </summary>
 	/// <remarks>
-	/// <para>This class stores variables in memory, and is erased when the game
-	/// exits.</para>
-	///
+	/// <para>This class stores variables in memory, and is erased when the game exits.</para>
+	/// ///
 	/// <para>This class also has basic serialization and save/load example functions.</para>
-	///
-	/// <para>You can also enumerate over the variables by using a <c>foreach</c>
-	/// loop:</para>
-	///
+	/// ///
+	/// <para>You can also enumerate over the variables by using a <c>foreach</c> loop:</para>
+	/// ///
 	/// <code lang="csharp">
-	/// // 'storage' is an InMemoryVariableStorage
-	/// foreach (var variable in storage) {
-	///     string name = variable.Key;
-	///     System.Object value = variable.Value;
-	/// }
+	///// 'storage' is an InMemoryVariableStorage
+	///foreach (var variable in storage) {
+	///string name = variable.Key;
+	///System.Object value = variable.Value;
+	///}
 	/// </code>
-	///
-	/// <para>Note that as of v2.0, this class no longer uses Yarn.Value, to
-	/// enforce static typing of declared variables within the Yarn
-	/// Program.</para>
+	/// ///
+	/// <para>
+	/// Note that as of v2.0, this class no longer uses Yarn.Value, to enforce static typing of
+	/// declared variables within the Yarn Program.
+	/// </para>
 	/// </remarks>
 	// https://yarnspinner.dev/docs/unity/components/variable-storage/
 	public partial class InMemoryVariableStorage : VariableStorageBehaviour
@@ -36,7 +35,7 @@ namespace Yarn.GodotSharp
 		[Export]
 		public GodotCollections.Dictionary<string, Variable> Variables = new();
 
-		public void SetValue(string variableName, VariableType type, string value)
+		public void SetValue(string variableName, Variable.Type type, string value)
 		{
 			ValidateVariableName(variableName);
 
@@ -49,40 +48,44 @@ namespace Yarn.GodotSharp
 				Variables[variableName] = variable;
 			}
 
-			variable.Type = type;
+			variable.VariableType = type;
 			variable.Value = value;
 		}
 
 		#region VariableStorageBehaviour
+
 		public override void SetValue(string variableName, string stringValue)
-			=> SetValue(variableName, VariableType.String, stringValue);
+			=> SetValue(variableName, Variable.Type.String, stringValue);
 
 		public override void SetValue(string variableName, float floatValue)
-			=> SetValue(variableName, VariableType.Number, floatValue.ToString());
+			=> SetValue(variableName, Variable.Type.Number, floatValue.ToString());
 
 		public override void SetValue(string variableName, bool boolValue)
-			=> SetValue(variableName, VariableType.Boolean, boolValue.ToString());
+			=> SetValue(variableName, Variable.Type.Boolean, boolValue.ToString());
 
 		/// <summary>
 		/// Retrieves a <see cref="Value"/> by name.
 		/// </summary>
-		/// <param name="variableName">The name of the variable to retrieve
-		/// the value of. Don't forget to include the "$" at the
-		/// beginning!</param>
-		/// <returns>The <see cref="Value"/>. If a variable by the name of
-		/// <paramref name="variableName"/> is not present, returns a value
-		/// representing `null`.</returns>
-		/// <exception cref="ArgumentException">Thrown when
-		/// variableName is not a valid variable name.</exception>
+		/// <param name="variableName">
+		/// The name of the variable to retrieve the value of. Don't forget to include the "$" at
+		/// the beginning!
+		/// </param>
+		/// <returns>
+		/// The <see cref="Value"/>. If a variable by the name of <paramref name="variableName"/> is
+		/// not present, returns a value representing `null`.
+		/// </returns>
+		/// <exception cref="ArgumentException">
+		/// Thrown when variableName is not a valid variable name.
+		/// </exception>
 		public override bool TryGetValue<T>(string variableName, out T result)
 		{
-			static Type VariableTypeToSystemType(VariableType type)
+			static Type VariableTypeToSystemType(Variable.Type type)
 			{
 				return type switch
 				{
-					VariableType.String => typeof(string),
-					VariableType.Number => typeof(float),
-					VariableType.Boolean => typeof(bool),
+					Variable.Type.String => typeof(string),
+					Variable.Type.Number => typeof(float),
+					Variable.Type.Boolean => typeof(bool),
 					_ => throw new ArgumentException("invalid YarnVariableType; type = " + type),
 				};
 			}
@@ -96,7 +99,7 @@ namespace Yarn.GodotSharp
 				return false;
 			}
 
-			var variableType = VariableTypeToSystemType(variable.Type);
+			var variableType = VariableTypeToSystemType(variable.VariableType);
 			if (!typeof(T).IsAssignableFrom(variableType))
 			{
 				throw new InvalidCastException($"Variable '{variableName}' is the wrong type; expected '{typeof(T)}', got '{variableType}'");
@@ -115,17 +118,17 @@ namespace Yarn.GodotSharp
 		{
 			return Variables.ContainsKey(variableName);
 		}
+
 		#endregion VariableStorageBehaviour
 
 		/// <summary>
-		/// Throws a <see cref="System.ArgumentException"/> if <paramref
-		/// name="variableName"/> is not a valid Yarn Spinner variable
-		/// name.
+		/// Throws a <see cref="System.ArgumentException"/> if <paramref name="variableName"/> is
+		/// not a valid Yarn Spinner variable name.
 		/// </summary>
 		/// <param name="variableName">The variable name to test.</param>
-		/// <exception cref="System.ArgumentException">Thrown when
-		/// <paramref name="variableName"/> is not a valid variable
-		/// name.</exception>
+		/// <exception cref="System.ArgumentException">
+		/// Thrown when <paramref name="variableName"/> is not a valid variable name.
+		/// </exception>
 		private static void ValidateVariableName(string variableName)
 		{
 			if (variableName.StartsWith("$") == false)

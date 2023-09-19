@@ -1,6 +1,6 @@
 [remap]
 
-importer="Yarn.GodotEngine.Editor.Importers.YarnProgramImporter"
+importer="Yarn.GodotSharp.Editor.Importers.YarnProgramImporter"
 type="Resource"
 uid="uid://b3jwsk2718cvr"
 path="res://.godot/imported/yarn_program.yarn-b790282cb7a3e18dce596ee9700d2abc.tres"

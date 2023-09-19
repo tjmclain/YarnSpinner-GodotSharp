@@ -116,7 +116,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 			var exportTranslations = options[_exportTranslationOption];
 			if (exportTranslations.AsBool())
 			{
-				var stringTableEntries = yarnProgram.StringTable.ToArray();
+				var stringTableEntries = yarnProgram.StringTable.ToList();
 				var exportTranslationsResult = ExportTranslationFile(
 					sourceFile,
 					stringTableEntries,
@@ -161,17 +161,19 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 		private static Error ExportTranslationFile(
 			string sourceFile,
-			StringTableEntry[] stringTableEntries,
-			out string filePath
+			List<StringTableEntry> stringTableEntries,
+			out string translationFile
 		)
 		{
-			filePath = string.Empty;
+			translationFile = string.Empty;
+
 			if (!stringTableEntries.Any())
 			{
-				GD.PushError("stringTableEntries.Count() == 0");
+				GD.PushError("!stringTableEntries.Any == 0");
 				return Error.InvalidData;
 			}
 
+			// There's gotta be a better way to do this, right?
 			var dummyScript = new EditorScript();
 			var editorInterface = dummyScript.GetEditorInterface();
 			var editorSettings = editorInterface.GetEditorSettings();
@@ -229,103 +231,91 @@ namespace Yarn.GodotSharp.Editor.Importers
 				}
 			}
 
-			var rows = new System.Collections.Generic.Dictionary<string, StringDict>();
-			var headers = new HashSet<string>
-				{
-					"key",
-					baseLanguage
-				};
+			translationFile = $"{translationsDir}/{fileName}.csv";
 
-			filePath = $"{translationsDir}/{fileName}.csv";
+			// track the locales that we have translations for
+			var locales = new HashSet<string>();
 
 			// Try to read existing translations and load them into our rows dict
-			if (FileAccess.FileExists(filePath))
+			if (FileAccess.FileExists(translationFile))
 			{
-				using (var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Read))
+				using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Read))
 				{
-					string[] headerValues = file.GetCsvLine();
-					foreach (string header in headerValues)
-					{
-						headers.Add(header);
-					}
-
+					string[] headers = file.GetCsvLine();
 					while (file.GetPosition() < file.GetLength())
 					{
 						var row = new StringDict();
 						string[] values = file.GetCsvLine();
-						for (int i = 0; i < headerValues.Length; i++)
+						for (int i = 0; i < headers.Length; i++)
 						{
-							string key = headerValues[i];
+							string key = headers[i];
 							string value = values[i];
 							row[key] = value;
 						}
 
-						string id = values[0];
-						rows[id] = row;
+						var entry = StringTableEntry.FromCsvRow(row);
+						foreach (var translation in entry.Translations)
+						{
+							locales.Add(translation.Key);
+						}
+
+						int index = stringTableEntries.FindIndex(x => x.Id == entry.Id);
+						if (index < 0)
+						{
+							// Keep entries with translations, but throw out everything else.
+							if (entry.Translations.Count > 0)
+							{
+								stringTableEntries.Add(entry);
+							}
+							continue;
+						}
+
+						// TODO: if other entry's lock changed, invalidate existing translations
+						var other = stringTableEntries[index];
+						other.Translations = entry.Translations;
 					}
 				}
 			}
 
 			// Write translations from string entries
-			using (var file = FileAccess.Open(filePath, FileAccess.ModeFlags.Write))
+			using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Write))
 			{
 				if (file == null)
 				{
 					var error = FileAccess.GetOpenError();
-					GD.PushError($"!FileAccess.Open '{filePath}'; error = {error}");
+					GD.PushError($"!FileAccess.Open '{translationFile}'; error = {error}");
 					return error;
 				}
 
-				var localesSetting = editorSettings.Get(EditorSettings.SupportedLocalesProperty);
-				var locales = localesSetting.AsStringArray();
-				foreach (var lc in locales)
-				{
-					headers.Add(lc);
-				}
-
-				GD.Print("locales = " + locales.Join(", "));
-
-				// Reconcile new and existing entries
-				// TODO: cleanup ids that don't exist in incoming entries
-				foreach (var entry in stringTableEntries)
-				{
-					if (rows.TryGetValue(entry.Id, out var row))
-					{
-						row[baseLanguage] = entry.Text;
-						continue;
-					}
-
-					rows[entry.Id] = new StringDict()
-						{
-							{ "key", entry.Id },
-							{ baseLanguage, entry.Text }
-						};
-				}
-
 				// Write header row
+				var headers = StringTableEntry.GetCsvHeaders(locales).ToArray();
 				file.StoreCsvLine(headers.ToArray());
 
-				var enumerator = rows.GetEnumerator();
-				while (enumerator.MoveNext())
+				// Read rows from entries
+				var enumerator = stringTableEntries.GetEnumerator();
+				foreach (var entry in stringTableEntries)
 				{
-					var row = enumerator.Current.Value;
-					var values = new List<string>(headers.Count);
-					foreach (string key in headers)
+					var row = entry.ToCsvRow();
+					var values = new string[headers.Length];
+					for (int i = 0; i < headers.Length; i++)
 					{
-						row.TryGetValue(key, out string value);
-						values.Add(value);
+						string key = headers[i];
+						if (row.TryGetValue(key, out string value))
+						{
+							values[i] = value;
+						}
 					}
 
-					file.StoreCsvLine(values.ToArray());
+					file.StoreCsvLine(values);
 				}
 
-				GD.Print($"Exported translation at '{filePath}'");
+				GD.Print($"Exported translation at '{translationFile}'");
 			}
 
 			// NOTE: if I don't include this, AppendImportExternalResource
 			// below returns a 'FileNotFound' error
 			var fs = editorInterface.GetResourceFilesystem();
-			fs.UpdateFile(filePath);
+			fs.UpdateFile(translationFile);
 
 			return Error.Ok;
 		}
