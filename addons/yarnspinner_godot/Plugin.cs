@@ -2,12 +2,12 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using Yarn.GodotEngine.Editor;
-using Yarn.GodotEngine.Editor.Importers;
-using Yarn.GodotEngine.Editor.Inspectors;
-using Yarn.GodotEngine.Editor.Tests;
+using Yarn.GodotSharp.Editor;
+using Yarn.GodotSharp.Editor.Importers;
+using Yarn.GodotSharp.Editor.Inspectors;
+using Yarn.GodotSharp.Editor.Tests;
 
-namespace Yarn.GodotEngine
+namespace Yarn.GodotSharp
 {
 	[Tool]
 	public partial class Plugin : EditorPlugin
