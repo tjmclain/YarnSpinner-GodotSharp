@@ -16,7 +16,7 @@ namespace Yarn.GodotEngine
 		/// </summary>
 		private Program _program = null;
 
-		private Dictionary<string, StringTableEntry> _stringTable = new();
+		private readonly Dictionary<string, StringTableEntry> _stringTable = new();
 
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
@@ -118,9 +118,21 @@ namespace Yarn.GodotEngine
 			_program = compilation.Program;
 
 			// Combine string table entries
-			_stringTable = Programs
-				.SelectMany(x => x.StringTable)
-				.ToDictionary(x => x.Id, x => x);
+			_stringTable.Clear();
+			var stringTables = Programs.Select(x => x.StringTable);
+			foreach (var dict in stringTables)
+			{
+				foreach (var kvp in dict)
+				{
+#if TOOLS
+					if (_stringTable.ContainsKey(kvp.Key))
+					{
+						GD.PushError("Duplicate key in string table: " + kvp.Key);
+					}
+#endif
+					_stringTable[kvp.Key] = kvp.Value;
+				}
+			}
 
 			return _program;
 		}

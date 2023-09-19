@@ -276,12 +276,11 @@ namespace Yarn.GodotEngine
 			{
 				ActionLibrary = new ActionLibrary();
 				ActionLibrary.Refresh();
-
 				GD.Print($"Dialogue Runner has no ActionLibrary; creating a {typeof(ActionLibrary).Name}");
 			}
-			else if (Engine.IsEditorHint())
+			else // if (Engine.IsEditorHint())
 			{
-				// Always run a search for actions if we're running in the editor
+				// TODO: cache library offline; only refresh every time in-editor
 				ActionLibrary.Refresh();
 			}
 

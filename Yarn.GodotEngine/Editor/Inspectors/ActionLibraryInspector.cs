@@ -1,4 +1,5 @@
 #if TOOLS
+
 using Godot;
 using Yarn.GodotEngine.Actions;
 
@@ -8,7 +9,6 @@ namespace Yarn.GodotEngine.Editor.Inspectors
 	public partial class ActionLibraryInspector : EditorInspectorPlugin
 	{
 		// private Button _refreshButton;
-
 
 		#region Public Methods
 
@@ -33,11 +33,11 @@ namespace Yarn.GodotEngine.Editor.Inspectors
 		}
 
 		public override bool _ParseProperty(
-			GodotObject obj, 
-			Variant.Type type, 
-			string name, 
-			PropertyHint hintType, 
-			string hintString, 
+			GodotObject obj,
+			Variant.Type type,
+			string name,
+			PropertyHint hintType,
+			string hintString,
 			PropertyUsageFlags usageFlags,
 			bool wide
 		)
@@ -63,4 +63,5 @@ namespace Yarn.GodotEngine.Editor.Inspectors
 		//}
 	}
 }
+
 #endif
