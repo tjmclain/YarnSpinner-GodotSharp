@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="YarnSpinner-Godot"
+config/name="YarnSpinner-GodotSharp"
 config/features=PackedStringArray("4.1", "C#", "Mobile")
 config/icon="res://icon.svg"
 
