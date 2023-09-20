@@ -13,8 +13,8 @@ namespace Yarn.GodotSharp.LineProviders
 			var stringTable = YarnProject.StringTable;
 			if (stringTable.TryGetValue(line.ID, out var entry))
 			{
-				text = entry.Text;
-				metadata = entry.Metadata;
+				text = entry.text;
+				metadata = entry.metadata;
 			}
 
 			if (GodotUtility.TryTranslateString(line.ID, out var translation))

@@ -6,7 +6,7 @@ using Godot;
 
 namespace Yarn.GodotSharp.Actions
 {
-	[GlobalClass, Tool]
+	[GlobalClass]
 	public partial class ActionLibrary : Resource
 	{
 		[Export]

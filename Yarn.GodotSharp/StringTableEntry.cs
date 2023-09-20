@@ -9,12 +9,6 @@ namespace Yarn.GodotSharp
 {
 	public partial class StringTableEntry : Resource
 	{
-		#region Fields
-
-		private const string _metadataDelimiter = " ";
-
-		#endregion Fields
-
 		#region Properties
 
 		/// <summary>

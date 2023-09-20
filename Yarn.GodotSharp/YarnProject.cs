@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Godot;
 
@@ -15,8 +16,6 @@ namespace Yarn.GodotSharp
 		/// The cached result of deserializing <see cref="CompiledYarnProgram"/>.
 		/// </summary>
 		private Program _program = null;
-
-		private Dictionary<string, StringTableEntry> _stringTable = new();
 
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
@@ -39,7 +38,7 @@ namespace Yarn.GodotSharp
 					? Program.Nodes.Keys.ToArray()
 					: Array.Empty<string>();
 
-		public Dictionary<string, StringTableEntry> StringTable => _stringTable;
+		public Dictionary<string, Compiler.StringInfo> StringTable { get; private set; } = new();
 
 		/// <summary>
 		/// Gets the headers for the requested node.
@@ -109,7 +108,7 @@ namespace Yarn.GodotSharp
 
 			// Compile program
 			var filePaths = Programs
-				.Select(x => x.SourceFile)
+				.Select(x => x.ResourcePath)
 				.Select(x => ProjectSettings.GlobalizePath(x));
 
 			var job = Compiler.CompilationJob.CreateFromFiles(filePaths);
@@ -117,12 +116,7 @@ namespace Yarn.GodotSharp
 
 			_program = compilation.Program;
 
-			// Combine string table entries
-			var stringTable = Programs
-				.SelectMany(x => x.StringTable)
-				.ToDictionary(x => x.Id, x => x);
-
-			_stringTable = new(stringTable);
+			StringTable = new(compilation.StringTable);
 
 			return _program;
 		}

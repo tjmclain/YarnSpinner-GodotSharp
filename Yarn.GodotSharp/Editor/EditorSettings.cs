@@ -1,8 +1,6 @@
 #if TOOLS
 
 using Godot;
-using System;
-using System.Diagnostics;
 
 namespace Yarn.GodotSharp.Editor
 {
@@ -29,13 +27,6 @@ namespace Yarn.GodotSharp.Editor
 				{ "hint", Variant.From(PropertyHint.LocaleId) },
 				{ "default_value", "en" }
 			},
-			new Godot.Collections.Dictionary
-			{
-				{ "name", SupportedLocalesProperty },
-				{ "type", Variant.From(Variant.Type.Array) },
-				{ "hint", Variant.From(PropertyHint.LocaleId) },
-				{ "default_value", Variant.From(new string[] { "en" }) }
-			}
 		};
 
 		public static void AddProperties(EditorInterface editorInterface)

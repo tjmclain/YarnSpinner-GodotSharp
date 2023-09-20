@@ -1,4 +1,4 @@
-key,en
-line:4f4ca5bb,This is a line of text.
-line:d97ca2cc,Character: And this is a character dialogue line.
-line:1e6a9468,This is a line I just added to test translations.
+key,en,jp
+line:4f4ca5bb,This is a line of text.,kore wa tekisuto desu.
+line:d97ca2cc,Character: And this is a character dialogue line.,
+line:1e6a9468,This is a line I just added to test translations.,

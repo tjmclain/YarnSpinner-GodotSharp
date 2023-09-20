@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="ActionLibrary" load_steps=2 format=3 uid="uid://bgj2vq3qh8w6y"]
+[gd_resource type="Resource" script_class="ActionLibrary" load_steps=2 format=3 uid="uid://4762x6djef8i"]
 
-[ext_resource type="Script" path="res://Yarn.GodotEngine/Actions/ActionLibrary.cs" id="1_t5qhp"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/Actions/ActionLibrary.cs" id="1_h8j4o"]
 
 [resource]
-script = ExtResource("1_t5qhp")
+script = ExtResource("1_h8j4o")
 Commands = []
 Functions = []
-SearchUsingOverrideAssemblyNames = false
+UseOverrideAssemblyNames = false
 OverrideAssemblyNames = PackedStringArray()

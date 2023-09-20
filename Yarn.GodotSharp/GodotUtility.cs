@@ -1,7 +1,9 @@
 using System;
+using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Godot;
-
+using Godot.Collections;
 using GodotNode = Godot.Node;
 
 namespace Yarn.GodotSharp
@@ -178,6 +180,60 @@ namespace Yarn.GodotSharp
 		{
 			value = TranslationServer.Translate(key, context);
 			return !string.IsNullOrEmpty(value) && value != key;
+		}
+
+		public static Error ReadCsv(string csvFile, out string[] headers, out Dictionary<string, Dictionary<string, string>> table)
+		{
+			// don't out null values
+			headers = System.Array.Empty<string>();
+			table = new();
+
+			if (!FileAccess.FileExists(csvFile))
+			{
+				return Error.FileNotFound;
+			}
+
+			using var file = FileAccess.Open(csvFile, FileAccess.ModeFlags.Read);
+			if (file == null)
+			{
+				var error = FileAccess.GetOpenError();
+				GD.PushError($"file == null; csvFile = {csvFile}; error = {error}");
+				return error;
+			}
+
+			if (file.GetLength() == 0)
+			{
+				GD.PushError($"file.GetLength() == 0; csvFile = {csvFile}");
+				return Error.InvalidData;
+			}
+
+			headers = file.GetCsvLine();
+
+			while (file.GetPosition() < file.GetLength())
+			{
+				var values = new Dictionary<string, string>();
+				string[] line = file.GetCsvLine();
+				if (line == null || line.Length == 0)
+				{
+					continue;
+				}
+
+				string id = line[0];
+				if (string.IsNullOrEmpty(id))
+				{
+					continue;
+				}
+
+				for (int i = 0; i < headers.Length; i++)
+				{
+					string key = headers[i];
+					values[key] = line[i];
+				}
+
+				table[id] = values;
+			}
+
+			return Error.Ok;
 		}
 	}
 }
