@@ -233,46 +233,74 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			translationFile = $"{translationsDir}/{fileName}.csv";
 
+			const string keyHeader = "key";
+
 			// track the locales that we have translations for
-			var locales = new HashSet<string>();
+			var headers = new HashSet<string>()
+			{
+				keyHeader,
+				baseLanguage
+			};
+
+			var rows = new System.Collections.Generic.Dictionary<string, StringDict>();
+			foreach (var entry in stringTableEntries)
+			{
+				rows[entry.Id] = new StringDict()
+				{
+					{ keyHeader, entry.Id },
+					{ baseLanguage, entry.Text }
+				};
+			}
 
 			// Try to read existing translations and load them into our rows dict
 			if (FileAccess.FileExists(translationFile))
 			{
 				using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Read))
 				{
-					string[] headers = file.GetCsvLine();
+					var headerRow = file.GetCsvLine();
+					foreach (string value in headerRow)
+					{
+						headers.Add(value);
+					}
+
 					while (file.GetPosition() < file.GetLength())
 					{
-						var row = new StringDict();
-						string[] values = file.GetCsvLine();
-						for (int i = 0; i < headers.Length; i++)
+						var values = new StringDict();
+						string[] line = file.GetCsvLine();
+						for (int i = 0; i < headerRow.Length; i++)
 						{
-							string key = headers[i];
-							string value = values[i];
-							row[key] = value;
+							string k = headerRow[i];
+							string v = line[i];
+							values[k] = v;
 						}
 
-						var entry = StringTableEntry.FromCsvRow(row);
-						foreach (var translation in entry.Translations)
+						// we don't have a key value, so ignore this row
+						if (!values.TryGetValue(keyHeader, out string key))
 						{
-							locales.Add(translation.Key);
-						}
-
-						int index = stringTableEntries.FindIndex(x => x.Id == entry.Id);
-						if (index < 0)
-						{
-							// Keep entries with translations, but throw out everything else.
-							if (entry.Translations.Count > 0)
-							{
-								stringTableEntries.Add(entry);
-							}
 							continue;
 						}
 
-						// TODO: if other entry's lock changed, invalidate existing translations
-						var other = stringTableEntries[index];
-						other.Translations = entry.Translations;
+						// this key does not exist in the string table, so ignore it
+						if (!rows.TryGetValue(key, out var row))
+						{
+							continue;
+						}
+
+						// add existing translations to rows
+						foreach (var kvp in values)
+						{
+							if (kvp.Key == keyHeader)
+							{
+								continue;
+							}
+
+							if (kvp.Key == baseLanguage)
+							{
+								continue;
+							}
+
+							row[kvp.Key] = kvp.Value;
+						}
 					}
 				}
 			}
@@ -288,25 +316,19 @@ namespace Yarn.GodotSharp.Editor.Importers
 				}
 
 				// Write header row
-				var headers = StringTableEntry.GetCsvHeaders(locales).ToArray();
-				file.StoreCsvLine(headers.ToArray());
+				var headerRow = headers.ToArray();
+				file.StoreCsvLine(headerRow);
 
 				// Read rows from entries
-				var enumerator = stringTableEntries.GetEnumerator();
-				foreach (var entry in stringTableEntries)
+				foreach (var row in rows.Values)
 				{
-					var row = entry.ToCsvRow();
-					var values = new string[headers.Length];
-					for (int i = 0; i < headers.Length; i++)
+					string[] line = new string[headerRow.Length];
+					for (int i = 0; i < headerRow.Length; i++)
 					{
-						string key = headers[i];
-						if (row.TryGetValue(key, out string value))
-						{
-							values[i] = value;
-						}
+						string key = headerRow[i];
+						line[i] = row[key];
 					}
-
-					file.StoreCsvLine(values);
+					file.StoreCsvLine(line);
 				}
 
 				GD.Print($"Exported translation at '{translationFile}'");

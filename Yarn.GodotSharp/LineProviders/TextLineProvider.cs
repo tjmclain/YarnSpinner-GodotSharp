@@ -7,7 +7,6 @@ namespace Yarn.GodotSharp.LineProviders
 	{
 		public override LocalizedLine GetLocalizedLine(Line line)
 		{
-			// TODO: translate text
 			string text = string.Empty;
 			string[] metadata = Array.Empty<string>();
 
@@ -16,6 +15,11 @@ namespace Yarn.GodotSharp.LineProviders
 			{
 				text = entry.Text;
 				metadata = entry.Metadata;
+			}
+
+			if (GodotUtility.TryTranslateString(line.ID, out var translation))
+			{
+				text = translation;
 			}
 
 			return new LocalizedLine()

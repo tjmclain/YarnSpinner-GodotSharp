@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b2m012qocetgq"
-path="res://.godot/imported/YarnSpinnerFailed.png-3f3b3837d601d84bc6f8c177cdfc7322.ctex"
+path="res://.godot/imported/YarnSpinnerFailed.png-f0915717ca4482862e5f8d3b6f102309.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/icons/YarnSpinnerFailed.png"
-dest_files=["res://.godot/imported/YarnSpinnerFailed.png-3f3b3837d601d84bc6f8c177cdfc7322.ctex"]
+source_file="res://addons/yarnspinner_godot/Icons/YarnSpinnerFailed.png"
+dest_files=["res://.godot/imported/YarnSpinnerFailed.png-f0915717ca4482862e5f8d3b6f102309.ctex"]
 
 [params]
 

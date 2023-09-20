@@ -84,9 +84,6 @@ namespace Yarn.GodotSharp
 		[Export]
 		public string[] Metadata { get; set; } = Array.Empty<string>();
 
-		[Export]
-		public Godot.Collections.Dictionary<string, string> Translations { get; set; } = new();
-
 		#endregion Properties
 
 		#region Public Constructors
@@ -105,104 +102,9 @@ namespace Yarn.GodotSharp
 			Lock = GetHashString(stringInfo.text, 8);
 			Comment = GenerateCommentWithLineMetadata(stringInfo.metadata);
 			Metadata = RemoveLineIdFromMetadata(stringInfo.metadata).ToArray();
-			Translations = new();
 		}
 
 		#endregion Public Constructors
-
-		#region Public Methods
-
-		public static IEnumerable<string> GetPropertyNames()
-		{
-			return typeof(PropertyName)
-				.GetFields(
-					System.Reflection.BindingFlags.Public
-					| System.Reflection.BindingFlags.Static
-					| System.Reflection.BindingFlags.DeclaredOnly
-				)
-				.Select(x => x.GetValue(null).ToString());
-		}
-
-		public static IEnumerable<string> GetCsvHeaders(IEnumerable<string> locales = default)
-		{
-			return GetPropertyNames()
-				.Where(x => x != PropertyName.Translations)
-				.Concat(locales);
-		}
-
-		public string GetTranslatedText()
-		{
-			string locale = TranslationServer.GetLocale();
-			return Translations.TryGetValue(locale, out string text) ? text : Text;
-		}
-
-		public static StringTableEntry FromCsvRow(Dictionary<string, string> csvRow)
-		{
-			var properties = GetPropertyNames();
-			var entry = new StringTableEntry();
-
-			foreach (var kvp in csvRow)
-			{
-				string key = kvp.Key;
-				if (key == PropertyName.Translations)
-				{
-					continue;
-				}
-
-				if (key == PropertyName.Metadata)
-				{
-					entry.Metadata = kvp.Value.Split(_metadataDelimiter);
-					continue;
-				}
-
-				if (!properties.Contains(key))
-				{
-					entry.Translations[key] = kvp.Value;
-					continue;
-				}
-
-				try
-				{
-					entry.Set(key, kvp.Value);
-				}
-				catch (Exception e)
-				{
-					GD.PushError($"can't set StringTableEntry property '{key}'; error = {e.Message}");
-				}
-			}
-
-			return entry;
-		}
-
-		public Dictionary<string, string> ToCsvRow()
-		{
-			var row = new Dictionary<string, string>();
-			var properties = GetPropertyNames();
-			foreach (var property in properties)
-			{
-				if (property == PropertyName.Translations)
-				{
-					continue;
-				}
-
-				if (property == PropertyName.Metadata)
-				{
-					row[PropertyName.Metadata] = Metadata.Join(_metadataDelimiter);
-					continue;
-				}
-
-				row[property] = Get(property).ToString();
-			}
-
-			foreach (var kvp in Translations)
-			{
-				row[kvp.Key] = kvp.Value;
-			}
-
-			return row;
-		}
-
-		#endregion Public Methods
 
 		#region Private Methods
 
