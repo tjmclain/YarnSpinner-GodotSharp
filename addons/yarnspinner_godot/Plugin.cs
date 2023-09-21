@@ -15,8 +15,6 @@ namespace Yarn.GodotSharp
 	[Tool]
 	public partial class Plugin : EditorPlugin
 	{
-		private GodotEditorUtility _editorUtility;
-
 		private List<EditorImportPlugin> _importPlugins = new();
 		private List<EditorInspectorPlugin> _inspectorPlugins = new();
 		private List<CommandEditorScript> _commandEditorScripts = new();
@@ -25,10 +23,6 @@ namespace Yarn.GodotSharp
 		{
 			// Initialization of the plugin goes here.
 			GD.Print("Yarn.GodotEngine.Plugin: _EnterTree");
-
-			// Initialize custom project settings
-			_editorUtility = new GodotEditorUtility();
-			Engine.RegisterSingleton(nameof(GodotEditorUtility), _editorUtility);
 
 			// Initialize custom importers
 			_importPlugins = GetInstancesOfEditorTypes<EditorImportPlugin>();
@@ -74,9 +68,6 @@ namespace Yarn.GodotSharp
 			{
 				script.RemoveFromCommandPalette();
 			}
-
-			// Deinitiliaze custom project settings
-			Engine.UnregisterSingleton(nameof(GodotEditorUtility));
 		}
 
 		private static List<T> GetInstancesOfEditorTypes<T>()

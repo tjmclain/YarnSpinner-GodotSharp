@@ -30,17 +30,17 @@ namespace Yarn.GodotSharp.Editor.Importers
 		{
 			new Dictionary
 			{
-				{ GodotEditorUtility.EditorProperty.Name, _translationsDirProp },
-				{ GodotEditorUtility.EditorProperty.Type, Variant.From(Variant.Type.String) },
-				{ GodotEditorUtility.EditorProperty.Hint, Variant.From(PropertyHint.Dir) },
-				{ GodotEditorUtility.EditorProperty.DefaultValue, "res://translations/" }
+				{ GodotEditorUtility.EditorProperty.NameKey, _translationsDirProp },
+				{ GodotEditorUtility.EditorProperty.TypeKey, Variant.From(Variant.Type.String) },
+				{ GodotEditorUtility.EditorProperty.HintKey, Variant.From(PropertyHint.Dir) },
+				{ GodotEditorUtility.EditorProperty.DefaultValueKey, "res://translations/" }
 			},
 			new Dictionary
 			{
-				{ GodotEditorUtility.EditorProperty.Name, _baseLocaleProp },
-				{ GodotEditorUtility.EditorProperty.Type, Variant.From(Variant.Type.String) },
-				{ GodotEditorUtility.EditorProperty.Hint, Variant.From(PropertyHint.LocaleId) },
-				{ GodotEditorUtility.EditorProperty.DefaultValue, "en" }
+				{ GodotEditorUtility.EditorProperty.NameKey, _baseLocaleProp },
+				{ GodotEditorUtility.EditorProperty.TypeKey, Variant.From(Variant.Type.String) },
+				{ GodotEditorUtility.EditorProperty.HintKey, Variant.From(PropertyHint.LocaleId) },
+				{ GodotEditorUtility.EditorProperty.DefaultValueKey, "en" }
 			},
 		};
 
@@ -48,13 +48,10 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 		public YarnProgramImporter()
 		{
-			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
-			if (editorUtility != null)
+			var editorUtility = GodotEditorUtility.GetSingleton();
+			foreach (var property in _editorProperties)
 			{
-				foreach (var property in _editorProperties)
-				{
-					editorUtility.AddEditorSettingsProperty(property);
-				}
+				editorUtility.AddEditorSettingsProperty(property);
 			}
 		}
 
@@ -62,13 +59,10 @@ namespace Yarn.GodotSharp.Editor.Importers
 		{
 			base.Dispose(disposing);
 
-			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
-			if (editorUtility != null)
+			var editorUtility = GodotEditorUtility.GetSingleton();
+			foreach (var property in _editorProperties)
 			{
-				foreach (var property in _editorProperties)
-				{
-					editorUtility.RemoveEditorSettingsProperty(property);
-				}
+				editorUtility.RemoveEditorSettingsProperty(property);
 			}
 		}
 
@@ -226,14 +220,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.InvalidData;
 			}
 
-			// There's gotta be a better way to do this, right?
-			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
-			if (editorUtility == null)
-			{
-				GD.PushError("editorUtility == null");
-				return Error.InvalidData;
-			}
-
+			var editorUtility = GodotEditorUtility.GetSingleton();
 			var translationsDirSetting = editorUtility.GetEditorSettingsProperty(_translationsDirProp);
 			string translationsDir = translationsDirSetting.AsString();
 			if (string.IsNullOrEmpty(translationsDir))

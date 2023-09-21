@@ -14,12 +14,42 @@ namespace Yarn.GodotSharp.Editor
 		{
 			#region Fields
 
-			public const string Name = "name";
-			public const string Type = "type";
-			public const string Hint = "hint";
-			public const string DefaultValue = "default_value";
+			public const string NameKey = "name";
+			public const string TypeKey = "type";
+			public const string HintKey = "hint";
+			public const string DefaultValueKey = "default_value";
 
 			#endregion Fields
+
+			#region Properties
+
+			public string Name { get; set; } = string.Empty;
+			public Variant.Type Type { get; set; } = Variant.Type.String;
+			public PropertyHint Hint { get; set; } = PropertyHint.None;
+			public string DefaultValue { get; set; } = string.Empty;
+
+			#endregion Properties
+
+			#region Public Methods
+
+			public Dictionary ToDictionary()
+			{
+				if (string.IsNullOrEmpty(Name))
+				{
+					GD.PushError("string.IsNullOrEmpty(Name)");
+					return default;
+				}
+
+				return new Dictionary()
+				{
+					{ NameKey, Name },
+					{ TypeKey, Variant.From(Type) },
+					{ HintKey, Variant.From(Hint) },
+					{ DefaultValueKey, DefaultValue }
+				};
+			}
+
+			#endregion Public Methods
 		}
 
 		#endregion Classes
@@ -31,6 +61,18 @@ namespace Yarn.GodotSharp.Editor
 		#endregion Fields
 
 		#region Public Methods
+
+		public static GodotEditorUtility GetSingleton()
+		{
+			if (Engine.HasSingleton(nameof(GodotEditorUtility)))
+			{
+				return (GodotEditorUtility)Engine.GetSingleton(nameof(GodotEditorUtility));
+			}
+
+			var singleton = new GodotEditorUtility();
+			Engine.RegisterSingleton(nameof(GodotEditorUtility), singleton);
+			return singleton;
+		}
 
 		public EditorSettings GetEditorSettings()
 		{
@@ -54,9 +96,18 @@ namespace Yarn.GodotSharp.Editor
 			return editorSettings.Get(propertyName);
 		}
 
+		public void AddEditorSettingsProperty(EditorProperty property)
+			=> AddEditorSettingsProperty(property?.ToDictionary());
+
 		public void AddEditorSettingsProperty(Dictionary property)
 		{
-			if (!property.TryGetValue("name", out var name))
+			if (property == null)
+			{
+				GD.PushError("property == null");
+				return;
+			}
+
+			if (!property.TryGetValue(EditorProperty.NameKey, out var name))
 			{
 				GD.PushError("!property.TryGetValue('name')");
 				return;
@@ -69,10 +120,21 @@ namespace Yarn.GodotSharp.Editor
 				return;
 			}
 
-			property.TryGetValue("default_value", out var value);
+			property.TryGetValue(EditorProperty.DefaultValueKey, out var value);
 			editorSettings.Set(name.ToString(), value);
 			editorSettings.AddPropertyInfo(property);
 			editorSettings.SetInitialValue(name.ToString(), value, false);
+		}
+
+		public void RemoveEditorSettingsProperty(EditorProperty property)
+		{
+			if (property == null)
+			{
+				GD.PushError("property == null");
+				return;
+			}
+
+			RemoveEditorSettingsProperty(property.Name);
 		}
 
 		public void RemoveEditorSettingsProperty(Dictionary property)
@@ -83,7 +145,7 @@ namespace Yarn.GodotSharp.Editor
 				return;
 			}
 
-			property.TryGetValue("name", out var propertyName);
+			property.TryGetValue(EditorProperty.NameKey, out var propertyName);
 			RemoveEditorSettingsProperty(propertyName.AsString());
 		}
 
