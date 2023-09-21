@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<EnableDynamicLoading>true</EnableDynamicLoading>
-		<RootNamespace></RootNamespace>
+		<RootNamespace>Yarn.GodotSharp</RootNamespace>
 		<Configurations>Debug;ExportDebug;ExportRelease</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
