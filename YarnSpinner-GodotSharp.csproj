@@ -7,84 +7,84 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="Yarn.Antlr4.Runtime.Standard">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.Antlr4.Runtime.Standard.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.Antlr4.Runtime.Standard.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.CsvHelper">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.CsvHelper.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.CsvHelper.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.Google.Protobuf">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.Google.Protobuf.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.Google.Protobuf.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.Microsoft.Bcl.AsyncInterfaces">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.Microsoft.Extensions.FileSystemGlobbing">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Extensions.FileSystemGlobbing.dll</HintPath>
 		</Reference>
 		<Reference Include="Microsoft.Win32.SystemEvents">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.Microsoft.Win32.SystemEvents.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Win32.SystemEvents.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Buffers">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Buffers.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Buffers.dll</HintPath>
 		</Reference>
 		<Reference Include="System.CommandLine">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.CommandLine.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.CommandLine.dll</HintPath>
 		</Reference>
 		<Reference Include="System.Drawing.Common">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Drawing.Common.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Drawing.Common.dll</HintPath>
 		</Reference>
 		<Reference Include="System.IO.Packaging">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.IO.Packaging.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.IO.Packaging.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Memory">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Memory.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Memory.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Numerics.Vectors">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Numerics.Vectors.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Numerics.Vectors.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Reflection.TypeExtensions">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Reflection.TypeExtensions.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Reflection.TypeExtensions.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Runtime.CompilerServices.Unsafe">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Runtime.CompilerServices.Unsafe.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Text.Encodings.Web">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Text.Encodings.Web.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Text.Encodings.Web.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Text.Json">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Text.Json.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Text.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Yarn.System.Threading.Tasks.Extensions">
-			<HintPath>Yarn.GodotSharp\DLLs\Yarn.System.Threading.Tasks.Extensions.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\Yarn.System.Threading.Tasks.Extensions.dll</HintPath>
 		</Reference>
 		<Reference Include="YarnSpinner">
-			<HintPath>Yarn.GodotSharp\DLLs\YarnSpinner.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\YarnSpinner.dll</HintPath>
 		</Reference>
 		<Reference Include="YarnSpinner.Compiler">
-			<HintPath>Yarn.GodotSharp\DLLs\YarnSpinner.Compiler.dll</HintPath>
+			<HintPath>addons\yarnspinner_godot\DLLs\YarnSpinner.Compiler.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<None Include=".gitattributes" />
 		<None Include="addons\yarnspinner_godot\plugin.cfg" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.Antlr4.Runtime.Standard.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.CsvHelper.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.Google.Protobuf.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.Microsoft.Bcl.AsyncInterfaces.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.Microsoft.Extensions.FileSystemGlobbing.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.Microsoft.Win32.SystemEvents.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Buffers.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.CommandLine.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Drawing.Common.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.IO.Packaging.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Memory.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Numerics.Vectors.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Reflection.TypeExtensions.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Runtime.CompilerServices.Unsafe.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Text.Encodings.Web.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Text.Json.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\Yarn.System.Threading.Tasks.Extensions.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\YarnSpinner.Compiler.dll" />
-		<None Include="Yarn.GodotSharp\DLLs\YarnSpinner.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.Antlr4.Runtime.Standard.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.CsvHelper.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.Google.Protobuf.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Bcl.AsyncInterfaces.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Extensions.FileSystemGlobbing.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.Microsoft.Win32.SystemEvents.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Buffers.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.CommandLine.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Drawing.Common.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.IO.Packaging.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Memory.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Numerics.Vectors.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Reflection.TypeExtensions.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Runtime.CompilerServices.Unsafe.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Text.Encodings.Web.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Text.Json.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\Yarn.System.Threading.Tasks.Extensions.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\YarnSpinner.Compiler.dll" />
+		<None Include="addons\yarnspinner_godot\DLLs\YarnSpinner.dll" />
 	</ItemGroup>
 </Project>
