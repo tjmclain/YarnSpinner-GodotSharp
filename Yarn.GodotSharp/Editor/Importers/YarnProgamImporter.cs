@@ -388,11 +388,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			// there's no exposed property for this, so we have to get it via name
-			string settingName = "internationalization/locale/translations";
-
-			var translationsSetting = ProjectSettings.GetSetting(settingName, System.Array.Empty<string>());
-			var translations = new List<string>(translationsSetting.AsStringArray());
+			var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();
 
 			bool changed = false;
 			foreach (var file in files)
@@ -408,9 +404,9 @@ namespace Yarn.GodotSharp.Editor.Importers
 					continue;
 				}
 
+				GD.Print($"Add translation: " + localPath);
 				translations.Add(localPath);
 				changed = true;
-				GD.Print($"Add translation: " + localPath);
 			}
 
 			if (!changed)
@@ -418,8 +414,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			ProjectSettings.SetSetting(settingName, translations.ToArray());
-			ProjectSettings.Save();
+			GodotUtility.TranslationsProjectSetting.Set(translations.ToArray());
 		}
 
 		#endregion Private Methods

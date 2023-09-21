@@ -1,5 +1,6 @@
 #if TOOLS
 
+using System.Collections.Generic;
 using Godot;
 using Godot.Collections;
 

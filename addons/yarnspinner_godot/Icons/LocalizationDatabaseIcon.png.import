@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cj3sv7dtyad88"
-path="res://.godot/imported/LocalizationDatabaseIcon.png-2d8c5cfa1803893ce610106652352b8a.ctex"
+path="res://.godot/imported/LocalizationDatabaseIcon.png-745bce1da6b1687e87aa880d2164d000.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/Icons/LocalizationDatabaseIcon.png"
-dest_files=["res://.godot/imported/LocalizationDatabaseIcon.png-2d8c5cfa1803893ce610106652352b8a.ctex"]
+source_file="res://addons/yarnspinner_godot/icons/LocalizationDatabaseIcon.png"
+dest_files=["res://.godot/imported/LocalizationDatabaseIcon.png-745bce1da6b1687e87aa880d2164d000.ctex"]
 
 [params]
 

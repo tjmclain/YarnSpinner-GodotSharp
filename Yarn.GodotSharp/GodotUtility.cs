@@ -1,16 +1,68 @@
 using System;
-using System.Reflection.PortableExecutable;
-using System.Security.Cryptography.X509Certificates;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Godot;
-using Godot.Collections;
 using GodotNode = Godot.Node;
 
 namespace Yarn.GodotSharp
 {
 	public static class GodotUtility
 	{
+		#region Classes
+
+		public static class TranslationsProjectSetting
+		{
+			#region Fields
+
+			public const string PropertyName = "internationalization/locale/translations";
+
+			#endregion Fields
+
+			#region Public Methods
+
+			public static string[] Get()
+			{
+				var translationsSetting = ProjectSettings.GetSetting(PropertyName, Array.Empty<string>());
+				return translationsSetting.AsStringArray();
+			}
+
+			public static void Set(IEnumerable<string> files)
+			{
+				ProjectSettings.SetSetting(PropertyName, files.ToArray());
+				ProjectSettings.Save();
+			}
+
+			public static void Add(string file)
+			{
+				var translations = new HashSet<string>(Get());
+				if (translations.Add(file))
+				{
+					Set(translations);
+				}
+			}
+
+			public static void Remove(string file)
+			{
+				var translations = new List<string>(Get());
+				if (translations.Remove(file))
+				{
+					Set(translations);
+				}
+			}
+
+			#endregion Public Methods
+		}
+
+		#endregion Classes
+
+		#region Fields
+
 		private const char _nullChar = '\0';
+
+		#endregion Fields
+
+		#region Public Methods
 
 		public static SceneTree GetSceneTree()
 		{
@@ -235,5 +287,7 @@ namespace Yarn.GodotSharp
 
 			return Error.Ok;
 		}
+
+		#endregion Public Methods
 	}
 }
