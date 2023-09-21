@@ -6,10 +6,9 @@ using System;
 namespace Yarn.GodotSharp.Editor.Tests
 {
 	[Tool]
-	public partial class ProjectSettingsTranslationTest : CommandEditorScript
+	public partial class ProjectSettingsTranslationTest : CommandPaletteScript
 	{
-		// Called when the script is executed (using File -> Run in Script Editor).
-		public override void _Run()
+		public override void Execute()
 		{
 			string setting = "internationalization/locale/translations";
 

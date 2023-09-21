@@ -6,14 +6,15 @@ using Godot;
 namespace Yarn.GodotSharp.Editor.CommandPalette
 {
 	[Tool]
-	public partial class CleanTranslationsCommand : CommandEditorScript
+	public partial class CleanTranslationsCommand : CommandPaletteScript
 	{
-		public CleanTranslationsCommand()
+		public override void _EnterTree()
 		{
-			_Run();
+			base._EnterTree();
+			//Execute();
 		}
 
-		public override void _Run()
+		public override void Execute()
 		{
 			bool changed = false;
 			var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();

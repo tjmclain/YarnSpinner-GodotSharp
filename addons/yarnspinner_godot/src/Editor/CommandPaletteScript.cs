@@ -4,13 +4,23 @@ using Godot;
 
 namespace Yarn.GodotSharp.Editor
 {
-	public abstract partial class CommandEditorScript : EditorScript
+	public abstract partial class CommandPaletteScript : Godot.Node
 	{
+		#region Fields
+
 		private string _keyName = string.Empty;
 
-		public void AddToCommandPalette()
+		#endregion Fields
+
+		#region Public Methods
+
+		public abstract void Execute();
+
+		public override void _EnterTree()
 		{
-			var editorInterface = GetEditorInterface();
+			base._EnterTree();
+
+			var editorInterface = GodotEditorUtility.GetSingleton()?.GetEditorInterface();
 			if (editorInterface == null)
 			{
 				GD.PushError("editorInterface == null");
@@ -26,21 +36,23 @@ namespace Yarn.GodotSharp.Editor
 
 			string commandName = GodotUtility.VariableNameToFriendlyName(GetType().Name);
 			_keyName = GodotUtility.CSharpNameToGodotName(GetType().FullName);
-			var callable = new Callable(this, EditorScript.MethodName._Run);
+			var callable = new Callable(this, MethodName.Execute);
 			commandPalette.AddCommand(commandName, _keyName, callable);
 
 			GD.Print("add command: " + _keyName);
 		}
 
-		public void RemoveFromCommandPalette()
+		public override void _ExitTree()
 		{
+			base._ExitTree();
+
 			if (string.IsNullOrEmpty(_keyName))
 			{
 				GD.Print($"string.IsNullOrEmpty(_keyName) for type '{GetType().Name}'; no command to remove");
 				return;
 			}
 
-			var editorInterface = GetEditorInterface();
+			var editorInterface = GodotEditorUtility.GetSingleton()?.GetEditorInterface();
 			if (editorInterface == null)
 			{
 				GD.PushError("editorInterface == null");
@@ -57,6 +69,8 @@ namespace Yarn.GodotSharp.Editor
 			commandPalette.RemoveCommand(_keyName);
 			GD.Print("remove command: " + _keyName);
 		}
+
+		#endregion Public Methods
 	}
 }
 
