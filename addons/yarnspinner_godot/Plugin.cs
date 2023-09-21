@@ -28,6 +28,7 @@ namespace Yarn.GodotSharp
 			{
 				AddImportPlugin(plugin);
 			}
+			GD.Print($"- added {_importPlugins.Count} {nameof(EditorImportPlugin)}(s)");
 
 			// Initialize custom inspectors
 			_inspectorPlugins = GetInstancesOfEditorTypes<EditorInspectorPlugin>().ToList();
@@ -35,6 +36,7 @@ namespace Yarn.GodotSharp
 			{
 				AddInspectorPlugin(plugin);
 			}
+			GD.Print($"- added {_inspectorPlugins.Count} {nameof(EditorInspectorPlugin)}(s)");
 
 			// Initialize editor nodes
 			_editorNodes = GetInstancesOfEditorTypes<GodotNode>().ToList();
@@ -43,6 +45,7 @@ namespace Yarn.GodotSharp
 			{
 				mainControl?.AddChild(node);
 			}
+			GD.Print($"- added {_editorNodes.Count} {nameof(Godot.Node)}(s)");
 		}
 
 		public override void _ExitTree()

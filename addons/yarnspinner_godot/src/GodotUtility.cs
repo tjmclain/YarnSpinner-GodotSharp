@@ -56,12 +56,6 @@ namespace Yarn.GodotSharp
 
 		#endregion Classes
 
-		#region Fields
-
-		private const char _nullChar = '\0';
-
-		#endregion Fields
-
 		#region Public Methods
 
 		public static SceneTree GetSceneTree()
@@ -139,8 +133,8 @@ namespace Yarn.GodotSharp
 				GD.PushError("string.IsNullOrEmpty(value)");
 				return string.Empty;
 			}
-
-			char prev = _nullChar;
+			const char nullChar = '\0';
+			char prev = nullChar;
 
 			var sb = new StringBuilder();
 			foreach (char c in value)
@@ -148,7 +142,7 @@ namespace Yarn.GodotSharp
 				if (char.IsUpper(c))
 				{
 					// insert underscore before uppercase characters
-					if (prev != _nullChar && prev != '/')
+					if (prev != nullChar && prev != '/')
 					{
 						sb.Append('_');
 					}
@@ -172,7 +166,7 @@ namespace Yarn.GodotSharp
 			}
 
 			string result = sb.ToString();
-			GD.Print($"{value} -> {result}");
+			// GD.Print($"{value} -> {result}");
 			return result;
 		}
 
@@ -184,13 +178,14 @@ namespace Yarn.GodotSharp
 				return string.Empty;
 			}
 
-			char prev = _nullChar;
+			const char nullChar = '\0';
+			char prev = nullChar;
 			var sb = new StringBuilder();
 			foreach (char c in value)
 			{
 				if (char.IsLower(c))
 				{
-					prev = (prev == _nullChar || prev == ' ')
+					prev = (prev == nullChar || prev == ' ')
 						? char.ToUpper(c)
 						: char.ToLower(c);
 
@@ -200,7 +195,7 @@ namespace Yarn.GodotSharp
 
 				if (c == '_')
 				{
-					if (prev != _nullChar && prev != ' ')
+					if (prev != nullChar && prev != ' ')
 					{
 						prev = ' ';
 						sb.Append(prev);
@@ -210,7 +205,7 @@ namespace Yarn.GodotSharp
 
 				if (char.IsUpper(c))
 				{
-					if (prev != _nullChar && !char.IsUpper(prev))
+					if (prev != nullChar && !char.IsUpper(prev))
 					{
 						sb.Append(' ');
 					}
@@ -221,7 +216,7 @@ namespace Yarn.GodotSharp
 			}
 
 			string result = sb.ToString();
-			GD.Print($"{value} -> {result}");
+			// GD.Print($"{value} -> {result}");
 			return result;
 		}
 
