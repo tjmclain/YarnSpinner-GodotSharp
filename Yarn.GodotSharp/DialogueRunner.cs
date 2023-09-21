@@ -281,14 +281,10 @@ public partial class DialogueRunner : GodotNode
 		if (ActionLibrary == null)
 		{
 			ActionLibrary = new ActionLibrary();
-			ActionLibrary.Refresh();
 			GD.Print($"Dialogue Runner has no ActionLibrary; creating a {typeof(ActionLibrary).Name}");
 		}
-		else // if (Engine.IsEditorHint())
-		{
-			// TODO: cache library offline; only refresh every time in-editor
-			ActionLibrary.Refresh();
-		}
+
+		ActionLibrary.RefreshActions();
 
 		_commands.Clear();
 		foreach (var command in ActionLibrary.Commands)
