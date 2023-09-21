@@ -7,6 +7,7 @@ using Godot;
 using Yarn.GodotSharp.Actions;
 using Yarn.GodotSharp.LineProviders;
 using Yarn.GodotSharp.Variables;
+using Yarn.GodotSharp.Views;
 
 namespace Yarn.GodotSharp;
 
@@ -192,7 +193,7 @@ public partial class DialogueRunner : GodotNode
 	/// cref="DialogueViewBase.MarkLineComplete"/> will respond correctly.
 	/// </summary>
 	/// <param name="views">The array of views to be assigned.</param>
-	public void SetDialogueViews(DialogueViewBase[] views)
+	public void SetDialogueViews(Godot.Node[] views)
 	{
 		DialogueViews.Clear();
 		DialogueViews.AddRange(views);

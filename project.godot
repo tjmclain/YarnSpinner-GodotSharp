@@ -14,7 +14,6 @@ config/name="YarnSpinner-GodotSharp"
 run/main_scene="res://test_scene.tscn"
 config/features=PackedStringArray("4.1", "C#", "Mobile")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
-boot_splash/image="res://addons/yarnspinner_godot/icons/YarnScriptIcon.png"
 config/icon="res://icon.svg"
 
 [dotnet]

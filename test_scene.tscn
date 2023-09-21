@@ -1,13 +1,26 @@
 [gd_scene load_steps=3 format=3 uid="uid://dctu1buo3s0wf"]
 
-[ext_resource type="Script" path="res://Yarn.GodotSharp/DialogueRunner.cs" id="1_fmq6v"]
-[ext_resource type="Script" path="res://Yarn.GodotSharp/LineProviders/TextLineProvider.cs" id="2_sq7oh"]
+[ext_resource type="PackedScene" uid="uid://c8wjlee20e1jb" path="res://addons/yarnspinner_godot/demo/dialogue_runner.tscn" id="1_j54el"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/Views/LineView.cs" id="2_2sejg"]
 
 [node name="test_scene" type="Node2D"]
 
-[node name="DialogueRunner" type="Node" parent="." node_paths=PackedStringArray("LineProvider")]
-script = ExtResource("1_fmq6v")
-LineProvider = NodePath("TextLineProvider")
+[node name="DialogueRunner" parent="." instance=ExtResource("1_j54el")]
 
-[node name="TextLineProvider" type="Node" parent="DialogueRunner"]
-script = ExtResource("2_sq7oh")
+[node name="ui_layer" type="CanvasLayer" parent="."]
+
+[node name="dialgue_window" type="PanelContainer" parent="ui_layer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LineView" type="Node2D" parent="ui_layer/dialgue_window"]
+script = ExtResource("2_2sejg")
+
+[node name="CanvasGroup" type="CanvasGroup" parent="ui_layer/dialgue_window/LineView"]
+
+[node name="RichTextLabel" type="RichTextLabel" parent="ui_layer/dialgue_window/LineView/CanvasGroup"]
+offset_right = 40.0
+offset_bottom = 40.0
