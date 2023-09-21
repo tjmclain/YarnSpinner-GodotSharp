@@ -1,7 +1,3 @@
-[gd_scene load_steps=2 format=3 uid="uid://boh7py3cmp3i5"]
-
-[ext_resource type="PackedScene" uid="uid://c8wjlee20e1jb" path="res://addons/yarnspinner_godot/demo/dialogue_runner.tscn" id="1_2hegr"]
+[gd_scene format=3 uid="uid://d013o6mww6md3"]
 
 [node name="demo_scene" type="Node2D"]
-
-[node name="DialogueRunner" parent="." instance=ExtResource("1_2hegr")]
