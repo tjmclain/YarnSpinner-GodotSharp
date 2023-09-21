@@ -7,16 +7,14 @@ using System.Threading.Tasks;
 
 using GodotNode = Godot.Node;
 
-namespace Yarn.GodotSharp
+namespace Yarn.GodotSharp.Variables
 {
 	/// <summary>
-	/// A <see cref="MonoBehaviour"/> that a <see cref="DialogueRunner"/>
-	/// uses to store and retrieve variables.
+	/// A <see cref="MonoBehaviour"/> that a <see cref="DialogueRunner"/> uses to store and retrieve variables.
 	/// </summary>
 	/// <remarks>
-	/// This abstract class inherits from <see cref="MonoBehaviour"/>,
-	/// which means that subclasses of this class can be attached to <see
-	/// cref="GameObject"/>s.
+	/// This abstract class inherits from <see cref="MonoBehaviour"/>, which means that subclasses
+	/// of this class can be attached to <see cref="GameObject"/> s.
 	/// </remarks>
 	public abstract partial class VariableStorageBehaviour : GodotNode, IVariableStorage
 	{

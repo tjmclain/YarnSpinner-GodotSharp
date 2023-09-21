@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Yarn.Compiler;
 using GodotNode = Godot.Node;
 
 namespace Yarn.GodotSharp.LineProviders
@@ -63,13 +63,9 @@ namespace Yarn.GodotSharp.LineProviders
 		/// <param name="lineIDs">
 		/// A collection of line IDs that the line provider should prepare for.
 		/// </param>
-		public virtual void PrepareForLines(IEnumerable<string> lineIDs)
+		public virtual Task PrepareForLines(Dictionary<string, StringInfo> stringTable)
 		{
-		}
-
-		public virtual async Task WaitForLines()
-		{
-			await Task.CompletedTask;
+			return Task.CompletedTask;
 		}
 	}
 }

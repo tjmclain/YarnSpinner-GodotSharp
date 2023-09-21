@@ -1,0 +1,21 @@
+[gd_scene load_steps=6 format=3 uid="uid://c8wjlee20e1jb"]
+
+[ext_resource type="Script" path="res://Yarn.GodotSharp/DialogueRunner.cs" id="1_4fj58"]
+[ext_resource type="Resource" uid="uid://dixasjrlbung2" path="res://addons/yarnspinner_godot/demo/demo_project.tres" id="2_40h5d"]
+[ext_resource type="Resource" uid="uid://4762x6djef8i" path="res://addons/yarnspinner_godot/demo/action_library.tres" id="3_rcg3j"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/LineProviders/TextLineProvider.cs" id="4_5pexo"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/Variables/InMemoryVariableStorage.cs" id="5_v6gkv"]
+
+[node name="DialogueRunner" type="Node" node_paths=PackedStringArray("LineProvider", "VariableStorage")]
+script = ExtResource("1_4fj58")
+RunAutomatically = true
+YarnProject = ExtResource("2_40h5d")
+LineProvider = NodePath("TextLineProvider")
+VariableStorage = NodePath("InMemoryVariableStorage")
+ActionLibrary = ExtResource("3_rcg3j")
+
+[node name="TextLineProvider" type="Node" parent="."]
+script = ExtResource("4_5pexo")
+
+[node name="InMemoryVariableStorage" type="Node" parent="."]
+script = ExtResource("5_v6gkv")

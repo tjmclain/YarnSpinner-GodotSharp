@@ -59,4 +59,5 @@ namespace Yarn.GodotSharp.Editor
 		}
 	}
 }
+
 #endif

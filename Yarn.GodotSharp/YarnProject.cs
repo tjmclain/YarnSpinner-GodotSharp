@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Godot;
 
@@ -20,7 +19,7 @@ namespace Yarn.GodotSharp
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
 		[Export]
-		public Godot.Collections.Array<YarnProgram> Programs { get; set; } = new();
+		public Godot.Collections.Array<Resource> Programs { get; set; } = new();
 
 		/// <summary>
 		/// Gets the Yarn Program stored in this project.

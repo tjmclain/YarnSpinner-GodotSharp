@@ -1,7 +1,7 @@
 #if TOOLS
+
 using Godot;
 using System;
-using Yarn.GodotSharp;
 
 namespace Yarn.GodotSharp.Editor.Tests
 {
@@ -22,4 +22,5 @@ namespace Yarn.GodotSharp.Editor.Tests
 		}
 	}
 }
+
 #endif

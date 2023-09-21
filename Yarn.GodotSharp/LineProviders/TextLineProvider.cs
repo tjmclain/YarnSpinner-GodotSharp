@@ -3,6 +3,7 @@ using Godot;
 
 namespace Yarn.GodotSharp.LineProviders
 {
+	[GlobalClass]
 	public partial class TextLineProvider : LineProviderBehaviour
 	{
 		public override LocalizedLine GetLocalizedLine(Line line)

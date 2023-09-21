@@ -96,7 +96,7 @@ namespace Yarn.GodotSharp
 				if (char.IsUpper(c))
 				{
 					// insert underscore before uppercase characters
-					if (prev != _nullChar && prev != '.')
+					if (prev != _nullChar && prev != '/')
 					{
 						sb.Append('_');
 					}

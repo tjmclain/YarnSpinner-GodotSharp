@@ -2,7 +2,7 @@ using Godot;
 using System;
 using Yarn.Compiler;
 
-namespace Yarn.GodotSharp
+namespace Yarn.GodotSharp.Variables
 {
 	public partial class Variable : Resource
 	{

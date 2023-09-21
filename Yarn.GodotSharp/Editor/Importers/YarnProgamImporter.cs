@@ -2,13 +2,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Godot;
 using Godot.Collections;
 using Yarn.Compiler;
 using System.IO;
 using System;
-using Google.Protobuf.WellKnownTypes;
 
 namespace Yarn.GodotSharp.Editor.Importers
 {
@@ -18,7 +16,63 @@ namespace Yarn.GodotSharp.Editor.Importers
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
+		#region Fields
+
+		// import options
 		private const string _exportTranslationOption = "export_translation_file";
+
+		// editor settings properties
+		private const string _translationsDirProp = "yarn_spinner/translations_directory";
+
+		private const string _baseLocaleProp = "yarn_spinner/base_locale";
+
+		private static readonly Dictionary[] _editorProperties = new Dictionary[]
+		{
+			new Dictionary
+			{
+				{ GodotEditorUtility.EditorProperty.Name, _translationsDirProp },
+				{ GodotEditorUtility.EditorProperty.Type, Variant.From(Variant.Type.String) },
+				{ GodotEditorUtility.EditorProperty.Hint, Variant.From(PropertyHint.Dir) },
+				{ GodotEditorUtility.EditorProperty.DefaultValue, "res://translations/" }
+			},
+			new Dictionary
+			{
+				{ GodotEditorUtility.EditorProperty.Name, _baseLocaleProp },
+				{ GodotEditorUtility.EditorProperty.Type, Variant.From(Variant.Type.String) },
+				{ GodotEditorUtility.EditorProperty.Hint, Variant.From(PropertyHint.LocaleId) },
+				{ GodotEditorUtility.EditorProperty.DefaultValue, "en" }
+			},
+		};
+
+		#endregion Fields
+
+		public YarnProgramImporter()
+		{
+			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
+			if (editorUtility != null)
+			{
+				foreach (var property in _editorProperties)
+				{
+					editorUtility.AddEditorSettingsProperty(property);
+				}
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
+			if (editorUtility != null)
+			{
+				foreach (var property in _editorProperties)
+				{
+					editorUtility.RemoveEditorSettingsProperty(property);
+				}
+			}
+		}
+
+		#region Public Methods
 
 		public override string _GetImporterName()
 		{
@@ -102,7 +156,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 			var yarnProgram = new YarnProgram();
 
 			// Compile yarn program source file
-			var error = yarnProgram.CompileSourceFile(out var compilationResult);
+			var error = yarnProgram.Compile(sourceFile, out var compilationResult);
 			if (error != Error.Ok)
 			{
 				GD.PushError($"!yarnProgram.SetSourceFile '{sourceFile}'");
@@ -173,11 +227,14 @@ namespace Yarn.GodotSharp.Editor.Importers
 			}
 
 			// There's gotta be a better way to do this, right?
-			var dummyScript = new EditorScript();
-			var editorInterface = dummyScript.GetEditorInterface();
-			var editorSettings = editorInterface.GetEditorSettings();
+			var editorUtility = Engine.GetSingleton(nameof(GodotEditorUtility)) as GodotEditorUtility;
+			if (editorUtility == null)
+			{
+				GD.PushError("editorUtility == null");
+				return Error.InvalidData;
+			}
 
-			var translationsDirSetting = editorSettings.Get(EditorSettings.TranslationsDirectoryProperty);
+			var translationsDirSetting = editorUtility.GetEditorSettingsProperty(_translationsDirProp);
 			string translationsDir = translationsDirSetting.AsString();
 			if (string.IsNullOrEmpty(translationsDir))
 			{
@@ -193,7 +250,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			GD.Print("translationsDir = " + translationsDir);
 
-			var baseLocaleSetting = editorSettings.Get(EditorSettings.BaseLocaleProperty);
+			var baseLocaleSetting = editorUtility.GetEditorSettingsProperty(_baseLocaleProp);
 			string baseLanguage = baseLocaleSetting.AsString();
 			if (string.IsNullOrEmpty(baseLanguage))
 			{
@@ -314,11 +371,15 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			// NOTE: if I don't include this, AppendImportExternalResource
 			// below returns a 'FileNotFound' error
-			var fs = editorInterface.GetResourceFilesystem();
+			var fs = editorUtility.GetResourceFilesystem();
 			fs.UpdateFile(translationFile);
 
 			return Error.Ok;
 		}
+
+		#endregion Public Methods
+
+		#region Private Methods
 
 		private static void AddTranslationsToTranslationServer(string translationsSourceFile)
 		{
@@ -373,6 +434,8 @@ namespace Yarn.GodotSharp.Editor.Importers
 			ProjectSettings.SetSetting(settingName, translations.ToArray());
 			ProjectSettings.Save();
 		}
+
+		#endregion Private Methods
 	}
 }
 

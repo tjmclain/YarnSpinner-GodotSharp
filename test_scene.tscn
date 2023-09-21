@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://dctu1buo3s0wf"]
+
+[ext_resource type="Script" path="res://Yarn.GodotSharp/DialogueRunner.cs" id="1_fmq6v"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/LineProviders/TextLineProvider.cs" id="2_sq7oh"]
+
+[node name="test_scene" type="Node2D"]
+
+[node name="DialogueRunner" type="Node" parent="." node_paths=PackedStringArray("LineProvider")]
+script = ExtResource("1_fmq6v")
+LineProvider = NodePath("TextLineProvider")
+
+[node name="TextLineProvider" type="Node" parent="DialogueRunner"]
+script = ExtResource("2_sq7oh")

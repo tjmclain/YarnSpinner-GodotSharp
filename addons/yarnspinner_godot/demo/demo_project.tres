@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="YarnProject" load_steps=3 format=3 uid="uid://dixasjrlbung2"]
+
+[ext_resource type="Resource" uid="uid://orwpo5o5p0qa" path="res://addons/yarnspinner_godot/demo/demo.yarn" id="1_m6ket"]
+[ext_resource type="Script" path="res://Yarn.GodotSharp/YarnProject.cs" id="2_usrx0"]
+
+[resource]
+script = ExtResource("2_usrx0")
+Programs = [ExtResource("1_m6ket")]

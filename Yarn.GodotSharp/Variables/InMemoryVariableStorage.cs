@@ -4,7 +4,7 @@ using System;
 
 using GodotCollections = Godot.Collections;
 
-namespace Yarn.GodotSharp
+namespace Yarn.GodotSharp.Variables
 {
 	/// <summary>
 	/// A simple implementation of VariableStorageBehaviour.
@@ -30,6 +30,8 @@ namespace Yarn.GodotSharp
 	/// </para>
 	/// </remarks>
 	// https://yarnspinner.dev/docs/unity/components/variable-storage/
+
+	[GlobalClass]
 	public partial class InMemoryVariableStorage : VariableStorageBehaviour
 	{
 		[Export]

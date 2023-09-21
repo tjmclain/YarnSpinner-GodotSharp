@@ -1,7 +1,10 @@
 #if TOOLS
+
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Yarn.GodotSharp.Editor;
 using Yarn.GodotSharp.Editor.Importers;
 using Yarn.GodotSharp.Editor.Inspectors;
@@ -12,9 +15,11 @@ namespace Yarn.GodotSharp
 	[Tool]
 	public partial class Plugin : EditorPlugin
 	{
-		private readonly List<EditorImportPlugin> _importPlugins = new();
-		private readonly List<EditorInspectorPlugin> _inspectorPlugins = new();
-		private readonly List<CommandEditorScript> _commandEditorScripts = new();
+		private GodotEditorUtility _editorUtility;
+
+		private List<EditorImportPlugin> _importPlugins = new();
+		private List<EditorInspectorPlugin> _inspectorPlugins = new();
+		private List<CommandEditorScript> _commandEditorScripts = new();
 
 		public override void _EnterTree()
 		{
@@ -22,43 +27,35 @@ namespace Yarn.GodotSharp
 			GD.Print("Yarn.GodotEngine.Plugin: _EnterTree");
 
 			// Initialize custom project settings
-			var editorInterface = GetEditorInterface();
-			Editor.EditorSettings.AddProperties(editorInterface);
+			_editorUtility = new GodotEditorUtility();
+			Engine.RegisterSingleton(nameof(GodotEditorUtility), _editorUtility);
 
 			// Initialize custom importers
-			_importPlugins.Clear();
-			_importPlugins.Add(new YarnProgramImporter());
-
-			foreach(var plugin in _importPlugins)
+			_importPlugins = GetInstancesOfEditorTypes<EditorImportPlugin>();
+			foreach (var plugin in _importPlugins)
 			{
 				AddImportPlugin(plugin);
 			}
 
 			// Initialize custom inspectors
-			_inspectorPlugins.Clear();
-			_inspectorPlugins.Add(new ActionLibraryInspector());
+			_inspectorPlugins = GetInstancesOfEditorTypes<EditorInspectorPlugin>();
 			foreach (var plugin in _inspectorPlugins)
 			{
 				AddInspectorPlugin(plugin);
 			}
 
 			// Initialize command scripts
-			_commandEditorScripts.Clear();
-			_commandEditorScripts.Add(new ProjectSettingsTranslationTest());
-			foreach(var script in _commandEditorScripts)
+			_commandEditorScripts = GetInstancesOfEditorTypes<CommandEditorScript>();
+			foreach (var script in _commandEditorScripts)
 			{
 				script.AddToCommandPalette();
-			}			
+			}
 		}
 
 		public override void _ExitTree()
 		{
 			// Clean-up of the plugin goes here.
 			GD.Print("Yarn.GodotEngine.Plugin: _ExitTree");
-
-			// Deinitiliaze custom project settings
-			var editorInterface = GetEditorInterface();
-			Editor.EditorSettings.RemoveProperties(editorInterface);
 
 			// Deinitialize custom importers
 			foreach (var plugin in _importPlugins)
@@ -77,7 +74,21 @@ namespace Yarn.GodotSharp
 			{
 				script.RemoveFromCommandPalette();
 			}
+
+			// Deinitiliaze custom project settings
+			Engine.UnregisterSingleton(nameof(GodotEditorUtility));
+		}
+
+		private static List<T> GetInstancesOfEditorTypes<T>()
+		{
+			return Assembly.GetExecutingAssembly().GetTypes()
+				.Where(x => !x.IsAbstract)
+				.Where(x => x.Namespace.Contains(nameof(Editor)))
+				.Where(x => typeof(T).IsAssignableFrom(x))
+				.Select(x => (T)Activator.CreateInstance(x))
+				.ToList();
 		}
 	}
 }
+
 #endif
