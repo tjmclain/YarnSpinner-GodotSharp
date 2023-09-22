@@ -536,10 +536,7 @@ public partial class DialogueRunner : GodotNode
 				continue;
 			}
 
-			var task = !cts.IsCancellationRequested
-				? view.DismissLine(CurrentLine)
-				: view.InterruptLine(CurrentLine);
-
+			var task = view.DismissLine(CurrentLine);
 			tasks.Add(task);
 		}
 

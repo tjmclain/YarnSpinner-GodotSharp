@@ -31,7 +31,7 @@ namespace Yarn.GodotSharp
 		/// <remarks>
 		/// This value will be <see langword="null"/> if the line does not have a character name.
 		/// </remarks>
-		public string CharacterName
+		public virtual string CharacterName
 		{
 			get
 			{
@@ -63,18 +63,18 @@ namespace Yarn.GodotSharp
 		/// <remarks>
 		/// If the line has no `character` attribute, this method returns the same value as <see cref="Text"/>.
 		/// </remarks>
-		public Markup.MarkupParseResult TextWithoutCharacterName
+		public virtual string TextWithoutCharacterName
 		{
 			get
 			{
 				// If a 'character' attribute is present, remove its text
 				if (Text.TryGetAttributeWithName("character", out var characterNameAttribute))
 				{
-					return Text.DeleteRange(characterNameAttribute);
+					return Text.DeleteRange(characterNameAttribute).Text;
 				}
 				else
 				{
-					return Text;
+					return Text.Text;
 				}
 			}
 		}

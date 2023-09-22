@@ -28,8 +28,6 @@ namespace Yarn.GodotSharp.Views
 
 		Task RunLine(LocalizedLine line, Action interruptLine);
 
-		Task InterruptLine(LocalizedLine line);
-
 		Task DismissLine(LocalizedLine line);
 
 		#endregion Public Methods

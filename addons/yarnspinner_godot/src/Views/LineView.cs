@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Yarn.GodotSharp.Views;
@@ -8,53 +9,102 @@ namespace Yarn.GodotSharp.Views;
 public partial class LineView : Control, IRunLineHandler
 {
 	[Export]
-	public RichTextLabel CharacterNameText { get; set; }
+	public RichTextLabel LineText { get; set; } = null;
 
 	[Export]
-	public RichTextLabel LineText { get; set; }
+	public RichTextLabel CharacterNameText { get; set; } = null;
 
 	[Export]
-	public Button ContinueButton { get; set; }
+	public Control CharacterNameContainer { get; set; } = null;
+
+	[Export]
+	public TextAnimation TextAnimation { get; set; } = null;
+
+	[Export]
+	public Button AdvanceDialogueButton { get; set; } = null;
+
+	private CancellationTokenSource _cancellationTokenSource;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		if (ContinueButton != null)
+		if (AdvanceDialogueButton != null)
 		{
-			ContinueButton.Pressed -= AdvanceDialogue;
-			ContinueButton.Pressed += AdvanceDialogue;
+			AdvanceDialogueButton.Pressed -= AdvanceDialogue;
+			AdvanceDialogueButton.Pressed += AdvanceDialogue;
 		}
 	}
 
 	public override void _ExitTree()
 	{
-		if (ContinueButton != null)
+		if (AdvanceDialogueButton != null)
 		{
-			ContinueButton.Pressed -= AdvanceDialogue;
+			AdvanceDialogueButton.Pressed -= AdvanceDialogue;
 		}
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public virtual async Task RunLine(LocalizedLine line, Action interruptLine)
 	{
+		if (LineText == null)
+		{
+			GD.PushError("LineText == null");
+			return;
+		}
+
+		AdvanceDialogueButton?.Show();
+
+		string characterName = line.CharacterName;
+		if (string.IsNullOrEmpty(characterName))
+		{
+			CharacterNameContainer?.Hide();
+		}
+		else
+		{
+			CharacterNameContainer?.Show();
+		}
+
+		if (CharacterNameText != null)
+		{
+			CharacterNameText.Text = characterName;
+		}
+
+		LineText.Text = line.TextWithoutCharacterName;
+
+		if (TextAnimation != null)
+		{
+			_cancellationTokenSource = new CancellationTokenSource();
+			await Task.Run(
+				() => TextAnimation.Animate(LineText),
+				_cancellationTokenSource.Token
+			);
+			_cancellationTokenSource.Dispose();
+		}
+
+		_cancellationTokenSource = new CancellationTokenSource();
+
+		await _cancellationTokenSource.Token;
+
+		_cancellationTokenSource.Dispose();
+		_cancellationTokenSource = null;
 	}
 
-	public Task RunLine(LocalizedLine line, Action interruptLine)
+	public virtual async Task DismissLine(LocalizedLine line)
 	{
-		throw new NotImplementedException();
+		await Task.CompletedTask;
 	}
 
-	public Task InterruptLine(LocalizedLine line)
+	public virtual void AdvanceDialogue()
 	{
-		throw new NotImplementedException();
-	}
+		if (_cancellationTokenSource == null)
+		{
+			return;
+		}
 
-	public Task DismissLine(LocalizedLine line)
-	{
-		throw new NotImplementedException();
-	}
+		if (_cancellationTokenSource.IsCancellationRequested)
+		{
+			return;
+		}
 
-	public void AdvanceDialogue()
-	{
+		_cancellationTokenSource.Cancel();
 	}
 }

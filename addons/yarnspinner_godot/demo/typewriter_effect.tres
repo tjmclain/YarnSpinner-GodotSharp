@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="TypewriterTextAnimation" load_steps=2 format=3 uid="uid://c5t0s5uqpcvq4"]
+
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/TypewriterTextAnimation.cs" id="1_8hif1"]
+
+[resource]
+script = ExtResource("1_8hif1")
