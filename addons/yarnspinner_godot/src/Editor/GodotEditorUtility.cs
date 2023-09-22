@@ -46,29 +46,29 @@ namespace Yarn.GodotSharp.Editor
 			return editorSettings.Get(propertyName);
 		}
 
-		public static void AddEditorSettingsProperty(GodotEditorSettingsProperty property)
+		public static bool AddEditorSettingsProperty(GodotEditorSettingsProperty property)
 			=> AddEditorSettingsProperty(property?.ToDictionary());
 
-		public static void AddEditorSettingsProperty(Dictionary property)
+		public static bool AddEditorSettingsProperty(Dictionary property)
 		{
 			if (property == null)
 			{
 				GD.PushError("property == null");
-				return;
+				return false;
 			}
 
 			// NOTE: reading from a dictionary can sometimes fail
 			if (!property.TryGetValue(GodotEditorSettingsProperty.NameKey, out var name))
 			{
 				GD.PushError("!property.TryGetValue('name')");
-				return;
+				return false;
 			}
 
 			var editorSettings = GetEditorSettings();
 			if (editorSettings == null)
 			{
 				GD.PushError("editorSettings == null");
-				return;
+				return false;
 			}
 
 			property.TryGetValue(GodotEditorSettingsProperty.DefaultValueKey, out var value);
@@ -76,44 +76,48 @@ namespace Yarn.GodotSharp.Editor
 			editorSettings.Set(name.ToString(), value);
 			editorSettings.AddPropertyInfo(property);
 			editorSettings.SetInitialValue(name.ToString(), value, false);
+
+			return true;
 		}
 
-		public static void RemoveEditorSettingsProperty(GodotEditorSettingsProperty property)
+		public static bool RemoveEditorSettingsProperty(GodotEditorSettingsProperty property)
 			=> RemoveEditorSettingsProperty(property?.Name);
 
-		public static void RemoveEditorSettingsProperty(Dictionary property)
+		public static bool RemoveEditorSettingsProperty(Dictionary property)
 		{
 			if (property == null)
 			{
 				GD.PushError("property == null");
-				return;
+				return false;
 			}
 
 			property.TryGetValue(GodotEditorSettingsProperty.NameKey, out var propertyName);
-			RemoveEditorSettingsProperty(propertyName.AsString());
+			return RemoveEditorSettingsProperty(propertyName.AsString());
 		}
 
-		public static void RemoveEditorSettingsProperty(string propertyName)
+		public static bool RemoveEditorSettingsProperty(string propertyName)
 		{
 			if (string.IsNullOrEmpty(propertyName))
 			{
 				GD.PushError("string.IsNullOrEmpty(propertyName)");
-				return;
+				return false;
 			}
 
 			var editorSettings = GetEditorSettings();
 			if (editorSettings == null)
 			{
 				GD.PushError("editorSettings == null");
-				return;
+				return false;
 			}
 
 			if (!editorSettings.HasSetting(propertyName.ToString()))
 			{
-				return;
+				return false;
 			}
 
 			editorSettings.SetSetting(propertyName.ToString(), _nullVariant);
+
+			return true;
 		}
 
 		#endregion Public Methods

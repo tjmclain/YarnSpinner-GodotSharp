@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using Godot;
-using Godot.Collections;
 
 namespace Yarn.GodotSharp.Editor
 {
@@ -29,20 +29,37 @@ namespace Yarn.GodotSharp.Editor
 
 		public override void _EnterTree()
 		{
-			base._EnterTree();
-
+			List<string> propertyNames = new();
 			foreach (var property in _properties)
 			{
-				GodotEditorUtility.AddEditorSettingsProperty(property);
+				if (GodotEditorUtility.AddEditorSettingsProperty(property))
+				{
+					propertyNames.Add(property.Name);
+				}
+			}
+
+			GD.Print($"YarnEditorSettings: registered {propertyNames.Count} properties.");
+			foreach (var name in propertyNames)
+			{
+				GD.Print($"- {name}");
 			}
 		}
 
 		public override void _ExitTree()
 		{
-			base._ExitTree();
+			List<string> propertyNames = new();
 			foreach (var property in _properties)
 			{
-				GodotEditorUtility.RemoveEditorSettingsProperty(property);
+				if (GodotEditorUtility.RemoveEditorSettingsProperty(property))
+				{
+					propertyNames.Add(property.Name);
+				}
+			}
+
+			GD.Print($"YarnEditorSettings: unregistered {propertyNames.Count} properties.");
+			foreach (var name in propertyNames)
+			{
+				GD.Print($"- {name}");
 			}
 		}
 	}
