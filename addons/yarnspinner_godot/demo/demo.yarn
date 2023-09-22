@@ -1,0 +1,18 @@
+title: Start
+---
+
+This is a line of action description:
+
+Character: This is a line of dialogue.
+
+Here are some options.
+-> Heads.
+	It's tails. Better luck next time!
+	Character: Drat!
+-> Tails.
+	The coin lands on tails. You called it!
+	Character: Yes!
+-> The coin lands perfectly upright balancing on its side.
+	Character: What the fuck?
+
+===

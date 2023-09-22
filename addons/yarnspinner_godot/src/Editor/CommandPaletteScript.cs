@@ -20,7 +20,7 @@ namespace Yarn.GodotSharp.Editor
 		{
 			base._EnterTree();
 
-			var editorInterface = GodotEditorUtility.GetSingleton()?.GetEditorInterface();
+			var editorInterface = GodotEditorUtility.GetEditorInterface();
 			if (editorInterface == null)
 			{
 				GD.PushError("editorInterface == null");
@@ -52,7 +52,7 @@ namespace Yarn.GodotSharp.Editor
 				return;
 			}
 
-			var editorInterface = GodotEditorUtility.GetSingleton()?.GetEditorInterface();
+			var editorInterface = GodotEditorUtility.GetEditorInterface();
 			if (editorInterface == null)
 			{
 				GD.PushError("editorInterface == null");

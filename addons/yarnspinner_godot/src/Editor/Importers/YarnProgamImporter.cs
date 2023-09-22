@@ -16,55 +16,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
-		#region Fields
-
-		// import options
 		private const string _exportTranslationOption = "export_translation_file";
-
-		// editor settings properties
-		private const string _translationsDirProp = "yarn_spinner/translations_directory";
-
-		private const string _baseLocaleProp = "yarn_spinner/base_locale";
-
-		private static readonly Dictionary[] _editorProperties = new Dictionary[]
-		{
-			new Dictionary
-			{
-				{ GodotEditorUtility.EditorProperty.NameKey, _translationsDirProp },
-				{ GodotEditorUtility.EditorProperty.TypeKey, Variant.From(Variant.Type.String) },
-				{ GodotEditorUtility.EditorProperty.HintKey, Variant.From(PropertyHint.Dir) },
-				{ GodotEditorUtility.EditorProperty.DefaultValueKey, "res://translations/" }
-			},
-			new Dictionary
-			{
-				{ GodotEditorUtility.EditorProperty.NameKey, _baseLocaleProp },
-				{ GodotEditorUtility.EditorProperty.TypeKey, Variant.From(Variant.Type.String) },
-				{ GodotEditorUtility.EditorProperty.HintKey, Variant.From(PropertyHint.LocaleId) },
-				{ GodotEditorUtility.EditorProperty.DefaultValueKey, "en" }
-			},
-		};
-
-		#endregion Fields
-
-		public YarnProgramImporter()
-		{
-			var editorUtility = GodotEditorUtility.GetSingleton();
-			foreach (var property in _editorProperties)
-			{
-				editorUtility.AddEditorSettingsProperty(property);
-			}
-		}
-
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
-
-			var editorUtility = GodotEditorUtility.GetSingleton();
-			foreach (var property in _editorProperties)
-			{
-				editorUtility.RemoveEditorSettingsProperty(property);
-			}
-		}
 
 		#region Public Methods
 
@@ -121,8 +73,8 @@ namespace Yarn.GodotSharp.Editor.Importers
 			{
 				new Dictionary
 				{
-					{ "name", _exportTranslationOption },
-					{ "default_value", false },
+					{ GodotEditorSettingsProperty.NameKey, "export_translation_file" },
+					{ GodotEditorSettingsProperty.DefaultValueKey, false },
 				},
 			};
 		}
@@ -220,8 +172,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.InvalidData;
 			}
 
-			var editorUtility = GodotEditorUtility.GetSingleton();
-			var translationsDirSetting = editorUtility.GetEditorSettingsProperty(_translationsDirProp);
+			var translationsDirSetting = GodotEditorUtility.GetEditorSettingsProperty(YarnEditorSettings.TranslationsDirProperty);
 			string translationsDir = translationsDirSetting.AsString();
 			if (string.IsNullOrEmpty(translationsDir))
 			{
@@ -237,7 +188,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			GD.Print("translationsDir = " + translationsDir);
 
-			var baseLocaleSetting = editorUtility.GetEditorSettingsProperty(_baseLocaleProp);
+			var baseLocaleSetting = GodotEditorUtility.GetEditorSettingsProperty(YarnEditorSettings.BaseLocaleProperty);
 			string baseLanguage = baseLocaleSetting.AsString();
 			if (string.IsNullOrEmpty(baseLanguage))
 			{
@@ -358,8 +309,15 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			// NOTE: if I don't include this, AppendImportExternalResource
 			// below returns a 'FileNotFound' error
-			var fs = editorUtility.GetResourceFilesystem();
-			fs.UpdateFile(translationFile);
+			var fs = GodotEditorUtility.GetResourceFilesystem();
+			if (fs == null)
+			{
+				GD.PushWarning("GodotEditorUtility.GetResourceFilesystem() == null");
+			}
+			else
+			{
+				fs.UpdateFile(translationFile);
+			}
 
 			return Error.Ok;
 		}

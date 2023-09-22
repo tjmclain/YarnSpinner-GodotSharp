@@ -1,16 +1,16 @@
 [gd_scene load_steps=3 format=3 uid="uid://b5usxdwyr7xee"]
 
 [ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/LineView.cs" id="1_s25j6"]
-[ext_resource type="Resource" uid="uid://c5t0s5uqpcvq4" path="res://addons/yarnspinner_godot/demo/typewriter_effect.tres" id="2_n7pxq"]
+[ext_resource type="Resource" uid="uid://h86pklcefnu0" path="res://addons/yarnspinner_godot/demo/typewriter_effect.tres" id="2_n7pxq"]
 
-[node name="LineView" type="Control" node_paths=PackedStringArray("CharacterNameText", "CharacterNameContainer", "LineText")]
+[node name="LineView" type="Control" node_paths=PackedStringArray("LineText", "CharacterNameText", "CharacterNameContainer")]
 custom_minimum_size = Vector2(600, 150)
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_s25j6")
+LineText = NodePath("MarginContainer/VBoxContainer/TextLabel")
 CharacterNameText = NodePath("MarginContainer/VBoxContainer/CharacterNameLabel")
 CharacterNameContainer = NodePath("MarginContainer/VBoxContainer/CharacterNameLabel")
-LineText = NodePath("MarginContainer/VBoxContainer/TextLabel")
 TextAnimation = ExtResource("2_n7pxq")
 
 [node name="ColorRect" type="ColorRect" parent="."]

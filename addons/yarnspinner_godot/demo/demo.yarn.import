@@ -1,0 +1,15 @@
+[remap]
+
+importer="Yarn.GodotSharp.Editor.Importers.YarnProgramImporter"
+type="Resource"
+uid="uid://c1j2eoy2wco8j"
+path="res://.godot/imported/demo.yarn-8d5e074499d34464a94adb67ecf88f94.tres"
+
+[deps]
+
+source_file="res://addons/yarnspinner_godot/demo/demo.yarn"
+dest_files=["res://.godot/imported/demo.yarn-8d5e074499d34464a94adb67ecf88f94.tres"]
+
+[params]
+
+export_translation_file=true

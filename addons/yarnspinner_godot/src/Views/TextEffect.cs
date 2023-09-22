@@ -7,14 +7,14 @@ using Godot;
 
 namespace Yarn.GodotSharp.Views
 {
-	public abstract partial class TextAnimation : Resource
+	public abstract partial class TextEffect : Resource
 	{
 		public virtual async Task Animate(RichTextLabel label)
 		{
 			await Task.CompletedTask;
 		}
 
-		public virtual void InterruptAnimation(RichTextLabel label)
+		public virtual void Interrupt(RichTextLabel label)
 		{
 		}
 	}

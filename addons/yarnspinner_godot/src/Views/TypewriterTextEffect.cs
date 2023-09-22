@@ -8,7 +8,7 @@ using Godot;
 namespace Yarn.GodotSharp.Views
 {
 	[GlobalClass]
-	public partial class TypewriterTextAnimation : TextAnimation
+	public partial class TypewriterTextEffect : TextEffect
 	{
 		[Export]
 		public int CharactersPerSecond { get; set; } = 60;
@@ -35,7 +35,7 @@ namespace Yarn.GodotSharp.Views
 			label.VisibleCharacters = -1;
 		}
 
-		public override void InterruptAnimation(RichTextLabel label)
+		public override void Interrupt(RichTextLabel label)
 		{
 			if (label == null)
 			{

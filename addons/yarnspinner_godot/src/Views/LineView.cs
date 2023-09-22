@@ -3,6 +3,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Yarn.GodotSharp.Extensions;
+
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
@@ -18,28 +20,30 @@ public partial class LineView : Control, IRunLineHandler
 	public Control CharacterNameContainer { get; set; } = null;
 
 	[Export]
-	public TextAnimation TextAnimation { get; set; } = null;
+	public TextEffect TextAnimation { get; set; } = null;
 
 	[Export]
-	public Button AdvanceDialogueButton { get; set; } = null;
+	public BaseButton ContinueButton { get; set; } = null;
 
 	private CancellationTokenSource _cancellationTokenSource;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		if (AdvanceDialogueButton != null)
+		if (ContinueButton != null)
 		{
-			AdvanceDialogueButton.Pressed -= AdvanceDialogue;
-			AdvanceDialogueButton.Pressed += AdvanceDialogue;
+			ContinueButton.Pressed -= ContinueDialogue;
+			ContinueButton.Pressed += ContinueDialogue;
+
+			ContinueButton.Hide();
 		}
 	}
 
 	public override void _ExitTree()
 	{
-		if (AdvanceDialogueButton != null)
+		if (ContinueButton != null)
 		{
-			AdvanceDialogueButton.Pressed -= AdvanceDialogue;
+			ContinueButton.Pressed -= ContinueDialogue;
 		}
 	}
 
@@ -51,7 +55,7 @@ public partial class LineView : Control, IRunLineHandler
 			return;
 		}
 
-		AdvanceDialogueButton?.Show();
+		ContinueButton?.Show();
 
 		string characterName = line.CharacterName;
 		if (string.IsNullOrEmpty(characterName))
@@ -86,14 +90,17 @@ public partial class LineView : Control, IRunLineHandler
 
 		_cancellationTokenSource.Dispose();
 		_cancellationTokenSource = null;
+
+		ContinueButton?.Hide();
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
+		ContinueButton?.Hide();
 		await Task.CompletedTask;
 	}
 
-	public virtual void AdvanceDialogue()
+	public virtual void ContinueDialogue()
 	{
 		if (_cancellationTokenSource == null)
 		{

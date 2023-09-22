@@ -8,14 +8,10 @@ namespace Yarn.GodotSharp.Editor.CommandPalette
 	[Tool]
 	public partial class CleanTranslationsCommand : CommandPaletteScript
 	{
-		public override void _EnterTree()
-		{
-			base._EnterTree();
-			//Execute();
-		}
-
 		public override void Execute()
 		{
+			GD.Print("CleanTranslationsCommand.Execute");
+
 			bool changed = false;
 			var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();
 			for (int i = 0; i < translations.Count; i++)
