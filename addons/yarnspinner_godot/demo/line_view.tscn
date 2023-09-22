@@ -1,0 +1,40 @@
+[gd_scene load_steps=2 format=3 uid="uid://b5usxdwyr7xee"]
+
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/LineView.cs" id="1_s25j6"]
+
+[node name="LineView" type="Control" node_paths=PackedStringArray("SpeakerNameLabel", "TextLabel")]
+custom_minimum_size = Vector2(600, 150)
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_s25j6")
+SpeakerNameLabel = NodePath("MarginContainer/VBoxContainer/SpeakerNameLabel")
+TextLabel = NodePath("MarginContainer/VBoxContainer/TextLabel")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 2
+offset_right = 600.0
+offset_bottom = 150.0
+color = Color(0.137255, 0.137255, 0.137255, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+offset_right = 600.0
+offset_bottom = 150.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="SpeakerNameLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+text = "Speaker Name"
+fit_content = true
+
+[node name="TextLabel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+fit_content = true
