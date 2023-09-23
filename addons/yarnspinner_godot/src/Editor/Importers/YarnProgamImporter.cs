@@ -12,32 +12,12 @@ namespace Yarn.GodotSharp.Editor.Importers
 {
 	using FileAccess = Godot.FileAccess;
 	using StringDict = System.Collections.Generic.Dictionary<string, string>;
-	using PropertyInfo = GodotUtility.PropertyInfo;
 
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
-		private const string _exportTranslationOption = "export_translation_file";
-		private const string _translationsDirProperty = "yarn_spinner/translations_directory";
-		private const string _baseLocaleProperty = "yarn_spinner/base_locale";
-
-		private readonly PropertyInfo[] _properties = new PropertyInfo[]
-		{
-			new PropertyInfo()
-			{
-				Name = _translationsDirProperty,
-				Type = Variant.Type.String,
-				Hint = PropertyHint.Dir,
-				DefaultValue = "res://translations/"
-			},
-			new PropertyInfo()
-			{
-				Name = _baseLocaleProperty,
-				Type = Variant.Type.String,
-				Hint = PropertyHint.LocaleId,
-				DefaultValue = "en"
-			},
-		};
+		private const string _exportTranslationOption = "export_translation";
+		private const string _overrideTranslationsDirOption = "override_translation_directory";
 
 		#region Public Methods
 
@@ -88,32 +68,20 @@ namespace Yarn.GodotSharp.Editor.Importers
 			return -1;
 		}
 
-		public YarnProgramImporter()
-		{
-			foreach (var property in _properties)
-			{
-				property.AddToProjectSettings();
-			}
-		}
-
-		//protected override void Dispose(bool disposing)
-		//{
-		//	foreach (var property in _properties)
-		//	{
-		//		property.RemoveFromProjectSettings();
-		//	}
-
-		//	base.Dispose(disposing);
-		//}
-
 		public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
 		{
 			return new Array<Dictionary>
 			{
 				new Dictionary
 				{
-					{ PropertyInfo.NameKey, "export_translation_file" },
-					{ PropertyInfo.DefaultValueKey, false },
+					{ EditorPropertyInfo.NameKey, _exportTranslationOption },
+					{ EditorPropertyInfo.DefaultValueKey, false },
+				},
+				new Dictionary
+				{
+					{ EditorPropertyInfo.NameKey, _overrideTranslationsDirOption },
+					{ EditorPropertyInfo.DefaultValueKey, "" },
+					{ EditorPropertyInfo.HintKey,  Variant.From(PropertyHint.Dir) }
 				},
 			};
 		}
@@ -156,6 +124,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				var exportTranslationsResult = ExportTranslationFile(
 					sourceFile,
 					compilationResult,
+					options,
 					out translationsFile
 				);
 
@@ -195,12 +164,36 @@ namespace Yarn.GodotSharp.Editor.Importers
 			return Error.Ok;
 		}
 
-		public virtual Error ExportTranslationFile(
+		#endregion Public Methods
+
+		protected virtual Error ExportTranslationFile(
 			string programSourceFile,
 			CompilationResult programComplilationResult,
+			Dictionary importOptions,
 			out string translationFile
 		)
 		{
+			static string GetTranslationsDirectory(Dictionary importOptions)
+			{
+				if (importOptions.TryGetValue(_overrideTranslationsDirOption, out var value))
+				{
+					string dir = value.AsString();
+					if (!string.IsNullOrEmpty(dir))
+					{
+						return dir;
+					}
+				}
+
+				var translationsDirSetting = ProjectSettings.GetSetting(YarnEditorProperties.TranslationsDirProperty);
+				return translationsDirSetting.AsString();
+			}
+
+			static string GetBaseLocale()
+			{
+				var baseLocaleSetting = ProjectSettings.GetSetting(YarnEditorProperties.BaseLocaleProperty);
+				return baseLocaleSetting.AsString();
+			}
+
 			translationFile = string.Empty;
 
 			var stringTable = programComplilationResult.StringTable;
@@ -210,8 +203,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.InvalidData;
 			}
 
-			var translationsDirSetting = Variant.From(string.Empty); //ProjectSettings.GetSetting(_translationsDirProperty);
-			string translationsDir = translationsDirSetting.AsString();
+			string translationsDir = GetTranslationsDirectory(importOptions);
 			if (string.IsNullOrEmpty(translationsDir))
 			{
 				GD.PushError("string.IsNullOrEmpty(translationsDir)");
@@ -226,15 +218,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			GD.Print("translationsDir = " + translationsDir);
 
-			var baseLocaleSetting = Variant.From(string.Empty); // ProjectSettings.GetSetting(_baseLocaleProperty);
-			string baseLanguage = baseLocaleSetting.AsString();
-			if (string.IsNullOrEmpty(baseLanguage))
+			string baseLocale = GetBaseLocale();
+			if (string.IsNullOrEmpty(baseLocale))
 			{
-				GD.PushError("string.IsNullOrEmpty(baseLanguage)");
+				GD.PushError("string.IsNullOrEmpty(baseLocale)");
 				return Error.InvalidData;
 			}
-
-			GD.Print("baseLanguage = " + baseLanguage);
+			GD.Print("baseLanguage = " + baseLocale);
 
 			string fileName;
 			try
@@ -274,7 +264,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 			var headers = new HashSet<string>()
 			{
 				keyHeader,
-				baseLanguage
+				baseLocale
 			};
 
 			foreach (var header in existingHeaders)
@@ -290,7 +280,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				var row = new StringDict()
 				{
 					{ keyHeader, key },
-					{ baseLanguage, stringTableEntry.Value.text }
+					{ baseLocale, stringTableEntry.Value.text }
 				};
 				table[key] = row;
 
@@ -307,7 +297,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 						continue;
 					}
 
-					if (kvp.Key == baseLanguage)
+					if (kvp.Key == baseLocale)
 					{
 						continue;
 					}
@@ -360,8 +350,6 @@ namespace Yarn.GodotSharp.Editor.Importers
 			return Error.Ok;
 		}
 
-		#endregion Public Methods
-
 		protected virtual EditorFileSystem GetResourceFilesystem()
 		{
 			// this is weird, but it works. I'll keep looking for a better way to do this
@@ -391,7 +379,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();
+			var translations = TranslationsPropertySetting.Get().ToList();
 
 			bool changed = false;
 			foreach (var file in files)
@@ -417,7 +405,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			GodotUtility.TranslationsProjectSetting.Set(translations.ToArray());
+			TranslationsPropertySetting.Set(translations.ToArray());
 		}
 
 		#endregion Private Methods

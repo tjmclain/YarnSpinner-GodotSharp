@@ -46,5 +46,5 @@ renderer/rendering_method="mobile"
 
 [yarn_spinner]
 
-translations_directory="res://yarn_translations/"
+translations_directory="res://translations/"
 base_locale="en"

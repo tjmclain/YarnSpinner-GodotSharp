@@ -1,152 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 using Godot;
 using GodotNode = Godot.Node;
+using Path = System.IO.Path;
 
 namespace Yarn.GodotSharp;
 
-using GodotDictionary = Godot.Collections.Dictionary;
-
 public static class GodotUtility
 {
-	#region Classes
-
-	public class PropertyInfo : Godot.Collections.Dictionary<string, Variant>
-	{
-		#region Fields
-
-		public const string NameKey = "name";
-		public const string TypeKey = "type";
-		public const string HintKey = "hint";
-		public const string HintStringKey = "hint_string";
-		public const string DefaultValueKey = "default_value";
-
-		#endregion Fields
-
-		#region Properties
-
-		public string Name
-		{
-			get => TryGetValue(NameKey, out var value) ? value.AsString() : string.Empty;
-			set => this[NameKey] = Variant.From(value);
-		}
-
-		public Variant.Type Type
-		{
-			get => TryGetValue(TypeKey, out var value) ? value.VariantType : Variant.Type.Nil;
-			set => this[TypeKey] = Variant.From(value);
-		}
-
-		public PropertyHint Hint
-		{
-			get => TryGetValue(HintKey, out var value) ? value.As<PropertyHint>() : PropertyHint.None;
-			set => this[HintKey] = Variant.From(value);
-		}
-
-		public string HintString
-		{
-			get => TryGetValue(HintStringKey, out var value) ? value.AsString() : string.Empty;
-			set => this[HintStringKey] = Variant.From(value);
-		}
-
-		public Variant DefaultValue
-		{
-			get => TryGetValue(DefaultValueKey, out var value) ? value.AsString() : null;
-			set => this[DefaultValueKey] = Variant.From(value);
-		}
-
-		#endregion Properties
-
-		public bool AddToProjectSettings()
-		{
-			string name = Name;
-			if (string.IsNullOrEmpty(name))
-			{
-				//GD.PushError("string.IsNullOrEmpty(Name)");
-				return false;
-			}
-
-			var value = ProjectSettings.GetSetting(name);
-			if (value.VariantType == Variant.Type.Nil)
-			{
-				var defaultValue = DefaultValue;
-				if (defaultValue.VariantType == Variant.Type.Nil)
-				{
-					//GD.PushError("defaultValue.VariantType == Variant.Type.Nil");
-					return false;
-				}
-				ProjectSettings.SetSetting(name, defaultValue);
-			}
-
-			//GD.Print($"Add property info: {name}");
-			//ProjectSettings.AddPropertyInfo((GodotDictionary)this);
-			return true;
-		}
-
-		public bool RemoveFromProjectSettings()
-		{
-			string name = Name;
-			if (string.IsNullOrEmpty(name))
-			{
-				//GD.PushError("string.IsNullOrEmpty(Name)");
-				return false;
-			}
-
-			//ProjectSettings.SetSetting(name, Variant.From(Variant.Type.Nil));
-			return true;
-		}
-	}
-
-	public static class TranslationsProjectSetting
-	{
-		#region Fields
-
-		public const string PropertyName = "internationalization/locale/translations";
-
-		#endregion Fields
-
-		#region Public Methods
-
-		public static string[] Get()
-		{
-			return Array.Empty<string>();
-			//var translationsSetting = ProjectSettings.GetSetting(PropertyName, Array.Empty<string>());
-			//return translationsSetting.AsStringArray();
-		}
-
-		public static void Set(IEnumerable<string> files)
-		{
-			//ProjectSettings.SetSetting(PropertyName, files.ToArray());
-			//ProjectSettings.Save();
-		}
-
-		public static void Add(string file)
-		{
-			var translations = new HashSet<string>(Get());
-			if (translations.Add(file))
-			{
-				Set(translations);
-			}
-		}
-
-		public static void Remove(string file)
-		{
-			var translations = new List<string>(Get());
-			if (translations.Remove(file))
-			{
-				Set(translations);
-			}
-		}
-
-		#endregion Public Methods
-	}
-
-	#endregion Classes
-
 	#region Public Methods
 
 	public static SceneTree GetSceneTree()
@@ -210,11 +72,17 @@ public static class GodotUtility
 	// back, not a 'res://' relative path. So, for now, I have to do the replacement manually.
 	public static string LocalizePath(string globalPath)
 	{
-		GD.Print("LocalizePath: " + globalPath);
 		string projectRoot = ProjectSettings.GlobalizePath("res://");
 		return globalPath
 			.Replace('\\', '/')
 			.Replace(projectRoot, "res://");
+	}
+
+	public static string GetLocalDirectoryName(string path)
+	{
+		string globalPath = ProjectSettings.GlobalizePath(path);
+		string dir = Path.GetDirectoryName(globalPath);
+		return LocalizePath(dir);
 	}
 
 	// Godot prefers snake case names, but C# uses pascal and camel case names
@@ -256,7 +124,6 @@ public static class GodotUtility
 		}
 
 		string result = sb.ToString();
-		// GD.Print($"{value} -> {result}");
 		return result;
 	}
 
@@ -306,7 +173,6 @@ public static class GodotUtility
 		}
 
 		string result = sb.ToString();
-		// GD.Print($"{value} -> {result}");
 		return result;
 	}
 

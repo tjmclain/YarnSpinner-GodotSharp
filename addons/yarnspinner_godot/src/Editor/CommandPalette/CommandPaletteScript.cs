@@ -6,14 +6,12 @@ namespace Yarn.GodotSharp.Editor
 {
 	public abstract partial class CommandPaletteScript : EditorScript
 	{
-		#region Fields
-
-		private string _keyName = string.Empty;
-
-		#endregion Fields
+		#region Properties
 
 		protected virtual string CommandName => GodotUtility.VariableNameToFriendlyName(GetType().Name);
 		protected virtual string CommandKey => $"yarn_spinner/{CommandName}";
+
+		#endregion Properties
 
 		#region Public Methods
 
@@ -22,14 +20,11 @@ namespace Yarn.GodotSharp.Editor
 			var commandPalette = GetCommandPalette();
 			if (commandPalette == null)
 			{
-				GD.PushError("commandPalette == null");
 				return;
 			}
 
-			commandPalette.RemoveCommand(CommandKey);
-
 			var callable = new Callable(this, EditorScript.MethodName._Run);
-			commandPalette.AddCommand(CommandName, _keyName, callable);
+			commandPalette.AddCommand(CommandName, CommandKey, callable);
 		}
 
 		public void UnregisterCommand()
@@ -37,17 +32,20 @@ namespace Yarn.GodotSharp.Editor
 			var commandPalette = GetCommandPalette();
 			if (commandPalette == null)
 			{
-				//GD.PushError("commandPalette == null");
 				return;
 			}
 
-			commandPalette.RemoveCommand(_keyName);
+			commandPalette.RemoveCommand(CommandKey);
 		}
+
+		#endregion Public Methods
+
+		#region Private Methods
 
 		private EditorCommandPalette GetCommandPalette()
 			=> GetEditorInterface()?.GetCommandPalette();
 
-		#endregion Public Methods
+		#endregion Private Methods
 	}
 }
 
