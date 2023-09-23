@@ -12,4 +12,4 @@ dest_files=["res://.godot/imported/demo.yarn-8d5e074499d34464a94adb67ecf88f94.tr
 
 [params]
 
-export_translation_file=true
+export_translation_file=false

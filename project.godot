@@ -11,12 +11,21 @@ config_version=5
 [application]
 
 config/name="YarnSpinner-GodotSharp"
-run/main_scene="res://addons/yarnspinner_godot/demo/demo_scene.tscn"
+run/main_scene="res://test.tscn"
 config/features=PackedStringArray("4.1", "C#", "Mobile")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/image="res://addons/yarnspinner_godot/icons/YarnProjectIcon.png"
 boot_splash/fullsize=false
-config/icon="res://icon.svg"
+config/icon="res://addons/yarnspinner_godot/icons/YarnProjectIcon.png"
+
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/log_path="res://logs/godot.log"
+file_logging/max_log_files=10
+settings/stdout/print_fps=true
+settings/stdout/print_gpu_profile=true
+settings/stdout/verbose_stdout=true
 
 [dotnet]
 
@@ -29,9 +38,13 @@ enabled=PackedStringArray("res://addons/yarnspinner_godot/plugin.cfg")
 [internationalization]
 
 locale/translation_remaps={}
-locale/translations=PackedStringArray("res://translations/demo.en.translation")
 locale/locale_filter_mode=0
 
 [rendering]
 
 renderer/rendering_method="mobile"
+
+[yarn_spinner]
+
+translations_directory="res://yarn_translations/"
+base_locale="en"

@@ -81,14 +81,12 @@ public partial class LineView : Control, IRunLineHandler
 				() => TextAnimation.Animate(LineText),
 				_cancellationTokenSource.Token
 			);
-			_cancellationTokenSource.Dispose();
 		}
 
 		_cancellationTokenSource = new CancellationTokenSource();
 
 		await _cancellationTokenSource.Token;
 
-		_cancellationTokenSource.Dispose();
 		_cancellationTokenSource = null;
 
 		ContinueButton?.Hide();

@@ -8,30 +8,30 @@ namespace Yarn.GodotSharp.Editor.CommandPalette
 	[Tool]
 	public partial class CleanTranslationsCommand : CommandPaletteScript
 	{
-		public override void Execute()
+		public override void _Run()
 		{
-			GD.Print("CleanTranslationsCommand.Execute");
+			//GD.Print("CleanTranslationsCommand.Execute");
 
-			bool changed = false;
-			var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();
-			for (int i = 0; i < translations.Count; i++)
-			{
-				var file = translations[i];
-				if (!FileAccess.FileExists(file))
-				{
-					GD.Print("remove missing translation file: " + file);
-					translations.RemoveAt(i);
-					changed = true;
-					continue;
-				}
-			}
+			//bool changed = false;
+			//var translations = GodotUtility.TranslationsProjectSetting.Get().ToList();
+			//for (int i = 0; i < translations.Count; i++)
+			//{
+			//	var file = translations[i];
+			//	if (!FileAccess.FileExists(file))
+			//	{
+			//		GD.Print("- remove missing translation file: " + file);
+			//		translations.RemoveAt(i);
+			//		changed = true;
+			//		continue;
+			//	}
+			//}
 
-			if (!changed)
-			{
-				return;
-			}
+			//if (!changed)
+			//{
+			//	return;
+			//}
 
-			GodotUtility.TranslationsProjectSetting.Set(translations);
+			//GodotUtility.TranslationsProjectSetting.Set(translations);
 		}
 	}
 }

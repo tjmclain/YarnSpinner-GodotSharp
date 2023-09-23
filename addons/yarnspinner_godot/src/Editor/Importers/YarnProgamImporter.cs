@@ -12,11 +12,32 @@ namespace Yarn.GodotSharp.Editor.Importers
 {
 	using FileAccess = Godot.FileAccess;
 	using StringDict = System.Collections.Generic.Dictionary<string, string>;
+	using PropertyInfo = GodotUtility.PropertyInfo;
 
 	[Tool]
 	public partial class YarnProgramImporter : EditorImportPlugin
 	{
 		private const string _exportTranslationOption = "export_translation_file";
+		private const string _translationsDirProperty = "yarn_spinner/translations_directory";
+		private const string _baseLocaleProperty = "yarn_spinner/base_locale";
+
+		private readonly PropertyInfo[] _properties = new PropertyInfo[]
+		{
+			new PropertyInfo()
+			{
+				Name = _translationsDirProperty,
+				Type = Variant.Type.String,
+				Hint = PropertyHint.Dir,
+				DefaultValue = "res://translations/"
+			},
+			new PropertyInfo()
+			{
+				Name = _baseLocaleProperty,
+				Type = Variant.Type.String,
+				Hint = PropertyHint.LocaleId,
+				DefaultValue = "en"
+			},
+		};
 
 		#region Public Methods
 
@@ -67,14 +88,32 @@ namespace Yarn.GodotSharp.Editor.Importers
 			return -1;
 		}
 
+		public YarnProgramImporter()
+		{
+			foreach (var property in _properties)
+			{
+				property.AddToProjectSettings();
+			}
+		}
+
+		//protected override void Dispose(bool disposing)
+		//{
+		//	foreach (var property in _properties)
+		//	{
+		//		property.RemoveFromProjectSettings();
+		//	}
+
+		//	base.Dispose(disposing);
+		//}
+
 		public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
 		{
 			return new Array<Dictionary>
 			{
 				new Dictionary
 				{
-					{ GodotEditorSettingsProperty.NameKey, "export_translation_file" },
-					{ GodotEditorSettingsProperty.DefaultValueKey, false },
+					{ PropertyInfo.NameKey, "export_translation_file" },
+					{ PropertyInfo.DefaultValueKey, false },
 				},
 			};
 		}
@@ -114,7 +153,6 @@ namespace Yarn.GodotSharp.Editor.Importers
 			var exportTranslations = options[_exportTranslationOption];
 			if (exportTranslations.AsBool())
 			{
-				//var stringTableEntries = yarnProgram.StringTable.ToList();
 				var exportTranslationsResult = ExportTranslationFile(
 					sourceFile,
 					compilationResult,
@@ -172,7 +210,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.InvalidData;
 			}
 
-			var translationsDirSetting = GodotEditorUtility.GetEditorSettingsProperty(YarnEditorSettings.TranslationsDirProperty);
+			var translationsDirSetting = Variant.From(string.Empty); //ProjectSettings.GetSetting(_translationsDirProperty);
 			string translationsDir = translationsDirSetting.AsString();
 			if (string.IsNullOrEmpty(translationsDir))
 			{
@@ -188,7 +226,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			GD.Print("translationsDir = " + translationsDir);
 
-			var baseLocaleSetting = GodotEditorUtility.GetEditorSettingsProperty(YarnEditorSettings.BaseLocaleProperty);
+			var baseLocaleSetting = Variant.From(string.Empty); // ProjectSettings.GetSetting(_baseLocaleProperty);
 			string baseLanguage = baseLocaleSetting.AsString();
 			if (string.IsNullOrEmpty(baseLanguage))
 			{
@@ -309,7 +347,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			// NOTE: if I don't include this, AppendImportExternalResource
 			// below returns a 'FileNotFound' error
-			var fs = GodotEditorUtility.GetResourceFilesystem();
+			var fs = GetResourceFilesystem();
 			if (fs == null)
 			{
 				GD.PushWarning("GodotEditorUtility.GetResourceFilesystem() == null");
@@ -323,6 +361,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 		}
 
 		#endregion Public Methods
+
+		protected virtual EditorFileSystem GetResourceFilesystem()
+		{
+			// this is weird, but it works. I'll keep looking for a better way to do this
+			var dummyScript = new EditorScript();
+			return dummyScript.GetEditorInterface()?.GetResourceFilesystem();
+		}
 
 		#region Private Methods
 
