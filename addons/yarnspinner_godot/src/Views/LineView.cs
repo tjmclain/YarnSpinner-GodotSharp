@@ -3,7 +3,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarn.GodotSharp.Views.Effects;
-
 using Yarn.GodotSharp.Extensions;
 
 namespace Yarn.GodotSharp.Views;
@@ -26,7 +25,7 @@ public partial class LineView : Control, IRunLineHandler
 	[Export]
 	public BaseButton ContinueButton { get; set; } = null;
 
-	private CancellationTokenSource _cancellationTokenSource;
+	private CancellationTokenSource _taskCancellationSource;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -77,40 +76,48 @@ public partial class LineView : Control, IRunLineHandler
 
 		if (TextAnimationEffect != null)
 		{
-			_cancellationTokenSource = new CancellationTokenSource();
+			_taskCancellationSource = new CancellationTokenSource();
 			await Task.Run(
 				() => TextAnimationEffect.Animate(LineText),
-				_cancellationTokenSource.Token
+				_taskCancellationSource.Token
 			);
 		}
 
-		_cancellationTokenSource = new CancellationTokenSource();
+		_taskCancellationSource = new CancellationTokenSource();
 
-		await _cancellationTokenSource.Token;
+		await _taskCancellationSource.Token;
 
-		_cancellationTokenSource = null;
+		_taskCancellationSource = null;
 
 		ContinueButton?.Hide();
+
+		interruptLine?.Invoke();
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
+		CancelCurrentExecutingTask();
 		ContinueButton?.Hide();
 		await Task.CompletedTask;
 	}
 
 	public virtual void ContinueDialogue()
 	{
-		if (_cancellationTokenSource == null)
+		CancelCurrentExecutingTask();
+	}
+
+	protected virtual void CancelCurrentExecutingTask()
+	{
+		if (_taskCancellationSource == null)
 		{
 			return;
 		}
 
-		if (_cancellationTokenSource.IsCancellationRequested)
+		if (_taskCancellationSource.IsCancellationRequested)
 		{
 			return;
 		}
 
-		_cancellationTokenSource.Cancel();
+		_taskCancellationSource.Cancel();
 	}
 }

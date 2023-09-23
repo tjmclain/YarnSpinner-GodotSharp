@@ -1,25 +1,27 @@
 using Godot;
-using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static Godot.HttpRequest;
 
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class OptionsListView : Control, IRunOptionsHandler
+public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHandler
 {
-	protected Control _optionViewsParentNode = null;
-
-	private CancellationTokenSource _optionViewsCancellationSource;
+	#region Fields
 
 	protected readonly List<OptionView> _optionViewsPool = new();
+	protected CancellationTokenSource _taskCancellationSource = null;
+	private Control _optionViewsParentNode = null;
+
+	#endregion Fields
+
+	#region Properties
 
 	[Export]
-	public virtual PackedScene OptionViewPrototype { get; set; }
+	public virtual PackedScene OptionViewPrototype { get; set; } = null;
 
 	[Export]
 	public virtual Control OptionViewsParentNode
@@ -28,12 +30,32 @@ public partial class OptionsListView : Control, IRunOptionsHandler
 		set => _optionViewsParentNode = value;
 	}
 
+	[Export]
+	public virtual RichTextLabel PreviousLineLabel { get; set; } = null;
+
+	protected LocalizedLine PreviousLine { get; private set; } = null;
+
+	#endregion Properties
+
+	#region Public Methods
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		// Clear pool and recycling any existing views
 		_optionViewsPool.Clear();
 		RecyleOptionViews();
+	}
+
+	public async Task RunLine(LocalizedLine line, Action interruptLine)
+	{
+		PreviousLine = line;
+		await Task.CompletedTask;
+	}
+
+	public async Task DismissLine(LocalizedLine line)
+	{
+		await Task.CompletedTask;
 	}
 
 	public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption)
@@ -44,8 +66,10 @@ public partial class OptionsListView : Control, IRunOptionsHandler
 			return;
 		}
 
+		SetPreviousLineLabelText(PreviousLine);
+
 		var tasks = new List<Task<int>>(options.Length);
-		_optionViewsCancellationSource = new CancellationTokenSource();
+		_taskCancellationSource = new CancellationTokenSource();
 
 		for (int i = 0; i < options.Length; i++)
 		{
@@ -69,7 +93,7 @@ public partial class OptionsListView : Control, IRunOptionsHandler
 					}
 					return result[0].AsInt32();
 				},
-				_optionViewsCancellationSource.Token
+				_taskCancellationSource.Token
 			);
 
 			tasks.Add(task);
@@ -77,17 +101,40 @@ public partial class OptionsListView : Control, IRunOptionsHandler
 
 		var selected = await Task.WhenAny(tasks);
 		int selectedIndex = selected.Result;
+
 		GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
 
-		CancelOptionViewTasks();
+		CancelCurrentExecutingTask();
 		selectOption?.Invoke(selectedIndex);
 	}
 
 	public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 	{
-		CancelOptionViewTasks();
+		CancelCurrentExecutingTask();
 		RecyleOptionViews();
 		await Task.CompletedTask;
+	}
+
+	#endregion Public Methods
+
+	#region Protected Methods
+
+	protected virtual void SetPreviousLineLabelText(LocalizedLine line)
+	{
+		if (PreviousLineLabel == null)
+		{
+			return;
+		}
+
+		if (line == null)
+		{
+			PreviousLineLabel.Hide();
+			return;
+		}
+
+		PreviousLineLabel.Show();
+		PreviousLineLabel.Text = line.Text.Text;
+		PreviousLineLabel.VisibleCharacters = -1;
 	}
 
 	protected virtual bool TryGetOptionView(out OptionView optionView)
@@ -133,18 +180,20 @@ public partial class OptionsListView : Control, IRunOptionsHandler
 		_optionViewsPool.AddRange(optionViews);
 	}
 
-	protected virtual void CancelOptionViewTasks()
+	protected virtual void CancelCurrentExecutingTask()
 	{
-		if (_optionViewsCancellationSource == null)
+		if (_taskCancellationSource == null)
 		{
 			return;
 		}
 
-		if (_optionViewsCancellationSource.IsCancellationRequested)
+		if (_taskCancellationSource.IsCancellationRequested)
 		{
 			return;
 		}
 
-		_optionViewsCancellationSource.Cancel();
+		_taskCancellationSource.Cancel();
 	}
+
+	#endregion Protected Methods
 }
