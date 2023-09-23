@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Yarn.GodotSharp.Views.Effects;
 
 using Yarn.GodotSharp.Extensions;
 
@@ -20,7 +21,7 @@ public partial class LineView : Control, IRunLineHandler
 	public Control CharacterNameContainer { get; set; } = null;
 
 	[Export]
-	public TextEffect TextAnimation { get; set; } = null;
+	public TextEffect TextAnimationEffect { get; set; } = null;
 
 	[Export]
 	public BaseButton ContinueButton { get; set; } = null;
@@ -74,11 +75,11 @@ public partial class LineView : Control, IRunLineHandler
 
 		LineText.Text = line.TextWithoutCharacterName;
 
-		if (TextAnimation != null)
+		if (TextAnimationEffect != null)
 		{
 			_cancellationTokenSource = new CancellationTokenSource();
 			await Task.Run(
-				() => TextAnimation.Animate(LineText),
+				() => TextAnimationEffect.Animate(LineText),
 				_cancellationTokenSource.Token
 			);
 		}

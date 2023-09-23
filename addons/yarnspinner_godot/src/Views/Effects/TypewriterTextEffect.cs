@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Godot;
 
-namespace Yarn.GodotSharp.Views
+namespace Yarn.GodotSharp.Views.Effects
 {
 	[GlobalClass]
 	public partial class TypewriterTextEffect : TextEffect

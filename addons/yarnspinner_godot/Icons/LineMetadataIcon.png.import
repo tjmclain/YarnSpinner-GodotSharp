@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dst74d7afmrn3"
-path="res://.godot/imported/LineMetadataIcon.png-17f1b5c7abf79f5873f0cb03551b1d6a.ctex"
+path="res://.godot/imported/LineMetadataIcon.png-11556c7cd74ccbac25a68625728180e1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://addons/yarnspinner_godot/Icons/LineMetadataIcon.png"
-dest_files=["res://.godot/imported/LineMetadataIcon.png-17f1b5c7abf79f5873f0cb03551b1d6a.ctex"]
+source_file="res://addons/yarnspinner_godot/icons/LineMetadataIcon.png"
+dest_files=["res://.godot/imported/LineMetadataIcon.png-11556c7cd74ccbac25a68625728180e1.ctex"]
 
 [params]
 
