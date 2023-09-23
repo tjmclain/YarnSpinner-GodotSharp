@@ -42,7 +42,7 @@ public partial class DialogueRunner : GodotNode
 	/// </remarks>
 	/// <seealso cref="Dialogue.NodeStartHandler"/>
 	[Signal]
-	public delegate void OnNodeStartEventHandler(string nodeName);
+	public delegate void NodeStartedEventHandler(string nodeName);
 
 	/// <summary>
 	/// A Unity event that is called when a node is complete.
@@ -50,20 +50,20 @@ public partial class DialogueRunner : GodotNode
 	/// <remarks>This event receives as a parameter the name of the node that just finished running.</remarks>
 	/// <seealso cref="Dialogue.NodeCompleteHandler"/>
 	[Signal]
-	public delegate void OnNodeCompleteEventHandler(string nodeName);
+	public delegate void NodeCompletedEventHandler(string nodeName);
 
 	/// <summary>
 	/// A Unity event that is called when the dialogue starts running.
 	/// </summary>
 	[Signal]
-	public delegate void OnDialogueStartEventHandler();
+	public delegate void DialogueStartingEventHandler();
 
 	/// <summary>
 	/// A Unity event that is called once the dialogue has completed.
 	/// </summary>
 	/// <seealso cref="Dialogue.DialogueCompleteHandler"/>
 	[Signal]
-	public delegate void OnDialogueCompleteEventHandler();
+	public delegate void DialogueCompletedEventHandler();
 
 	/// <summary>
 	/// A <see cref="StringUnityEvent"/> that is called when a <see cref="Command"/> is received.
@@ -89,7 +89,7 @@ public partial class DialogueRunner : GodotNode
 	/// <seealso cref="AddCommandHandler(string, CommandHandler)"/>
 	/// <seealso cref="YarnCommandAttribute"/>
 	[Signal]
-	public delegate void OnCommandEventHandler(string commandName);
+	public delegate void CommandReceivedEventHandler(string commandName);
 
 	#endregion Signals
 
@@ -107,16 +107,19 @@ public partial class DialogueRunner : GodotNode
 	public bool RunSelectedOptionAsLine { get; set; } = false;
 
 	[Export]
-	public YarnProject YarnProject { get; private set; }
+	public YarnProject YarnProject { get; private set; } = null;
 
 	[Export]
-	public LineProviderBehaviour LineProvider { get; private set; }
+	public LineProviderBehaviour LineProvider { get; private set; } = null;
 
 	[Export]
-	public VariableStorageBehaviour VariableStorage { get; private set; }
+	public VariableStorageBehaviour VariableStorage { get; private set; } = null;
 
 	[Export]
-	public ActionLibrary ActionLibrary { get; private set; }
+	public ActionLibrary ActionLibrary { get; private set; } = null;
+
+	[Export]
+	public DialogueViewGroup DialogueViewGroup { get; set; } = null;
 
 	[Export]
 	public Godot.Collections.Array<GodotNode> DialogueViews { get; set; } = new();
@@ -314,7 +317,7 @@ public partial class DialogueRunner : GodotNode
 	/// Start the dialogue from a specific node.
 	/// </summary>
 	/// <param name="startNode">The name of the node to start running from.</param>
-	public async void StartDialogue(string startNode)
+	public async Task StartDialogue(string startNode)
 	{
 		// If the dialogue is currently executing instructions, then calling ContinueDialogue() at
 		// the end of this method will cause confusing results. Report an error and stop here.
@@ -338,19 +341,10 @@ public partial class DialogueRunner : GodotNode
 
 		SetInitialVariables();
 
-		EmitSignal(SignalName.OnDialogueStart);
+		EmitSignal(SignalName.DialogueStarting);
 
 		// Signal that we're starting up.
-		var views = DialogueViews.Select(x => x as IDialogueStartedHandler);
-		foreach (var dialogueView in views)
-		{
-			if (dialogueView == null)
-			{
-				continue;
-			}
-
-			dialogueView.DialogueStarted();
-		}
+		DialogueViewGroup?.DialogueStarted();
 
 		// Request that the dialogue select the current node. This will prepare the dialogue for
 		// running; as a side effect, our prepareForLines delegate may be called.
@@ -456,7 +450,7 @@ public partial class DialogueRunner : GodotNode
 
 			case CommandDispatchResult.StatusType.CommandUnknown:
 				// Attempt a last-ditch dispatch by invoking our 'onCommand' Unity Event.
-				EmitSignal(SignalName.OnCommand, command.Text);
+				EmitSignal(SignalName.CommandReceived, command.Text);
 				return;
 
 			default:
@@ -472,6 +466,13 @@ public partial class DialogueRunner : GodotNode
 	/// <param name="line">The line to send to the dialogue views.</param>
 	private async Task HandleLine(Line line)
 	{
+		if (DialogueViewGroup == null)
+		{
+			GD.PushError("HandleLine: DialogueViewGroup == null");
+			ContinueDialogue();
+			return;
+		}
+
 		// Get the localized line from our line provider
 		CurrentLine = LineProvider.GetLocalizedLine(line);
 
@@ -508,39 +509,12 @@ public partial class DialogueRunner : GodotNode
 
 		using var cts = new CancellationTokenSource();
 
-		// Send line to all active dialogue views
-		var views = DialogueViews.Select(x => x as IRunLineHandler);
-		var tasks = new List<Task>();
-		foreach (var view in views)
-		{
-			if (view == null)
-			{
-				continue;
-			}
+		await Task.Run(
+			() => DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel()),
+			cts.Token
+		);
 
-			var task = Task.Run(
-				() => view.RunLine(CurrentLine, () => cts.Cancel()),
-				cts.Token
-			);
-			tasks.Add(task);
-		}
-
-		await Task.WhenAll(tasks);
-
-		tasks.Clear();
-
-		foreach (var view in views)
-		{
-			if (view == null)
-			{
-				continue;
-			}
-
-			var task = view.DismissLine(CurrentLine);
-			tasks.Add(task);
-		}
-
-		await Task.WhenAll(tasks);
+		await DialogueViewGroup.DismissLine(CurrentLine);
 
 		ContinueDialogue();
 	}
@@ -565,7 +539,15 @@ public partial class DialogueRunner : GodotNode
 			return;
 		}
 
-		DialogueOption[] dialogueOptions = new DialogueOption[numOptions];
+		if (DialogueViewGroup == null)
+		{
+			GD.PushError("HandleOptions: DialogueViewGroup == null");
+			Dialogue.SetSelectedOption(options[0].ID);
+			ContinueDialogue();
+			return;
+		}
+
+		var dialogueOptions = new DialogueOption[numOptions];
 		for (int i = 0; i < numOptions; i++)
 		{
 			var option = options[i];
@@ -596,45 +578,28 @@ public partial class DialogueRunner : GodotNode
 		}
 
 		int selectedOptionIndex = -1;
-
 		using var cts = new CancellationTokenSource();
 
-		var views = DialogueViews.Select(x => x as IRunOptionsHandler);
-		var tasks = new List<Task>();
-		foreach (var dialogueView in views)
-		{
-			if (dialogueView == null)
-				continue;
-
-			var task = Task.Run(
-				() => dialogueView.RunOptions(dialogueOptions, (index) =>
-				{
-					selectedOptionIndex = index;
-					cts.Cancel();
-				}),
-				cts.Token
-			);
-			tasks.Add(task);
-		}
-
-		await Task.WhenAll(tasks);
+		// RunOptions
+		await Task.Run(
+			() => DialogueViewGroup.RunOptions(dialogueOptions, (index) =>
+			{
+				selectedOptionIndex = index;
+				cts.Cancel();
+			}),
+			cts.Token
+		);
 
 		if (selectedOptionIndex < 0 || selectedOptionIndex >= numOptions)
 		{
 			GD.PushError($"selectedOptionIndex ({selectedOptionIndex}) is out of range; numOptions = {numOptions}");
-			Dialogue.SetSelectedOption(0);
+			Dialogue.SetSelectedOption(options[0].ID);
 			ContinueDialogue();
 			return;
 		}
 
-		tasks.Clear();
-		foreach (var view in views)
-		{
-			var task = view.DismissOptions(dialogueOptions, selectedOptionIndex);
-			tasks.Add(task);
-		}
-
-		await Task.WhenAll(tasks);
+		// DismissOptions
+		await DialogueViewGroup.DismissOptions(dialogueOptions, selectedOptionIndex);
 
 		var selectedOption = dialogueOptions[selectedOptionIndex];
 		Dialogue.SetSelectedOption(selectedOption.DialogueOptionID);
@@ -652,16 +617,15 @@ public partial class DialogueRunner : GodotNode
 
 	private void HandleDialogueComplete()
 	{
-		var views = DialogueViews.Select(x => x as IDialogueCompleteHandler);
-		foreach (var dialogueView in views)
-		{
-			if (dialogueView == null)
-				continue;
+		EmitSignal(SignalName.DialogueCompleted);
 
-			dialogueView.DialogueComplete();
+		if (DialogueViewGroup == null)
+		{
+			GD.PushError("HandleOptions: DialogueViewGroup == null");
+			return;
 		}
 
-		EmitSignal(SignalName.OnDialogueComplete);
+		DialogueViewGroup.DialogueComplete();
 	}
 
 	private void ContinueDialogue(bool dontRestart = false)
@@ -755,8 +719,6 @@ public partial class DialogueRunner : GodotNode
 					c = reader.Read();
 					if (c == -1)
 					{
-						// Oops, we ended the input while parsing a quoted string! Dump our current
-						// word immediately and return.
 						results.Add(currentComponent.ToString());
 						return results;
 					}
@@ -846,8 +808,8 @@ public partial class DialogueRunner : GodotNode
 			LineHandler = (line) => _ = HandleLine(line),
 			CommandHandler = HandleCommand,
 			OptionsHandler = (options) => _ = HandleOptions(options),
-			NodeStartHandler = (node) => EmitSignal(SignalName.OnNodeStart, node),
-			NodeCompleteHandler = (node) => EmitSignal(SignalName.OnNodeComplete, node),
+			NodeStartHandler = (node) => EmitSignal(SignalName.NodeStarted, node),
+			NodeCompleteHandler = (node) => EmitSignal(SignalName.NodeCompleted, node),
 			DialogueCompleteHandler = HandleDialogueComplete,
 		};
 

@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHandler
+public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineHandler
 {
 	#region Fields
 
 	protected readonly List<OptionView> _optionViewsPool = new();
+	protected LocalizedLine _previousLine = null;
+	protected Control _previousLineContainer = null;
 	protected CancellationTokenSource _taskCancellationSource = null;
-	private Control _optionViewsParentNode = null;
 
 	#endregion Fields
 
@@ -24,16 +25,17 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 	public virtual PackedScene OptionViewPrototype { get; set; } = null;
 
 	[Export]
-	public virtual Control OptionViewsParentNode
-	{
-		get => _optionViewsParentNode ?? this;
-		set => _optionViewsParentNode = value;
-	}
+	public virtual Control OptionViewsContainer { get; set; }
 
 	[Export]
 	public virtual RichTextLabel PreviousLineLabel { get; set; } = null;
 
-	protected LocalizedLine PreviousLine { get; private set; } = null;
+	[Export]
+	public virtual Control PreviousLineContainer
+	{
+		get => _previousLineContainer ?? PreviousLineLabel;
+		set => _previousLineContainer = value;
+	}
 
 	#endregion Properties
 
@@ -49,7 +51,7 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 	public async Task RunLine(LocalizedLine line, Action interruptLine)
 	{
-		PreviousLine = line;
+		_previousLine = line;
 		await Task.CompletedTask;
 	}
 
@@ -66,7 +68,7 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 			return;
 		}
 
-		SetPreviousLineLabelText(PreviousLine);
+		SetPreviousLineLabelText(_previousLine);
 
 		var tasks = new List<Task<int>>(options.Length);
 		_taskCancellationSource = new CancellationTokenSource();
@@ -128,11 +130,11 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 		if (line == null)
 		{
-			PreviousLineLabel.Hide();
+			PreviousLineContainer.Hide();
 			return;
 		}
 
-		PreviousLineLabel.Show();
+		PreviousLineContainer.Show();
 		PreviousLineLabel.Text = line.Text.Text;
 		PreviousLineLabel.VisibleCharacters = -1;
 	}
@@ -162,7 +164,7 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 	protected virtual void RecyleOptionViews()
 	{
-		var optionViews = OptionViewsParentNode.GetChildren()
+		var optionViews = OptionViewsContainer.GetChildren()
 			.Where(x => typeof(OptionView).IsAssignableFrom(x.GetType()))
 			.Select(x => x as OptionView);
 

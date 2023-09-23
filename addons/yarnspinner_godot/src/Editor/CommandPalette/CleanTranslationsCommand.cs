@@ -13,7 +13,7 @@ namespace Yarn.GodotSharp.Editor.CommandPalette
 			GD.Print("Clean Translations");
 
 			bool changed = false;
-			var translations = TranslationsPropertySetting.Get().ToList();
+			var translations = GodotEditorUtility.GetTranslationsSetting().ToList();
 			for (int i = 0; i < translations.Count; i++)
 			{
 				var file = translations[i];
@@ -31,7 +31,7 @@ namespace Yarn.GodotSharp.Editor.CommandPalette
 				return;
 			}
 
-			TranslationsPropertySetting.Set(translations);
+			GodotEditorUtility.SetTranslations(translations);
 		}
 	}
 }

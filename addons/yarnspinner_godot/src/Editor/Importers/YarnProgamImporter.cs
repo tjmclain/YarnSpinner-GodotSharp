@@ -74,14 +74,14 @@ namespace Yarn.GodotSharp.Editor.Importers
 			{
 				new Dictionary
 				{
-					{ EditorPropertyInfo.NameKey, _exportTranslationOption },
-					{ EditorPropertyInfo.DefaultValueKey, false },
+					{ GodotEditorPropertyInfo.NameKey, _exportTranslationOption },
+					{ GodotEditorPropertyInfo.DefaultValueKey, false },
 				},
 				new Dictionary
 				{
-					{ EditorPropertyInfo.NameKey, _overrideTranslationsDirOption },
-					{ EditorPropertyInfo.DefaultValueKey, "" },
-					{ EditorPropertyInfo.HintKey,  Variant.From(PropertyHint.Dir) }
+					{ GodotEditorPropertyInfo.NameKey, _overrideTranslationsDirOption },
+					{ GodotEditorPropertyInfo.DefaultValueKey, "" },
+					{ GodotEditorPropertyInfo.HintKey,  Variant.From(PropertyHint.Dir) }
 				},
 			};
 		}
@@ -184,13 +184,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 					}
 				}
 
-				var translationsDirSetting = ProjectSettings.GetSetting(YarnEditorProperties.TranslationsDirProperty);
+				var translationsDirSetting = ProjectSettings.GetSetting(Plugin.TranslationsDirProperty);
 				return translationsDirSetting.AsString();
 			}
 
 			static string GetBaseLocale()
 			{
-				var baseLocaleSetting = ProjectSettings.GetSetting(YarnEditorProperties.BaseLocaleProperty);
+				var baseLocaleSetting = ProjectSettings.GetSetting(Plugin.BaseLocaleProperty);
 				return baseLocaleSetting.AsString();
 			}
 
@@ -379,7 +379,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			var translations = TranslationsPropertySetting.Get().ToList();
+			var translations = GodotEditorUtility.GetTranslationsSetting().ToList();
 
 			bool changed = false;
 			foreach (var file in files)
@@ -405,7 +405,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return;
 			}
 
-			TranslationsPropertySetting.Set(translations.ToArray());
+			GodotEditorUtility.SetTranslations(translations.ToArray());
 		}
 
 		#endregion Private Methods

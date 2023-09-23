@@ -11,6 +11,27 @@ namespace Yarn.GodotSharp.Editor;
 [Tool]
 public partial class Plugin : EditorPlugin
 {
+	public const string TranslationsDirProperty = "yarn_spinner/translations_directory";
+	public const string BaseLocaleProperty = "yarn_spinner/base_locale";
+
+	private static readonly GodotEditorPropertyInfo[] _editorProperties = new GodotEditorPropertyInfo[]
+	{
+			new GodotEditorPropertyInfo()
+			{
+				Name = TranslationsDirProperty,
+				Type = Variant.Type.String,
+				Hint = PropertyHint.Dir,
+				DefaultValue = "res://translations/"
+			},
+			new GodotEditorPropertyInfo()
+			{
+				Name = BaseLocaleProperty,
+				Type = Variant.Type.String,
+				Hint = PropertyHint.LocaleId,
+				DefaultValue = "en"
+			},
+	};
+
 	private IEnumerable<EditorImportPlugin> _importPlugins;
 	private IEnumerable<EditorInspectorPlugin> _inspectorPlugins;
 	private IEnumerable<CommandPaletteScript> _commandScripts;
@@ -111,12 +132,12 @@ public partial class Plugin : EditorPlugin
 
 	public override void _EnablePlugin()
 	{
-		YarnEditorProperties.AddProperties();
+		AddEditorProperties();
 	}
 
 	public override void _DisablePlugin()
 	{
-		YarnEditorProperties.RemoveProperties();
+		RemoveEditorProperties();
 	}
 
 	private static IEnumerable<T> GetInstancesOfEditorTypes<T>()
@@ -128,6 +149,25 @@ public partial class Plugin : EditorPlugin
 			.Where(x => x.Namespace.Contains(editorNamespace))
 			.Where(x => typeof(T).IsAssignableFrom(x))
 			.Select(x => (T)Activator.CreateInstance(x));
+	}
+
+	private static void AddEditorProperties()
+	{
+		foreach (var property in _editorProperties)
+		{
+			property.AddToProjectSettings();
+		}
+		ProjectSettings.Save();
+	}
+
+	private static void RemoveEditorProperties()
+	{
+		foreach (var property in _editorProperties)
+		{
+			property.RemoveFromProjectSettings();
+		}
+
+		ProjectSettings.Save();
 	}
 }
 

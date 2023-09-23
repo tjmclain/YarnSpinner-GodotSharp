@@ -4,12 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
+using Google.Protobuf.WellKnownTypes;
 
 namespace Yarn.GodotSharp.Editor
 {
 	using GodotDictionary = Godot.Collections.Dictionary;
 
-	public class EditorPropertyInfo : Godot.Collections.Dictionary<string, Variant>
+	public class GodotEditorPropertyInfo : Godot.Collections.Dictionary<string, Variant>
 	{
 		#region Fields
 

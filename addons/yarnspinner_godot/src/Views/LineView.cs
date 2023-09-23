@@ -3,12 +3,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarn.GodotSharp.Views.Effects;
-using Yarn.GodotSharp.Extensions;
 
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class LineView : Control, IRunLineHandler
+public partial class LineView : Godot.Node, IRunLineHandler
 {
 	[Export]
 	public RichTextLabel LineText { get; set; } = null;
@@ -24,6 +23,9 @@ public partial class LineView : Control, IRunLineHandler
 
 	[Export]
 	public BaseButton ContinueButton { get; set; } = null;
+
+	[Export]
+	public StringName ContinueInputAction { get; set; } = string.Empty;
 
 	private CancellationTokenSource _taskCancellationSource;
 
@@ -45,6 +47,21 @@ public partial class LineView : Control, IRunLineHandler
 		{
 			ContinueButton.Pressed -= ContinueDialogue;
 		}
+	}
+
+	public override void _Input(InputEvent evt)
+	{
+		if (string.IsNullOrEmpty(ContinueInputAction))
+		{
+			return;
+		}
+
+		if (!evt.IsActionPressed(ContinueInputAction))
+		{
+			return;
+		}
+
+		ContinueDialogue();
 	}
 
 	public virtual async Task RunLine(LocalizedLine line, Action interruptLine)
@@ -85,7 +102,8 @@ public partial class LineView : Control, IRunLineHandler
 
 		_taskCancellationSource = new CancellationTokenSource();
 
-		await _taskCancellationSource.Token;
+		var awaiter = new CancellationTokenAwaiter(_taskCancellationSource.Token);
+		await awaiter;
 
 		_taskCancellationSource = null;
 
