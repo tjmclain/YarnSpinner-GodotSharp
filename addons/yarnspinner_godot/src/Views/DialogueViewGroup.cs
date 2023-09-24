@@ -8,7 +8,7 @@ using Godot;
 namespace Yarn.GodotSharp.Views
 {
 	[GlobalClass]
-	public partial class DialogueViewGroup : Godot.Node, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
+	public partial class DialogueViewGroup : DialogueViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
 	{
 		[Export]
 		public virtual Godot.Collections.Array<Godot.Node> DialogueViews { get; set; } = new();
@@ -39,7 +39,9 @@ namespace Yarn.GodotSharp.Views
 
 		public virtual async Task RunLine(LocalizedLine line, Action interruptLine)
 		{
-			using var cts = new CancellationTokenSource();
+			TryCancelAndDisposeTokenSource();
+
+			CancellationTokenSource = new CancellationTokenSource();
 
 			// Send line to all active dialogue views
 			var views = DialogueViews
@@ -55,19 +57,23 @@ namespace Yarn.GodotSharp.Views
 				}
 
 				var task = Task.Run(
-					() => view.RunLine(line, () => cts.Cancel()),
-					cts.Token
+					() => view.RunLine(line, () => TryCancelTokenSource()),
+					GetCancellationToken()
 				);
 				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
 
+			TryCancelAndDisposeTokenSource();
+
 			interruptLine?.Invoke();
 		}
 
 		public virtual async Task DismissLine(LocalizedLine line)
 		{
+			TryCancelAndDisposeTokenSource();
+
 			var views = DialogueViews
 				.Select(x => x as IRunLineHandler)
 				.Where(x => x != null);
@@ -75,7 +81,7 @@ namespace Yarn.GodotSharp.Views
 			var tasks = new List<Task>();
 			foreach (var view in views)
 			{
-				var task = view.DismissLine(line);
+				var task = Task.Run(() => view.DismissLine(line));
 				tasks.Add(task);
 			}
 
@@ -84,7 +90,9 @@ namespace Yarn.GodotSharp.Views
 
 		public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption)
 		{
-			using var cts = new CancellationTokenSource();
+			TryCancelAndDisposeTokenSource();
+
+			CancellationTokenSource = new CancellationTokenSource();
 
 			int selectedOptionIndex = -1;
 
@@ -99,20 +107,24 @@ namespace Yarn.GodotSharp.Views
 					() => view.RunOptions(options, (index) =>
 					{
 						selectedOptionIndex = index;
-						cts.Cancel();
+						TryCancelTokenSource();
 					}),
-					cts.Token
+					GetCancellationToken()
 				);
 				tasks.Add(task);
 			}
 
 			await Task.WhenAll(tasks);
 
+			TryCancelAndDisposeTokenSource();
+
 			selectOption?.Invoke(selectedOptionIndex);
 		}
 
 		public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 		{
+			TryCancelAndDisposeTokenSource();
+
 			var views = DialogueViews
 				.Select(x => x as IRunOptionsHandler)
 				.Where(x => x != null);

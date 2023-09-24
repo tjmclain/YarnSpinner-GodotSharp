@@ -27,7 +27,7 @@ public partial class LineView : Godot.Node, IRunLineHandler
 	[Export]
 	public StringName ContinueInputAction { get; set; } = string.Empty;
 
-	private CancellationTokenSource _taskCancellationSource;
+	private CancellationTokenSource _cancellationTokenSource;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -72,6 +72,8 @@ public partial class LineView : Godot.Node, IRunLineHandler
 			return;
 		}
 
+		CancelExecutingTasks();
+
 		ContinueButton?.Show();
 
 		string characterName = line.CharacterName;
@@ -93,49 +95,50 @@ public partial class LineView : Godot.Node, IRunLineHandler
 
 		if (TextAnimationEffect != null)
 		{
-			_taskCancellationSource = new CancellationTokenSource();
+			_cancellationTokenSource = new CancellationTokenSource();
 			await Task.Run(
 				() => TextAnimationEffect.Animate(LineText),
-				_taskCancellationSource.Token
+				_cancellationTokenSource.Token
 			);
+
+			CancelExecutingTasks();
 		}
 
-		_taskCancellationSource = new CancellationTokenSource();
+		_cancellationTokenSource = new CancellationTokenSource();
 
-		var awaiter = new CancellationTokenAwaiter(_taskCancellationSource.Token);
+		var awaiter = new CancellationTokenAwaiter(_cancellationTokenSource.Token);
 		await awaiter;
 
-		_taskCancellationSource = null;
+		_cancellationTokenSource = null;
 
 		ContinueButton?.Hide();
+
+		CancelExecutingTasks();
 
 		interruptLine?.Invoke();
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
-		CancelCurrentExecutingTask();
+		CancelExecutingTasks();
 		ContinueButton?.Hide();
 		await Task.CompletedTask;
 	}
 
 	public virtual void ContinueDialogue()
 	{
-		CancelCurrentExecutingTask();
+		CancelExecutingTasks();
 	}
 
-	protected virtual void CancelCurrentExecutingTask()
+	protected virtual void CancelExecutingTasks()
 	{
-		if (_taskCancellationSource == null)
+		if (_cancellationTokenSource == null)
 		{
 			return;
 		}
 
-		if (_taskCancellationSource.IsCancellationRequested)
-		{
-			return;
-		}
-
-		_taskCancellationSource.Cancel();
+		_cancellationTokenSource.Cancel();
+		_cancellationTokenSource.Dispose();
+		_cancellationTokenSource = null;
 	}
 }
