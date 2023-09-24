@@ -8,7 +8,7 @@ namespace Yarn.GodotSharp
 	using NodeHeaders = Dictionary<string, List<string>>;
 
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
-	[GlobalClass, Icon("res://addons/yarnspinner_godot/Icons/YarnProjectIcon.png")]
+	[GlobalClass, Icon("res://addons/yarnspinner_godot/icons/YarnProjectIcon.png")]
 	public partial class YarnProject : Resource
 	{
 		/// <summary>

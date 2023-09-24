@@ -1,0 +1,60 @@
+[gd_scene load_steps=4 format=3 uid="uid://b5usxdwyr7xee"]
+
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/LineView.cs" id="1_s25j6"]
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/Effects/TypewriterTextEffect.cs" id="2_6wrb3"]
+
+[sub_resource type="Resource" id="Resource_itmkl"]
+script = ExtResource("2_6wrb3")
+CharactersPerSecond = 60
+
+[node name="LineView" type="Control" node_paths=PackedStringArray("LineText", "CharacterNameText")]
+custom_minimum_size = Vector2(600, 150)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 600.0
+offset_bottom = 150.0
+script = ExtResource("1_s25j6")
+LineText = NodePath("LineViewContainer/MarginContainer/VBoxContainer/LineLabel")
+CharacterNameText = NodePath("LineViewContainer/MarginContainer/VBoxContainer/CharacterNameLabel")
+TextAnimationEffect = SubResource("Resource_itmkl")
+ContinueInputAction = &"ui_accept"
+
+[node name="LineViewContainer" type="MarginContainer" parent="."]
+custom_minimum_size = Vector2(600, 150)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -75.0
+offset_right = 300.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="LineViewContainer"]
+layout_mode = 2
+color = Color(0.137255, 0.137255, 0.137255, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="LineViewContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="LineViewContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="CharacterNameLabel" type="RichTextLabel" parent="LineViewContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 24
+text = "Speaker Name"
+fit_content = true
+
+[node name="LineLabel" type="RichTextLabel" parent="LineViewContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+fit_content = true

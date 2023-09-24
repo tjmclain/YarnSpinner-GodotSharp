@@ -39,7 +39,7 @@ namespace Yarn.GodotSharp.Views
 
 		public virtual async Task RunLine(LocalizedLine line, Action interruptLine)
 		{
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			CancellationTokenSource = new CancellationTokenSource();
 
@@ -57,7 +57,7 @@ namespace Yarn.GodotSharp.Views
 				}
 
 				var task = Task.Run(
-					() => view.RunLine(line, () => TryCancelTokenSource()),
+					() => view.RunLine(line, () => CancelTokenSource()),
 					GetCancellationToken()
 				);
 				tasks.Add(task);
@@ -65,14 +65,14 @@ namespace Yarn.GodotSharp.Views
 
 			await Task.WhenAll(tasks);
 
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			interruptLine?.Invoke();
 		}
 
 		public virtual async Task DismissLine(LocalizedLine line)
 		{
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			var views = DialogueViews
 				.Select(x => x as IRunLineHandler)
@@ -90,7 +90,7 @@ namespace Yarn.GodotSharp.Views
 
 		public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption)
 		{
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			CancellationTokenSource = new CancellationTokenSource();
 
@@ -107,7 +107,7 @@ namespace Yarn.GodotSharp.Views
 					() => view.RunOptions(options, (index) =>
 					{
 						selectedOptionIndex = index;
-						TryCancelTokenSource();
+						CancelTokenSource();
 					}),
 					GetCancellationToken()
 				);
@@ -116,14 +116,14 @@ namespace Yarn.GodotSharp.Views
 
 			await Task.WhenAll(tasks);
 
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			selectOption?.Invoke(selectedOptionIndex);
 		}
 
 		public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 		{
-			TryCancelAndDisposeTokenSource();
+			CancelAndDisposeTokenSource();
 
 			var views = DialogueViews
 				.Select(x => x as IRunOptionsHandler)

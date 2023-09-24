@@ -85,48 +85,6 @@ public static class GodotUtility
 		return LocalizePath(dir);
 	}
 
-	// Godot prefers snake case names, but C# uses pascal and camel case names
-	public static string CSharpNameToGodotName(string value)
-	{
-		if (string.IsNullOrEmpty(value))
-		{
-			GD.PushError("string.IsNullOrEmpty(value)");
-			return string.Empty;
-		}
-		const char nullChar = '\0';
-		char prev = nullChar;
-
-		var sb = new StringBuilder();
-		foreach (char c in value)
-		{
-			if (char.IsUpper(c))
-			{
-				// insert underscore before uppercase characters
-				if (prev != nullChar && prev != '/')
-				{
-					sb.Append('_');
-				}
-
-				prev = char.ToLower(c);
-				sb.Append(prev);
-				continue;
-			}
-
-			if (c == '.')
-			{
-				prev = '/';
-				sb.Append(prev);
-				continue;
-			}
-
-			prev = c;
-			sb.Append(prev);
-		}
-
-		string result = sb.ToString();
-		return result;
-	}
-
 	public static string VariableNameToFriendlyName(string value)
 	{
 		if (string.IsNullOrEmpty(value))

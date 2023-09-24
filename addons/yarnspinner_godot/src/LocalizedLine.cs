@@ -25,6 +25,8 @@ namespace Yarn.GodotSharp
 		/// </summary>
 		public string[] Metadata = Array.Empty<string>();
 
+		public static readonly LocalizedLine Empty = new();
+
 		/// <summary>
 		/// The name of the character, if present.
 		/// </summary>

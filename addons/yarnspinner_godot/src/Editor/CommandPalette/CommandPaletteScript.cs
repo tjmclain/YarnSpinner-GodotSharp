@@ -4,12 +4,12 @@ using Godot;
 
 namespace Yarn.GodotSharp.Editor
 {
-	public abstract partial class CommandPaletteScript : EditorScript
+	public partial class CommandPaletteScript : EditorScript
 	{
 		#region Properties
 
 		protected virtual string CommandName => GodotUtility.VariableNameToFriendlyName(GetType().Name);
-		protected virtual string CommandKey => $"yarn_spinner/{CommandName}";
+		protected virtual string CommandKey => $"yarn_spinner/{GetType().Name.ToSnakeCase()}";
 
 		#endregion Properties
 

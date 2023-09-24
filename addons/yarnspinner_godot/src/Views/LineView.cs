@@ -7,7 +7,7 @@ using Yarn.GodotSharp.Views.Effects;
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class LineView : Godot.Node, IRunLineHandler
+public partial class LineView : DialogueViewControl, IRunLineHandler
 {
 	[Export]
 	public RichTextLabel LineText { get; set; } = null;
@@ -27,8 +27,6 @@ public partial class LineView : Godot.Node, IRunLineHandler
 	[Export]
 	public StringName ContinueInputAction { get; set; } = string.Empty;
 
-	private CancellationTokenSource _cancellationTokenSource;
-
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -39,6 +37,9 @@ public partial class LineView : Godot.Node, IRunLineHandler
 
 			ContinueButton.Hide();
 		}
+
+		CancelAndDisposeTokenSource();
+		Hide();
 	}
 
 	public override void _ExitTree()
@@ -72,8 +73,9 @@ public partial class LineView : Godot.Node, IRunLineHandler
 			return;
 		}
 
-		CancelExecutingTasks();
+		CancelAndDisposeTokenSource();
 
+		Show();
 		ContinueButton?.Show();
 
 		string characterName = line.CharacterName;
@@ -95,50 +97,37 @@ public partial class LineView : Godot.Node, IRunLineHandler
 
 		if (TextAnimationEffect != null)
 		{
-			_cancellationTokenSource = new CancellationTokenSource();
+			CancellationTokenSource = new CancellationTokenSource();
 			await Task.Run(
 				() => TextAnimationEffect.Animate(LineText),
-				_cancellationTokenSource.Token
+				GetCancellationToken()
 			);
 
-			CancelExecutingTasks();
+			CancelAndDisposeTokenSource();
 		}
 
-		_cancellationTokenSource = new CancellationTokenSource();
+		CancellationTokenSource = new CancellationTokenSource();
 
-		var awaiter = new CancellationTokenAwaiter(_cancellationTokenSource.Token);
+		var awaiter = new CancellationTokenAwaiter(GetCancellationToken());
 		await awaiter;
-
-		_cancellationTokenSource = null;
 
 		ContinueButton?.Hide();
 
-		CancelExecutingTasks();
+		CancelAndDisposeTokenSource();
 
 		interruptLine?.Invoke();
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
-		CancelExecutingTasks();
+		CancelAndDisposeTokenSource();
 		ContinueButton?.Hide();
+		Hide();
 		await Task.CompletedTask;
 	}
 
 	public virtual void ContinueDialogue()
 	{
-		CancelExecutingTasks();
-	}
-
-	protected virtual void CancelExecutingTasks()
-	{
-		if (_cancellationTokenSource == null)
-		{
-			return;
-		}
-
-		_cancellationTokenSource.Cancel();
-		_cancellationTokenSource.Dispose();
-		_cancellationTokenSource = null;
+		CancelTokenSource();
 	}
 }

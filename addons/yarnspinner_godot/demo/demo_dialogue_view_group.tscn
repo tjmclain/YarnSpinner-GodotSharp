@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://dxq5trhdiesfh"]
+
+[ext_resource type="PackedScene" uid="uid://b5usxdwyr7xee" path="res://addons/yarnspinner_godot/demo/demo_line_view.tscn" id="1_8fqe8"]
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/DialogueViewGroup.cs" id="1_wmlkk"]
+[ext_resource type="PackedScene" uid="uid://c5d3hhjadbhhw" path="res://addons/yarnspinner_godot/demo/demo_options_list_view.tscn" id="2_yhwpo"]
+
+[node name="DialogueWindow" type="Control" node_paths=PackedStringArray("DialogueViews")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_wmlkk")
+DialogueViews = [NodePath("MarginContainer/VBoxContainer/CenterContainer/LineView")]
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+offset_right = 1152.0
+offset_bottom = 648.0
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="OptionsListView" parent="MarginContainer/VBoxContainer" instance=ExtResource("2_yhwpo")]
+layout_mode = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="LineView" parent="MarginContainer/VBoxContainer/CenterContainer" instance=ExtResource("1_8fqe8")]
+layout_mode = 2

@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://c5d3hhjadbhhw"]
+
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Views/OptionsListView.cs" id="1_byqqb"]
+[ext_resource type="PackedScene" uid="uid://d0s05f20h75a6" path="res://addons/yarnspinner_godot/demo/demo_option_view.tscn" id="2_8fvgg"]
+
+[node name="OptionsListView" type="Control" node_paths=PackedStringArray("OptionViewsContainer", "PreviousLineLabel")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+script = ExtResource("1_byqqb")
+OptionViewPrototype = ExtResource("2_8fvgg")
+OptionViewsContainer = NodePath("CenterContainer/VBoxContainer")
+PreviousLineLabel = NodePath("CenterContainer/VBoxContainer/PreviousLineLabel")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="PreviousLineLabel" type="RichTextLabel" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. "
+fit_content = true
+
+[node name="OptionView" parent="CenterContainer/VBoxContainer" instance=ExtResource("2_8fvgg")]
+layout_mode = 2

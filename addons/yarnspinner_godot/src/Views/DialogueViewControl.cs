@@ -8,7 +8,7 @@ using Godot;
 
 namespace Yarn.GodotSharp.Views
 {
-	public abstract partial class DialogueViewControl : Control
+	public partial class DialogueViewControl : Control
 	{
 		protected CancellationTokenSource CancellationTokenSource { get; set; } = null;
 
@@ -34,7 +34,7 @@ namespace Yarn.GodotSharp.Views
 			await new CancellationTokenAwaiter(token);
 		}
 
-		protected virtual void TryCancelTokenSource()
+		protected virtual void CancelTokenSource()
 		{
 			if (CancellationTokenSource == null)
 			{
@@ -44,7 +44,7 @@ namespace Yarn.GodotSharp.Views
 			CancellationTokenSource.Cancel();
 		}
 
-		protected virtual void TryCancelAndDisposeTokenSource()
+		protected virtual void CancelAndDisposeTokenSource()
 		{
 			if (CancellationTokenSource == null)
 			{

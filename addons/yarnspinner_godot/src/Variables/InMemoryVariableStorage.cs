@@ -6,33 +6,8 @@ using GodotCollections = Godot.Collections;
 
 namespace Yarn.GodotSharp.Variables
 {
-	/// <summary>
-	/// A simple implementation of VariableStorageBehaviour.
-	/// </summary>
-	/// <remarks>
-	/// <para>This class stores variables in memory, and is erased when the game exits.</para>
-	/// ///
-	/// <para>This class also has basic serialization and save/load example functions.</para>
-	/// ///
-	/// <para>You can also enumerate over the variables by using a <c>foreach</c> loop:</para>
-	/// ///
-	/// <code lang="csharp">
-	///// 'storage' is an InMemoryVariableStorage
-	///foreach (var variable in storage) {
-	///string name = variable.Key;
-	///System.Object value = variable.Value;
-	///}
-	/// </code>
-	/// ///
-	/// <para>
-	/// Note that as of v2.0, this class no longer uses Yarn.Value, to enforce static typing of
-	/// declared variables within the Yarn Program.
-	/// </para>
-	/// </remarks>
-	// https://yarnspinner.dev/docs/unity/components/variable-storage/
-
 	[GlobalClass]
-	public partial class InMemoryVariableStorage : VariableStorageBehaviour
+	public partial class InMemoryVariableStorage : VariableStorage
 	{
 		[Export]
 		public GodotCollections.Dictionary<string, Variable> Variables = new();
@@ -65,20 +40,6 @@ namespace Yarn.GodotSharp.Variables
 		public override void SetValue(string variableName, bool boolValue)
 			=> SetValue(variableName, Variable.Type.Boolean, boolValue.ToString());
 
-		/// <summary>
-		/// Retrieves a <see cref="Value"/> by name.
-		/// </summary>
-		/// <param name="variableName">
-		/// The name of the variable to retrieve the value of. Don't forget to include the "$" at
-		/// the beginning!
-		/// </param>
-		/// <returns>
-		/// The <see cref="Value"/>. If a variable by the name of <paramref name="variableName"/> is
-		/// not present, returns a value representing `null`.
-		/// </returns>
-		/// <exception cref="ArgumentException">
-		/// Thrown when variableName is not a valid variable name.
-		/// </exception>
 		public override bool TryGetValue<T>(string variableName, out T result)
 		{
 			static Type VariableTypeToSystemType(Variable.Type type)

@@ -11,14 +11,12 @@ using Yarn.GodotSharp.Views;
 
 namespace Yarn.GodotSharp;
 
-using GodotNode = Godot.Node;
-
 /// <summary>
 /// The DialogueRunner component acts as the interface between your game and Yarn Spinner.
 /// </summary>
 // https://yarnspinner.dev/docs/unity/components/dialogue-runner/
 [GlobalClass]
-public partial class DialogueRunner : GodotNode
+public partial class DialogueRunner : Godot.Node
 {
 	#region Fields
 
@@ -93,6 +91,18 @@ public partial class DialogueRunner : GodotNode
 
 	#endregion Signals
 
+	#region Public Constructors
+
+	public DialogueRunner()
+	{
+		DialogueStarting += () => GD.Print("DialogueRunner: DialogueStarting");
+		NodeStarted += (node) => GD.Print($"DialogueRunner: NodeStarted = {node}");
+		NodeCompleted += (node) => GD.Print($"DialogueRunner: NodeCompleted = {node}");
+		DialogueCompleted += () => GD.Print("DialogueRunner: DialogueCompleted");
+	}
+
+	#endregion Public Constructors
+
 	#region Properties
 
 	#region Exports
@@ -110,19 +120,16 @@ public partial class DialogueRunner : GodotNode
 	public YarnProject YarnProject { get; private set; } = null;
 
 	[Export]
-	public LineProviderBehaviour LineProvider { get; private set; } = null;
+	public LineProvider LineProvider { get; private set; } = null;
 
 	[Export]
-	public VariableStorageBehaviour VariableStorage { get; private set; } = null;
+	public VariableStorage VariableStorage { get; private set; } = null;
 
 	[Export]
 	public ActionLibrary ActionLibrary { get; private set; } = null;
 
 	[Export]
 	public DialogueViewGroup DialogueViewGroup { get; set; } = null;
-
-	[Export]
-	public Godot.Collections.Array<GodotNode> DialogueViews { get; set; } = new();
 
 	[Export(PropertyHint.None, "If true, will print GD.Print messages every time it enters a node, and other frequent events")]
 	public bool VerboseLogging { get; set; }
@@ -175,32 +182,6 @@ public partial class DialogueRunner : GodotNode
 	#endregion Getter Methods
 
 	#region Setter Methods
-
-	/// <summary>
-	/// Replaces this DialogueRunner's yarn project with the provided project.
-	/// </summary>
-	public void SetProject(YarnProject newProject)
-	{
-		YarnProject = newProject;
-
-		Dialogue.SetProgram(newProject.Program);
-
-		if (LineProvider != null)
-		{
-			LineProvider.YarnProject = newProject;
-		}
-	}
-
-	/// <summary>
-	/// Sets the dialogue views and makes sure the callback <see
-	/// cref="DialogueViewBase.MarkLineComplete"/> will respond correctly.
-	/// </summary>
-	/// <param name="views">The array of views to be assigned.</param>
-	public void SetDialogueViews(Godot.Node[] views)
-	{
-		DialogueViews.Clear();
-		DialogueViews.AddRange(views);
-	}
 
 	/// <summary>
 	/// Loads any initial variables declared in the program and loads that variable with its default
@@ -263,21 +244,8 @@ public partial class DialogueRunner : GodotNode
 		if (LineProvider == null)
 		{
 			LineProvider = new TextLineProvider();
-			AddChild(LineProvider);
 
 			GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(TextLineProvider).Name}");
-		}
-
-		// Initialize our yarn project
-		if (YarnProject != null)
-		{
-			if (Dialogue.IsActive)
-			{
-				GD.PushError($"DialogueRunner wanted to load a Yarn Project in its Start method, but the Dialogue was already running one. The Dialogue Runner may not behave as you expect.");
-			}
-
-			// Load this new Yarn Project.
-			SetProject(YarnProject);
 		}
 
 		// Register Commands and Functions
@@ -327,11 +295,19 @@ public partial class DialogueRunner : GodotNode
 			return;
 		}
 
+		if (YarnProject == null)
+		{
+			GD.PushError("YarnProject == null");
+			return;
+		}
+
 		if (!IsNodeReady())
 		{
 			GD.Print("!IsNodeReady; await Ready signal");
-			await ToSignal(this, GodotNode.SignalName.Ready);
+			await ToSignal(this, Godot.Node.SignalName.Ready);
 		}
+
+		YarnProject.CompileProgram();
 
 		if (YarnProject.NodeNames.Contains(startNode) == false)
 		{
@@ -339,9 +315,18 @@ public partial class DialogueRunner : GodotNode
 			return;
 		}
 
+		Dialogue.SetProgram(YarnProject.Program);
+
 		SetInitialVariables();
 
-		EmitSignal(SignalName.DialogueStarting);
+		// Calling EmitSignal from here crashes with error:
+		//"!is_accessible_from_caller_thread() is true"
+		//EmitSignal(SignalName.DialogueStarting);
+
+		// Try CallDeferred instead
+		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12
+		//docs: https://docs.godotengine.org/en/stable/classes/class_object.html#class-object-method-call-deferred
+		CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.DialogueStarting);
 
 		// Signal that we're starting up.
 		DialogueViewGroup?.DialogueStarted();
@@ -476,6 +461,8 @@ public partial class DialogueRunner : GodotNode
 		// Get the localized line from our line provider
 		CurrentLine = LineProvider.GetLocalizedLine(line);
 
+		GD.Print($"HandleLine: line = {line.ID}");
+
 		// Expand substitutions
 		var text = Dialogue.ExpandSubstitutions(CurrentLine.RawText, CurrentLine.Substitutions);
 
@@ -509,11 +496,15 @@ public partial class DialogueRunner : GodotNode
 
 		using var cts = new CancellationTokenSource();
 
-		await Task.Run(
-			() => DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel()),
-			cts.Token
-		);
+		//await Task.Run(
+		//	() => DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel()),
+		//	cts.Token
+		//);
 
+		GD.Print("Run line: " + CurrentLine.Text.Text);
+		await DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel());
+
+		GD.Print("Dismiss line: " + CurrentLine.Text.Text);
 		await DialogueViewGroup.DismissLine(CurrentLine);
 
 		ContinueDialogue();
@@ -564,8 +555,6 @@ public partial class DialogueRunner : GodotNode
 			}
 			catch (Markup.MarkupParseException e)
 			{
-				// Parsing the markup failed. We'll log a warning, and produce a markup result that
-				// just contains the raw text.
 				GD.PushWarning($"Failed to parse markup in \"{text}\": {e.Message}");
 				localisedLine.Text = new Markup.MarkupParseResult
 				{
@@ -780,7 +769,6 @@ public partial class DialogueRunner : GodotNode
 			// If we don't have a variable storage, create an InMemoryVariableStorage and make it
 			// use that.
 			VariableStorage = new InMemoryVariableStorage();
-			AddChild(VariableStorage);
 
 			// Let the user know what we're doing.
 			if (VerboseLogging)
@@ -808,8 +796,8 @@ public partial class DialogueRunner : GodotNode
 			LineHandler = (line) => _ = HandleLine(line),
 			CommandHandler = HandleCommand,
 			OptionsHandler = (options) => _ = HandleOptions(options),
-			NodeStartHandler = (node) => EmitSignal(SignalName.NodeStarted, node),
-			NodeCompleteHandler = (node) => EmitSignal(SignalName.NodeCompleted, node),
+			NodeStartHandler = (node) => CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.NodeStarted, node),
+			NodeCompleteHandler = (node) => CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.NodeCompleted, node),
 			DialogueCompleteHandler = HandleDialogueComplete,
 		};
 

@@ -8,14 +8,13 @@ using System.Threading.Tasks;
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineHandler
+public partial class OptionsListView : DialogueViewControl, IRunOptionsHandler, IRunLineHandler
 {
 	#region Fields
 
 	protected readonly List<OptionView> _optionViewsPool = new();
 	protected LocalizedLine _previousLine = null;
 	protected Control _previousLineContainer = null;
-	protected CancellationTokenSource _taskCancellationSource = null;
 
 	#endregion Fields
 
@@ -47,6 +46,8 @@ public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineH
 		// Clear pool and recycling any existing views
 		_optionViewsPool.Clear();
 		RecyleOptionViews();
+		CancelAndDisposeTokenSource();
+		Hide();
 	}
 
 	public async Task RunLine(LocalizedLine line, Action interruptLine)
@@ -68,10 +69,12 @@ public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineH
 			return;
 		}
 
+		CancelAndDisposeTokenSource();
+		CancellationTokenSource = new CancellationTokenSource();
+
 		SetPreviousLineLabelText(_previousLine);
 
 		var tasks = new List<Task<int>>(options.Length);
-		_taskCancellationSource = new CancellationTokenSource();
 
 		for (int i = 0; i < options.Length; i++)
 		{
@@ -95,7 +98,7 @@ public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineH
 					}
 					return result[0].AsInt32();
 				},
-				_taskCancellationSource.Token
+				GetCancellationToken()
 			);
 
 			tasks.Add(task);
@@ -106,13 +109,14 @@ public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineH
 
 		GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
 
-		CancelCurrentExecutingTask();
+		CancelAndDisposeTokenSource();
+
 		selectOption?.Invoke(selectedIndex);
 	}
 
 	public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 	{
-		CancelCurrentExecutingTask();
+		CancelAndDisposeTokenSource();
 		RecyleOptionViews();
 		await Task.CompletedTask;
 	}
@@ -180,21 +184,6 @@ public partial class OptionsListView : Godot.Node, IRunOptionsHandler, IRunLineH
 		}
 
 		_optionViewsPool.AddRange(optionViews);
-	}
-
-	protected virtual void CancelCurrentExecutingTask()
-	{
-		if (_taskCancellationSource == null)
-		{
-			return;
-		}
-
-		if (_taskCancellationSource.IsCancellationRequested)
-		{
-			return;
-		}
-
-		_taskCancellationSource.Cancel();
 	}
 
 	#endregion Protected Methods

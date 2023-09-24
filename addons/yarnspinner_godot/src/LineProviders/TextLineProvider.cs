@@ -1,22 +1,39 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Godot;
+using Yarn.Compiler;
 
 namespace Yarn.GodotSharp.LineProviders
 {
 	[GlobalClass]
-	public partial class TextLineProvider : LineProviderBehaviour
+	public partial class TextLineProvider : LineProvider
 	{
+		protected virtual Dictionary<string, StringInfo> StringTable { get; set; } = new();
+
+		public override async Task PrepareForLines(Dictionary<string, StringInfo> stringTable)
+		{
+			if (stringTable == null)
+			{
+				GD.PushError("stringTable == null");
+				StringTable.Clear();
+				return;
+			}
+
+			StringTable = new(stringTable);
+			await Task.CompletedTask;
+		}
+
 		public override LocalizedLine GetLocalizedLine(Line line)
 		{
-			string text = string.Empty;
-			string[] metadata = Array.Empty<string>();
-
-			var stringTable = YarnProject.StringTable;
-			if (stringTable.TryGetValue(line.ID, out var entry))
+			if (!StringTable.TryGetValue(line.ID, out var entry))
 			{
-				text = entry.text;
-				metadata = entry.metadata;
+				GD.PushError($"!StringTable.TryGetValue: {line.ID}");
+				return LocalizedLine.Empty;
 			}
+
+			string text = entry.text;
+			string[] metadata = entry.metadata;
 
 			if (GodotUtility.TryTranslateString(line.ID, out var translation))
 			{
