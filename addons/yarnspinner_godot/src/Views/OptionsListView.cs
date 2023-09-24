@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 namespace Yarn.GodotSharp.Views;
 
 [GlobalClass]
-public partial class OptionsListView : DialogueViewControl, IRunOptionsHandler, IRunLineHandler
+public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHandler
 {
 	#region Fields
 
@@ -46,11 +47,10 @@ public partial class OptionsListView : DialogueViewControl, IRunOptionsHandler, 
 		// Clear pool and recycling any existing views
 		_optionViewsPool.Clear();
 		RecyleOptionViews();
-		CancelAndDisposeTokenSource();
 		Hide();
 	}
 
-	public async Task RunLine(LocalizedLine line, Action interruptLine)
+	public async Task RunLine(LocalizedLine line, Action interruptLine, CancellationToken externalToken)
 	{
 		_previousLine = line;
 		await Task.CompletedTask;
@@ -61,21 +61,21 @@ public partial class OptionsListView : DialogueViewControl, IRunOptionsHandler, 
 		await Task.CompletedTask;
 	}
 
-	public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption)
+	public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption, CancellationToken token)
 	{
 		if (options == null)
 		{
-			GD.PushError("options == null");
-			return;
+			throw new InvalidDataException("options == null");
 		}
 
-		CancelAndDisposeTokenSource();
-		CancellationTokenSource = new CancellationTokenSource();
+		if (options.Length == 0)
+		{
+			throw new TaskCanceledException("options.Length == 0");
+		}
 
-		SetPreviousLineLabelText(_previousLine);
+		//SetPreviousLineLabelText(_previousLine);
 
 		var tasks = new List<Task<int>>(options.Length);
-
 		for (int i = 0; i < options.Length; i++)
 		{
 			var option = options[i];
@@ -88,35 +88,56 @@ public partial class OptionsListView : DialogueViewControl, IRunOptionsHandler, 
 
 			var task = Task.Run(async () =>
 				{
+					if (token.IsCancellationRequested)
+					{
+						token.ThrowIfCancellationRequested();
+					}
+
 					var awaiter = ToSignal(optionView, OptionView.SignalName.OptionSelected);
 					await awaiter;
+
+					if (token.IsCancellationRequested)
+					{
+						token.ThrowIfCancellationRequested();
+					}
+
 					var result = awaiter.GetResult();
 					if (result == null || result.Length == 0)
 					{
-						GD.PushError("result == null || result.Length == 0");
-						return -1;
+						throw new ArgumentException("result == null || result.Length == 0");
 					}
+
 					return result[0].AsInt32();
-				},
-				GetCancellationToken()
-			);
+				}, token);
 
 			tasks.Add(task);
+
+			var selected = await Task.WhenAny(tasks);
+
+			// if w
+			if (token.IsCancellationRequested)
+			{
+				token.ThrowIfCancellationRequested();
+				return;
+			}
+
+			int selectedIndex = selected.Result;
+
+			if (selectedIndex < 0 || selectedIndex >= options.Length)
+			{
+				throw new ArgumentOutOfRangeException(
+					$"selectIndex = {selectedIndex}, options.Length = {options.Length}",
+					nameof(selectedIndex)
+				);
+			}
+
+			GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
+			selectOption?.Invoke(selectedIndex);
 		}
-
-		var selected = await Task.WhenAny(tasks);
-		int selectedIndex = selected.Result;
-
-		GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
-
-		CancelAndDisposeTokenSource();
-
-		selectOption?.Invoke(selectedIndex);
 	}
 
 	public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 	{
-		CancelAndDisposeTokenSource();
 		RecyleOptionViews();
 		await Task.CompletedTask;
 	}

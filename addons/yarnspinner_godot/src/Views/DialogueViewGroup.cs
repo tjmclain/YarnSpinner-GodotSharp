@@ -8,7 +8,7 @@ using Godot;
 namespace Yarn.GodotSharp.Views
 {
 	[GlobalClass]
-	public partial class DialogueViewGroup : DialogueViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
+	public partial class DialogueViewGroup : AsyncViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
 	{
 		[Export]
 		public virtual Godot.Collections.Array<Godot.Node> DialogueViews { get; set; } = new();
@@ -37,46 +37,70 @@ namespace Yarn.GodotSharp.Views
 			}
 		}
 
-		public virtual async Task RunLine(LocalizedLine line, Action interruptLine)
+		public virtual async Task RunLine(
+			LocalizedLine line,
+			Action interruptLine,
+			CancellationToken externalToken
+		)
 		{
-			CancelAndDisposeTokenSource();
+			SafeDisposeInternalTokenSource();
 
-			CancellationTokenSource = new CancellationTokenSource();
+			if (externalToken.IsCancellationRequested)
+			{
+				externalToken.ThrowIfCancellationRequested();
+				return;
+			}
 
-			// Send line to all active dialogue views
 			var views = DialogueViews
 				.Select(x => x as IRunLineHandler)
 				.Where(x => x != null);
 
-			var tasks = new List<Task>();
-			foreach (var view in views)
+			if (!views.Any())
 			{
-				if (view == null)
-				{
-					continue;
-				}
-
-				var task = Task.Run(
-					() => view.RunLine(line, () => CancelTokenSource()),
-					GetCancellationToken()
-				);
-				tasks.Add(task);
+				throw new TaskCanceledException();
 			}
 
-			await Task.WhenAll(tasks);
+			using (var cts = CreateLinkedTokenSource(externalToken))
+			{
+				// Send line to all active dialogue views
+				var tasks = new List<Task>();
+				foreach (var view in views)
+				{
+					if (view == null)
+					{
+						continue;
+					}
 
-			CancelAndDisposeTokenSource();
+					var task = view.RunLine(line, interruptLine, externalToken);
+					tasks.Add(task);
+				}
 
-			interruptLine?.Invoke();
+				await Task.WhenAll(tasks);
+
+				// if we were interrupted from an external source, exit task here
+				if (externalToken.IsCancellationRequested)
+				{
+					SafeDisposeInternalTokenSource();
+					externalToken.ThrowIfCancellationRequested();
+					return;
+				}
+			}
+
+			SafeDisposeInternalTokenSource();
 		}
 
 		public virtual async Task DismissLine(LocalizedLine line)
 		{
-			CancelAndDisposeTokenSource();
+			SafeDisposeInternalTokenSource();
 
 			var views = DialogueViews
 				.Select(x => x as IRunLineHandler)
 				.Where(x => x != null);
+
+			if (!views.Any())
+			{
+				throw new TaskCanceledException();
+			}
 
 			var tasks = new List<Task>();
 			foreach (var view in views)
@@ -88,11 +112,13 @@ namespace Yarn.GodotSharp.Views
 			await Task.WhenAll(tasks);
 		}
 
-		public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption)
+		public virtual async Task RunOptions(
+			DialogueOption[] options,
+			Action<int> selectOption,
+			CancellationToken externalToken
+		)
 		{
-			CancelAndDisposeTokenSource();
-
-			CancellationTokenSource = new CancellationTokenSource();
+			SafeDisposeInternalTokenSource();
 
 			int selectedOptionIndex = -1;
 
@@ -100,34 +126,54 @@ namespace Yarn.GodotSharp.Views
 				.Select(x => x as IRunOptionsHandler)
 				.Where(x => x != null);
 
-			var tasks = new List<Task>();
-			foreach (var view in views)
+			if (!views.Any())
 			{
-				var task = Task.Run(
-					() => view.RunOptions(options, (index) =>
-					{
-						selectedOptionIndex = index;
-						CancelTokenSource();
-					}),
-					GetCancellationToken()
-				);
-				tasks.Add(task);
+				throw new TaskCanceledException();
 			}
 
-			await Task.WhenAll(tasks);
+			using (var cts = CreateLinkedTokenSource(externalToken))
+			{
+				var tasks = new List<Task>();
+				foreach (var view in views)
+				{
+					var task = view.RunOptions(options, (index) =>
+					{
+						selectedOptionIndex = index;
+						SafeCancelInternalTokenSource();
+					}, cts.Token);
 
-			CancelAndDisposeTokenSource();
+					tasks.Add(task);
+				}
 
+				await Task.WhenAll(tasks);
+
+				// if we were interrupted from an external source, exit task here
+				if (externalToken.IsCancellationRequested)
+				{
+					SafeDisposeInternalTokenSource();
+					externalToken.ThrowIfCancellationRequested();
+					return;
+				}
+			}
+
+			SafeDisposeInternalTokenSource();
+
+			GD.Print("RunOptions: selectedOptionIndex = " + selectedOptionIndex);
 			selectOption?.Invoke(selectedOptionIndex);
 		}
 
 		public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 		{
-			CancelAndDisposeTokenSource();
+			SafeDisposeInternalTokenSource();
 
 			var views = DialogueViews
 				.Select(x => x as IRunOptionsHandler)
 				.Where(x => x != null);
+
+			if (!views.Any())
+			{
+				throw new TaskCanceledException();
+			}
 
 			var tasks = new List<Task>();
 
@@ -138,6 +184,8 @@ namespace Yarn.GodotSharp.Views
 			}
 
 			await Task.WhenAll(tasks);
+
+			SafeDisposeInternalTokenSource();
 		}
 	}
 }

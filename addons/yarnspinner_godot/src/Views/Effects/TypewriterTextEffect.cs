@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 
@@ -13,12 +11,16 @@ namespace Yarn.GodotSharp.Views.Effects
 		[Export]
 		public int CharactersPerSecond { get; set; } = 60;
 
-		public override async Task Animate(RichTextLabel label)
+		public override async Task Animate(RichTextLabel label, CancellationToken token)
 		{
 			if (label == null)
 			{
-				GD.PushError("label == null");
-				return;
+				throw new ArgumentNullException(nameof(label));
+			}
+
+			if (token.IsCancellationRequested)
+			{
+				token.ThrowIfCancellationRequested();
 			}
 
 			float secondsPerCharacter = 1f / CharactersPerSecond;
@@ -29,17 +31,12 @@ namespace Yarn.GodotSharp.Views.Effects
 			while (label.VisibleCharacters > count)
 			{
 				label.VisibleCharacters++;
-				await Task.Delay(ms);
-			}
+				await Task.Delay(ms, token);
 
-			label.VisibleCharacters = -1;
-		}
-
-		public override void Interrupt(RichTextLabel label)
-		{
-			if (label == null)
-			{
-				return;
+				if (token.IsCancellationRequested)
+				{
+					label.VisibleCharacters = -1;
+				}
 			}
 
 			label.VisibleCharacters = -1;

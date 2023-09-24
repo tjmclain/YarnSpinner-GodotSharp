@@ -8,7 +8,7 @@ namespace Yarn.GodotSharp.Views
 	{
 		#region Public Methods
 
-		Task RunLine(LocalizedLine line, Action interruptLine);
+		Task RunLine(LocalizedLine line, Action interruptLine, CancellationToken token);
 
 		Task DismissLine(LocalizedLine line);
 

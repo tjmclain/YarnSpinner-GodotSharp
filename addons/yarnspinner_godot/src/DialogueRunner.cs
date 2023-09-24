@@ -494,17 +494,17 @@ public partial class DialogueRunner : Godot.Node
 			};
 		}
 
-		using var cts = new CancellationTokenSource();
-
-		//await Task.Run(
-		//	() => DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel()),
-		//	cts.Token
-		//);
-
 		GD.Print("Run line: " + CurrentLine.Text.Text);
-		await DialogueViewGroup.RunLine(CurrentLine, () => cts.Cancel());
+		using (var cts = new CancellationTokenSource())
+		{
+			await DialogueViewGroup.RunLine(
+				CurrentLine,
+				() => cts.Cancel(),
+				cts.Token
+			);
+		}
 
-		GD.Print("Dismiss line: " + CurrentLine.Text.Text);
+		GD.Print("Dismiss line");
 		await DialogueViewGroup.DismissLine(CurrentLine);
 
 		ContinueDialogue();
@@ -567,17 +567,18 @@ public partial class DialogueRunner : Godot.Node
 		}
 
 		int selectedOptionIndex = -1;
-		using var cts = new CancellationTokenSource();
-
-		// RunOptions
-		await Task.Run(
-			() => DialogueViewGroup.RunOptions(dialogueOptions, (index) =>
-			{
-				selectedOptionIndex = index;
-				cts.Cancel();
-			}),
-			cts.Token
-		);
+		using (var cts = new CancellationTokenSource())
+		{
+			// RunOptions
+			await Task.Run(
+				() => DialogueViewGroup.RunOptions(dialogueOptions, (index) =>
+				{
+					selectedOptionIndex = index;
+					cts.Cancel();
+				}, cts.Token),
+				cts.Token
+			);
+		}
 
 		if (selectedOptionIndex < 0 || selectedOptionIndex >= numOptions)
 		{
