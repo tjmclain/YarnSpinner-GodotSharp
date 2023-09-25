@@ -25,7 +25,6 @@ If you encounter an issue, please report it to the [Github page for this project
 2. In the terminal, execute the following commands:
    - `dotnet add package YarnSpinner`
    - `dotnet add package YarnSpinner.Compiler`
-3. That should do it!
 
 ### Option 2: Add packages via Visual Studio package manager
 
