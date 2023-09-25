@@ -52,6 +52,11 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 	public override void _Input(InputEvent evt)
 	{
+		if (!Visible)
+		{
+			return;
+		}
+
 		if (string.IsNullOrEmpty(ContinueInputAction))
 		{
 			return;
@@ -83,13 +88,17 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 			return;
 		}
 
-		Show();
-		ContinueButton?.Show();
+		CallDeferred(CanvasItem.MethodName.Show);
+		ContinueButton?.CallDeferred(CanvasItem.MethodName.Show);
+
+		// test if this is necessary. Do I crash if I set a UI value from another thread?
+		LineText.SetDeferred(RichTextLabel.PropertyName.Text, line.TextWithoutCharacterName);
+		LineText.VisibleCharacters = -1;
 
 		SetCharacterName(line.CharacterName);
 
-		LineText.Text = line.TextWithoutCharacterName;
-		LineText.VisibleCharacters = -1;
+		//LineText.Text = line.TextWithoutCharacterName;
+		//LineText.VisibleCharacters = -1;
 
 		if (TextAnimationEffect != null)
 		{
