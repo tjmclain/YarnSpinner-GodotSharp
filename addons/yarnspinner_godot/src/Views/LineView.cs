@@ -114,25 +114,14 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 				{
 					GD.Print("Skipped TextAnimationEffect.Animate");
 				}
-				GD.Print("TextAnimationEffect.Animate: Finish");
 			}
 		}
 
 		SafeDisposeInternalTokenSource();
 		using (var cts = CreateLinkedTokenSource(externalToken))
 		{
-			GD.Print("await CancellationTokenAwaiter: Begin");
-			var awaiter = new CancellationTokenAwaiter(cts.Token);
-
-			try
-			{
-				await awaiter;
-			}
-			catch (OperationCanceledException)
-			{
-			}
-
-			GD.Print("await CancellationTokenAwaiter: Finish");
+			GD.Print("RunLine: await CancellationTokenAwaiter");
+			await new CancellationTokenAwaiter(cts.Token);
 		}
 
 		ContinueButton?.Hide();
@@ -145,6 +134,8 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 			GD.Print("interruptLine.Invoke");
 			interruptLine?.Invoke();
 		}
+
+		GD.Print("RunLine: await CancellationTokenAwaiter");
 	}
 
 	public virtual void SetCharacterName(string characterName)

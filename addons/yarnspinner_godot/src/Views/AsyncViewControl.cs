@@ -12,13 +12,7 @@ namespace Yarn.GodotSharp.Views
 	[GlobalClass]
 	public partial class AsyncViewControl : Control
 	{
-		#region Properties
-
 		protected CancellationTokenSource InternalTokenSource { get; set; } = null;
-
-		#endregion Properties
-
-		#region Protected Methods
 
 		protected virtual CancellationToken GetInternalCancellationToken()
 		{
@@ -76,49 +70,24 @@ namespace Yarn.GodotSharp.Views
 			InternalTokenSource = null;
 		}
 
-		#endregion Protected Methods
-
-		#region Structs
-
 		// https://medium.com/@cilliemalan/how-to-await-a-cancellation-token-in-c-cbfc88f28fa2
 		protected readonly struct CancellationTokenAwaiter : INotifyCompletion, ICriticalNotifyCompletion
 		{
-			#region Fields
-
 			private readonly CancellationToken _token;
-
-			#endregion Fields
-
-			#region Public Constructors
 
 			public CancellationTokenAwaiter(CancellationToken cancellationToken)
 			{
 				_token = cancellationToken;
 			}
 
-			#endregion Public Constructors
-
-			#region Properties
-
 			// called by compiler generated/.net internals to check if the task has completed.
 			public readonly bool IsCompleted => _token.IsCancellationRequested;
 
-			#endregion Properties
-
-			#region Public Methods
-
 			public readonly object GetResult()
 			{
-				// this is called by compiler generated methods when the task has completed. Instead
-				// of returning a result, we just throw an exception.
-				if (IsCompleted)
-				{
-					throw new OperationCanceledException();
-				}
-				else
-				{
-					throw new InvalidOperationException("The cancellation token has not yet been cancelled.");
-				}
+				// simply return the value of IsCompleted. Don't throw an exception because I don't
+				// want to mandate 'try / catch' statements around calls that 'await' this object.
+				return IsCompleted;
 			}
 
 			// The compiler will generate stuff that hooks in here. We hook those methods directly
@@ -133,10 +102,6 @@ namespace Yarn.GodotSharp.Views
 			{
 				return this;
 			}
-
-			#endregion Public Methods
 		}
-
-		#endregion Structs
 	}
 }

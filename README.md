@@ -49,7 +49,7 @@ If you're coming to Godot from Unity, you may be used to Unity's coroutine syste
 
 > ⚠️ IMPORTANT
 >
-> If you try to set values or call functions on a Godot `Control` from outside the main thread, the engine will may throw an exception. For this reason, it is better to use `GodotObject`'s built-in `SetDeferred` and `CallDeferred` methods from inside any `async` methods in your code.
+> If you try to set values or call functions on a Godot `Control` from outside the main thread, the engine may throw an exception. For this reason, it is better to use `GodotObject`'s built-in `SetDeferred` and `CallDeferred` methods from inside any `async` methods in your code.
 
 Every class that derives from GodotObject has access to the `SetDeferred` and `CallDeferred` methods. `SetDeferred` will set a value at the end of the current frame. `CallDeferred` will call a method during 'idle time,' which is usually the end of the frame.
 
@@ -58,7 +58,7 @@ Every class that derives from GodotObject has access to the `SetDeferred` and `C
 
 Because these are deferred calls, the values will not be set and the calls will not be made immediately. If you have code after one of these deferred calls that requires the call to occur, you should wait until the next frame to do that work by `await`ing the `ProcessFrame` signal in `SceneTree`.
 
-- [SceneTree Signals (Godot)](https://docs.godotengine.org/en/stable/classes/class_scenetree.html#signals)
+- [SceneTree - Signals (Godot)](https://docs.godotengine.org/en/stable/classes/class_scenetree.html#signals)
 
 The current `SceneTree` can be accessed by calling `GetSceneTree()` on any object that derives from `Godot.Node`.
 
@@ -85,7 +85,7 @@ label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
 
 ```
 
-### Example Script
+### Example Script Using async / await
 
 This script uses a combination of `async` and `await`, `Task` methods, and Godot's `SetDeferred` method to set a `RichTextLabel`'s text and animate it in via a typewriter-style effect. It is a simplified version of what can be found in the `LineView` script included in this plugin.
 
@@ -111,7 +111,7 @@ private async Task DoTypewriterEffect()
 	Label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, 0);
 
 	// Wait until the next frame.
-	// This ensures our 'SetDeferred' calls go through before we start animating the text.
+	// This ensures our deferred calls are processed before we start animating the text.
 	await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
 
 	// Cache the total number of characters in the label's text.
