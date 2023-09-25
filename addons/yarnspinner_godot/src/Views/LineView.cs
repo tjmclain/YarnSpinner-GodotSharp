@@ -76,7 +76,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		CancellationToken externalToken
 	)
 	{
-		GD.Print("lvrl LineView.RunLine");
+		GD.Print($"LineView.RunLine - Begin; Name = {Name}");
 
 		if (externalToken.IsCancellationRequested)
 		{
@@ -86,7 +86,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		if (LineText == null)
 		{
-			GD.PushError("lvrl LineText == null");
+			GD.PushError("LineText == null");
 			return;
 		}
 
@@ -95,7 +95,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		// test if this is necessary. Do I crash if I set a UI value from another thread?
 		LineText.SetDeferred(RichTextLabel.PropertyName.Text, line.TextWithoutCharacterName);
-		LineText.VisibleCharacters = -1;
+		LineText.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
 
 		SetCharacterName(line.CharacterName);
 
@@ -121,23 +121,15 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		SafeDisposeInternalTokenSource();
 		using (var cts = CreateLinkedTokenSource(externalToken))
 		{
-			GD.Print("await CancellationTokenAwaiter: Begin");
-			var awaiter = new CancellationTokenAwaiter(cts.Token);
-
-			try
-			{
-				await awaiter;
-			}
-			catch (OperationCanceledException)
-			{
-			}
-
-			GD.Print("await CancellationTokenAwaiter: Finish");
+			GD.Print("WaitForCancellation");
+			await WaitForCancellation(cts.Token);
 		}
 
 		ContinueButton?.Hide();
 
 		SafeDisposeInternalTokenSource();
+
+		GD.Print($"LineView.RunLine - End; Name = {Name}");
 
 		// request an interruption if no one else has yet
 		if (!externalToken.IsCancellationRequested)

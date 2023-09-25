@@ -40,19 +40,16 @@ namespace Yarn.GodotSharp.Views.Effects
 			await ToSignal(sceneTree, SceneTree.SignalName.ProcessFrame);
 
 			int count = label.GetTotalCharacterCount();
-			GD.Print($"Animate: label.GetTotalCharacterCount = {count}");
+			GD.Print($"TypewriterTextEffect.Animate: label.GetTotalCharacterCount = {count}");
 
 			for (int i = 0; i < count; i++)
 			{
 				if (token.IsCancellationRequested)
 				{
-					GD.Print("Animate: token.IsCancellationRequested");
 					label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
 					//token.ThrowIfCancellationRequested();
 					return;
 				}
-
-				GD.Print($"Animate: {i + 1} / {count} characters");
 
 				label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, i + 1);
 

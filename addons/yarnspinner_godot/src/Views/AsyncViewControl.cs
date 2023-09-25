@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,9 +17,50 @@ namespace Yarn.GodotSharp.Views
 
 		protected CancellationTokenSource InternalTokenSource { get; set; } = null;
 
+		protected bool IsCancellationRequested
+			=> InternalTokenSource != null && InternalTokenSource.IsCancellationRequested;
+
 		#endregion Properties
 
+		#region Godot.Control
+
+		protected override void Dispose(bool disposing)
+		{
+			SafeDisposeInternalTokenSource();
+			base.Dispose(disposing);
+		}
+
+		#endregion Godot.Control
+
 		#region Protected Methods
+
+		protected static async Task WaitForCancellation(CancellationToken token)
+		{
+			if (!token.CanBeCanceled)
+			{
+				return;
+			}
+
+			if (token.IsCancellationRequested)
+			{
+				return;
+			}
+
+			try
+			{
+				await new CancellationTokenAwaiter(token);
+			}
+			catch (OperationCanceledException)
+			{
+				// Token was cancelled, so we're done waiting
+			}
+			catch (InvalidOperationException ioe)
+			{
+				GD.PushError(ioe);
+			}
+
+			GD.Print("AsyncViewControl.WaitForCancellation: Completed");
+		}
 
 		protected virtual CancellationToken GetInternalCancellationToken()
 		{
@@ -34,35 +76,26 @@ namespace Yarn.GodotSharp.Views
 			);
 		}
 
-		protected virtual async Task WaitForCancellation()
+		protected virtual async Task WaitForInternalCancellation()
 		{
 			var token = GetInternalCancellationToken();
 			await WaitForCancellation(token);
 		}
 
-		protected virtual async Task WaitForCancellation(CancellationToken token)
-		{
-			if (!token.CanBeCanceled)
-			{
-				return;
-			}
-
-			if (token.IsCancellationRequested)
-			{
-				return;
-			}
-
-			await new CancellationTokenAwaiter(token);
-		}
-
-		protected virtual void SafeCancelInternalTokenSource()
+		protected virtual bool SafeCancelInternalTokenSource()
 		{
 			if (InternalTokenSource == null)
 			{
-				return;
+				return false;
+			}
+
+			if (InternalTokenSource.IsCancellationRequested)
+			{
+				return false;
 			}
 
 			InternalTokenSource.Cancel();
+			return true;
 		}
 
 		protected virtual void SafeDisposeInternalTokenSource()
