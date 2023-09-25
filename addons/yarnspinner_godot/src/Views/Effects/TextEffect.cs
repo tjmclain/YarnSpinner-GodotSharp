@@ -10,7 +10,7 @@ namespace Yarn.GodotSharp.Views.Effects
 	{
 		public virtual Task Animate(RichTextLabel label, CancellationToken token)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException($"{nameof(TextEffect)} does nothing by default. Override {nameof(Animate)} in a subclass.");
 		}
 	}
 }

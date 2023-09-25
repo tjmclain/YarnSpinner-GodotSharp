@@ -22,9 +22,6 @@ config/icon="res://addons/yarnspinner_godot/icons/YarnProjectIcon.png"
 
 file_logging/enable_file_logging=true
 file_logging/max_log_files=10
-settings/stdout/print_fps=true
-settings/stdout/print_gpu_profile=true
-settings/stdout/verbose_stdout=true
 
 [dotnet]
 

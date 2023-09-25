@@ -76,6 +76,8 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		CancellationToken externalToken
 	)
 	{
+		GD.Print("lvrl LineView.RunLine");
+
 		if (externalToken.IsCancellationRequested)
 		{
 			externalToken.ThrowIfCancellationRequested();
@@ -84,7 +86,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		if (LineText == null)
 		{
-			GD.PushError("LineText == null");
+			GD.PushError("lvrl LineText == null");
 			return;
 		}
 
@@ -97,30 +99,40 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		SetCharacterName(line.CharacterName);
 
-		//LineText.Text = line.TextWithoutCharacterName;
-		//LineText.VisibleCharacters = -1;
-
 		if (TextAnimationEffect != null)
 		{
 			SafeDisposeInternalTokenSource();
 			using (var cts = CreateLinkedTokenSource(externalToken))
 			{
-				await TextAnimationEffect.Animate(LineText, cts.Token);
+				GD.Print("TextAnimationEffect.Animate: Begin");
 
-				if (cts.IsCancellationRequested)
+				try
 				{
-					SafeDisposeInternalTokenSource();
-					cts.Token.ThrowIfCancellationRequested();
-					return;
+					await TextAnimationEffect.Animate(LineText, cts.Token);
 				}
+				catch (OperationCanceledException)
+				{
+					GD.Print("Skipped TextAnimationEffect.Animate");
+				}
+				GD.Print("TextAnimationEffect.Animate: Finish");
 			}
 		}
 
 		SafeDisposeInternalTokenSource();
 		using (var cts = CreateLinkedTokenSource(externalToken))
 		{
+			GD.Print("await CancellationTokenAwaiter: Begin");
 			var awaiter = new CancellationTokenAwaiter(cts.Token);
-			await awaiter;
+
+			try
+			{
+				await awaiter;
+			}
+			catch (OperationCanceledException)
+			{
+			}
+
+			GD.Print("await CancellationTokenAwaiter: Finish");
 		}
 
 		ContinueButton?.Hide();
@@ -130,6 +142,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		// request an interruption if no one else has yet
 		if (!externalToken.IsCancellationRequested)
 		{
+			GD.Print("interruptLine.Invoke");
 			interruptLine?.Invoke();
 		}
 	}
@@ -138,29 +151,28 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 	{
 		if (string.IsNullOrEmpty(characterName))
 		{
-			CharacterNameContainer?.Hide();
+			CharacterNameContainer?.CallDeferred(CanvasItem.MethodName.Hide);
 		}
 		else
 		{
-			CharacterNameContainer?.Show();
+			CharacterNameContainer?.CallDeferred(CanvasItem.MethodName.Show);
 		}
 
-		if (CharacterNameText != null)
-		{
-			CharacterNameText.Text = characterName;
-		}
+		CharacterNameText?.SetDeferred(RichTextLabel.PropertyName.Text, characterName);
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
+		GD.Print("LineView.DismissLine");
 		SafeDisposeInternalTokenSource();
-		ContinueButton?.Hide();
-		Hide();
+		ContinueButton?.CallDeferred(CanvasItem.MethodName.Hide);
+		CallDeferred(CanvasItem.MethodName.Hide);
 		await Task.CompletedTask;
 	}
 
 	public virtual void ContinueDialogue()
 	{
+		GD.Print("LineView.ContinueDialogue");
 		SafeCancelInternalTokenSource();
 	}
 }
