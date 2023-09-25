@@ -95,7 +95,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		// test if this is necessary. Do I crash if I set a UI value from another thread?
 		LineText.SetDeferred(RichTextLabel.PropertyName.Text, line.TextWithoutCharacterName);
-		LineText.VisibleCharacters = -1;
+		LineText.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
 
 		SetCharacterName(line.CharacterName);
 
