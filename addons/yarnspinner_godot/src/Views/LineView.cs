@@ -136,8 +136,6 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 			GD.Print("interruptLine.Invoke");
 			interruptLine?.Invoke();
 		}
-
-		GD.Print("RunLine: await CancellationTokenAwaiter");
 	}
 
 	public virtual void SetCharacterName(string characterName)

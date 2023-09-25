@@ -40,10 +40,11 @@ If you encounter any issues with installing these packages, you can consult the 
 
 ## Using async / await
 
-If you're coming to Godot from Unity, you may be used to Unity's coroutine system using `IEnumerator` methods and `yield` statements. Similar functionality in Godot can be achieved using C#'s `aysnc` and `await` operators along with methods that return `Task` or `Task<T>`. If you're unfamiliar with these patterns, it may be helpful to refer to some of the following sources:
+If you're coming to Godot from Unity, you may be used to Unity's coroutine system using `IEnumerator` methods and `yield` statements. Similar functionality in Godot can be achieved using `aysnc` and `await` operators along with methods that return `Task` or `Task<T>`. If you're unfamiliar with these patterns, it may be helpful to refer to some of the following sources:
 
 - ['await' Keyword (Godot)](https://docs.godotengine.org/en/stable/tutorials/scripting/c_sharp/c_sharp_differences.html#doc-c-sharp-differences-await)
 - [Task-based asynchronous programming (MSDN)](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/task-based-asynchronous-programming)
+- [How to: Cancel a Task and Its Children (MSDN)](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/how-to-cancel-a-task-and-its-children)
 
 ### Deferred Operations in Godot
 
