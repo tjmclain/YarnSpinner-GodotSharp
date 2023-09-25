@@ -43,6 +43,7 @@ namespace Yarn.GodotSharp.Views
 			CancellationToken externalToken
 		)
 		{
+			GD.Print($"DialogueViewGroup.RunLine - Begin; Name = {Name}");
 			SafeDisposeInternalTokenSource();
 
 			if (externalToken.IsCancellationRequested)
@@ -57,7 +58,8 @@ namespace Yarn.GodotSharp.Views
 
 			if (!views.Any())
 			{
-				throw new TaskCanceledException();
+				GD.Print($"RunLine: no views found");
+				return;
 			}
 
 			using (var cts = CreateLinkedTokenSource(externalToken))
@@ -87,10 +89,12 @@ namespace Yarn.GodotSharp.Views
 			}
 
 			SafeDisposeInternalTokenSource();
+			GD.Print($"DialogueViewGroup.RunLine - End; Name = {Name}");
 		}
 
 		public virtual async Task DismissLine(LocalizedLine line)
 		{
+			GD.Print($"DialogueViewGroup.DismissLine - Begin; Name = {Name}");
 			SafeDisposeInternalTokenSource();
 
 			var views = DialogueViews
@@ -99,7 +103,8 @@ namespace Yarn.GodotSharp.Views
 
 			if (!views.Any())
 			{
-				throw new TaskCanceledException();
+				GD.Print($"DismissLine: no views found");
+				return;
 			}
 
 			var tasks = new List<Task>();

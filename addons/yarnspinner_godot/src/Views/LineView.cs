@@ -76,7 +76,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		CancellationToken externalToken
 	)
 	{
-		GD.Print("lvrl LineView.RunLine");
+		GD.Print($"LineView.RunLine - Begin; Name = {Name}");
 
 		if (externalToken.IsCancellationRequested)
 		{
@@ -86,7 +86,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		if (LineText == null)
 		{
-			GD.PushError("lvrl LineText == null");
+			GD.PushError("LineText == null");
 			return;
 		}
 
@@ -120,13 +120,15 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		SafeDisposeInternalTokenSource();
 		using (var cts = CreateLinkedTokenSource(externalToken))
 		{
-			GD.Print("RunLine: await CancellationTokenAwaiter");
-			await new CancellationTokenAwaiter(cts.Token);
+			GD.Print("WaitForCancellation");
+			await WaitForCancellation(cts.Token);
 		}
 
 		ContinueButton?.Hide();
 
 		SafeDisposeInternalTokenSource();
+
+		GD.Print($"LineView.RunLine - End; Name = {Name}");
 
 		// request an interruption if no one else has yet
 		if (!externalToken.IsCancellationRequested)
