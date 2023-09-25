@@ -35,6 +35,6 @@ If you're using Visual Studio as your IDE for your C# project, you can add these
 - On the **Browse** tab, search for YarnSpinner
 - Install the **YarnSpinner** and **YarnSpinner.Compiler** projects by selecting them in the list and then clicking the **Install** button.
 
-![NuGet Package Manager](./.screenshots/vs_nuget_package_manager.png)
+![NuGet Package Manager](/addons/yarnspinner_godot/.screenshots/vs_nuget_package_manager_highlights.png)
 
 If you encounter any issues with installing these packages, you can consult the official [NuGet documentation](https://learn.microsoft.com/en-gb/nuget/what-is-nuget). If you don't find any an answer to your problem there, please create an issue on this project's [Github page](https://github.com/tjmclain/YarnSpinner-GodotSharp/issues).
