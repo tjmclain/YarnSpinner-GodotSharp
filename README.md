@@ -21,19 +21,19 @@ If you encounter an issue, please report it to the [Github page for this project
 
 ### Option 1: Add packages via command line
 
-- Open a terminal window in your Godot project's root folder (or whichever folder has your C# project in it)
-- In the terminal, execute the following commands:
-- - `dotnet add package YarnSpinner`
-- - `dotnet add package YarnSpinner.Compiler`
-- That should do it!
+1. Open a terminal window in your Godot project's root folder (or whichever folder has your C# project in it)
+2. In the terminal, execute the following commands:
+   - `dotnet add package YarnSpinner`
+   - `dotnet add package YarnSpinner.Compiler`
+3. That should do it!
 
 ### Option 2: Add packages via Visual Studio package manager
 
 If you're using Visual Studio as your IDE for your C# project, you can add these packages via the NuGet Package Manager.
 
-- Open the Package Manager via **Project > Manage Nuget Packages...**
-- On the **Browse** tab, search for YarnSpinner
-- Install the **YarnSpinner** and **YarnSpinner.Compiler** projects by selecting them in the list and then clicking the **Install** button.
+1. Open the Package Manager via **Project > Manage Nuget Packages...**
+2. On the **Browse** tab, search for YarnSpinner
+3. Install the **YarnSpinner** and **YarnSpinner.Compiler** projects by selecting them in the list and then clicking the **Install** button.
 
 ![NuGet Package Manager](/addons/yarnspinner_godot/.screenshots/vs_nuget_package_manager_highlights.png)
 
