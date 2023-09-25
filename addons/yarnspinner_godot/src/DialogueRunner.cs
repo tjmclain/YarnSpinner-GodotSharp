@@ -769,12 +769,12 @@ public partial class DialogueRunner : Godot.Node
 		{
 			// If we don't have a variable storage, create an InMemoryVariableStorage and make it
 			// use that.
-			VariableStorage = new InMemoryVariableStorage();
+			VariableStorage = new VariableStorage();
 
 			// Let the user know what we're doing.
 			if (VerboseLogging)
 			{
-				GD.Print($"Dialogue Runner has no Variable Storage; creating a {nameof(InMemoryVariableStorage)}", this);
+				GD.Print($"Dialogue Runner has no Variable Storage; creating a {nameof(VariableStorage)}", this);
 			}
 		}
 

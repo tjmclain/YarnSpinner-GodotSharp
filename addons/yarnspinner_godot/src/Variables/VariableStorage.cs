@@ -1,43 +1,68 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Godot;
 
 namespace Yarn.GodotSharp.Variables
 {
+	[GlobalClass]
 	public partial class VariableStorage : Resource, IVariableStorage
 	{
-		public virtual void Clear()
+		[Export]
+		public Godot.Collections.Dictionary<string, Variable> Variables { get; set; } = new();
+
+		public virtual void SetValue(string variableName, Variant value)
 		{
-			throw new NotImplementedException();
+			variableName = ValidateVariableName(variableName);
+
+			if (!Variables.TryGetValue(variableName, out var variable))
+			{
+				variable = new Variable() { Name = variableName };
+				Variables[variableName] = variable;
+			}
+
+			variable.VariableType = value.VariantType;
+			variable.Value = value;
 		}
+
+		#region IVariableStorage
 
 		public virtual void SetValue(string variableName, string stringValue)
-		{
-			throw new NotImplementedException();
-		}
+			=> SetValue(variableName, stringValue);
 
 		public virtual void SetValue(string variableName, float floatValue)
-		{
-			throw new NotImplementedException();
-		}
+			=> SetValue(variableName, floatValue);
 
 		public virtual void SetValue(string variableName, bool boolValue)
+			=> SetValue(variableName, boolValue);
+
+		public virtual bool TryGetValue<[MustBeVariant] T>(string variableName, out T result)
 		{
-			throw new NotImplementedException();
+			variableName = ValidateVariableName(variableName);
+
+			if (!Variables.TryGetValue(variableName, out var variable))
+			{
+				GD.PushWarning("!_variables.TryGetValue; variableName = " + variableName);
+				result = default;
+				return false;
+			}
+
+			result = variable.Value.As<T>();
+			return true;
 		}
 
-		public virtual bool TryGetValue<T>(string variableName, out T result)
+		public virtual void Clear()
 		{
-			throw new NotImplementedException();
+			Variables.Clear();
 		}
 
 		public virtual bool Contains(string variableName)
 		{
-			throw new NotImplementedException();
+			return Variables.ContainsKey(variableName);
+		}
+
+		#endregion IVariableStorage
+
+		protected static string ValidateVariableName(string variableName)
+		{
+			return variableName.StartsWith("$") ? variableName : $"${variableName}";
 		}
 	}
 }
