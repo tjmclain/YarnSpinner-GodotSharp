@@ -47,7 +47,7 @@ namespace Yarn.GodotSharp.Views
 
 			if (externalToken.IsCancellationRequested)
 			{
-				externalToken.ThrowIfCancellationRequested();
+				//externalToken.ThrowIfCancellationRequested();
 				return;
 			}
 
@@ -81,7 +81,7 @@ namespace Yarn.GodotSharp.Views
 				if (externalToken.IsCancellationRequested)
 				{
 					SafeDisposeInternalTokenSource();
-					externalToken.ThrowIfCancellationRequested();
+					//externalToken.ThrowIfCancellationRequested();
 					return;
 				}
 			}
@@ -151,7 +151,7 @@ namespace Yarn.GodotSharp.Views
 				if (externalToken.IsCancellationRequested)
 				{
 					SafeDisposeInternalTokenSource();
-					externalToken.ThrowIfCancellationRequested();
+					//externalToken.ThrowIfCancellationRequested();
 					return;
 				}
 			}

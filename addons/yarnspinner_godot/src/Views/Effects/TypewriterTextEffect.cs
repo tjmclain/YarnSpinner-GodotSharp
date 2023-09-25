@@ -28,7 +28,8 @@ namespace Yarn.GodotSharp.Views.Effects
 
 			if (token.IsCancellationRequested)
 			{
-				token.ThrowIfCancellationRequested();
+				//token.ThrowIfCancellationRequested();
+				return;
 			}
 
 			float secondsPerCharacter = 1f / CharactersPerSecond;
@@ -47,7 +48,8 @@ namespace Yarn.GodotSharp.Views.Effects
 				{
 					GD.Print("Animate: token.IsCancellationRequested");
 					label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
-					token.ThrowIfCancellationRequested();
+					//token.ThrowIfCancellationRequested();
+					return;
 				}
 
 				GD.Print($"Animate: {i + 1} / {count} characters");

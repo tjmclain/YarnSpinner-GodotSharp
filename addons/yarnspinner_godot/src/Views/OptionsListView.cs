@@ -90,7 +90,8 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 				{
 					if (token.IsCancellationRequested)
 					{
-						token.ThrowIfCancellationRequested();
+						//token.ThrowIfCancellationRequested();
+						return -1;
 					}
 
 					var awaiter = ToSignal(optionView, OptionView.SignalName.OptionSelected);
@@ -98,7 +99,8 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 					if (token.IsCancellationRequested)
 					{
-						token.ThrowIfCancellationRequested();
+						//token.ThrowIfCancellationRequested();
+						return -1;
 					}
 
 					var result = awaiter.GetResult();
@@ -114,10 +116,9 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 			var selected = await Task.WhenAny(tasks);
 
-			// if w
 			if (token.IsCancellationRequested)
 			{
-				token.ThrowIfCancellationRequested();
+				//token.ThrowIfCancellationRequested();
 				return;
 			}
 
@@ -125,10 +126,7 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 
 			if (selectedIndex < 0 || selectedIndex >= options.Length)
 			{
-				throw new ArgumentOutOfRangeException(
-					$"selectIndex = {selectedIndex}, options.Length = {options.Length}",
-					nameof(selectedIndex)
-				);
+				GD.PushError($"selectIndex = {selectedIndex}, options.Length = {options.Length}");
 			}
 
 			GD.Print($"RunOptions: selectedIndex = {selectedIndex}");

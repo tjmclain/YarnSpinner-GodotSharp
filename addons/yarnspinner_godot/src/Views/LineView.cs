@@ -80,7 +80,7 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 
 		if (externalToken.IsCancellationRequested)
 		{
-			externalToken.ThrowIfCancellationRequested();
+			//externalToken.ThrowIfCancellationRequested();
 			return;
 		}
 
