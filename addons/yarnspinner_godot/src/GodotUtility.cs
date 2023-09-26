@@ -97,7 +97,7 @@ public static class GodotUtility
 	public static Error ReadCsv(string csvFile, out string[] headers, out Dictionary<string, Dictionary<string, string>> table)
 	{
 		// don't out null values
-		headers = System.Array.Empty<string>();
+		headers = Array.Empty<string>();
 		table = new();
 
 		if (!FileAccess.FileExists(csvFile))

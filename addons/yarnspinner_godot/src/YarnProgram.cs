@@ -11,23 +11,11 @@ namespace Yarn.GodotSharp
 	[GlobalClass, Icon("res://addons/yarnspinner_godot/icons/YarnScriptIcon.png")]
 	public partial class YarnProgram : Resource
 	{
-		#region Properties
-
 		// Do I need to cache this here?
 		[Export(PropertyHint.File)]
 		public string TranslationsFile { get; set; } = string.Empty;
 
-		[Export]
-		public string[] Errors { get; set; } = Array.Empty<string>();
-
-		#endregion Properties
-
-		#region Public Methods
-
-		public Error Compile(out CompilationResult compilationResult)
-			=> Compile(ResourcePath, out compilationResult);
-
-		public virtual Error Compile(string sourceFile, out CompilationResult compilationResult)
+		public static Error Compile(string sourceFile, out CompilationResult compilationResult)
 		{
 			compilationResult = default;
 
@@ -51,28 +39,23 @@ namespace Yarn.GodotSharp
 
 			var job = CompilationJob.CreateFromString(sourceFile, text);
 			compilationResult = Compiler.Compiler.Compile(job);
-			var errors = compilationResult.Diagnostics.Where(
-				x => x.Severity == Diagnostic.DiagnosticSeverity.Error
-			);
 
-			// Import errors
+			var errors = compilationResult.Diagnostics
+				.Where(x => x.Severity == Diagnostic.DiagnosticSeverity.Error);
+
 			foreach (var error in errors)
 			{
-				GD.PushError(error.Message);
+				GD.PushError($"{error.Message} ({error.FileName} [{error.Range.Start.Line}])");
 			}
-
-			Errors = errors.Select(x => x.Message).ToArray();
 
 			if (errors.Any())
 			{
 				return Error.InvalidData;
 			}
 
-			GD.Print($"Compiled yarn program from source '{ResourcePath}'");
+			GD.Print($"Compiled yarn program from source '{sourceFile}'");
 
 			return Error.Ok;
 		}
-
-		#endregion Public Methods
 	}
 }
