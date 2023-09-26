@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
@@ -18,8 +19,6 @@ namespace Yarn.GodotSharp;
 [GlobalClass]
 public partial class DialogueRunner : Godot.Node
 {
-	#region Fields
-
 	private readonly Dictionary<string, CommandInfo> _commands = new();
 
 	/// <summary>
@@ -27,8 +26,6 @@ public partial class DialogueRunner : Godot.Node
 	/// </summary>
 	/// <remarks>Automatically created on first access.</remarks>
 	private Dialogue _dialogue;
-
-	#endregion Fields
 
 	#region Signals
 
@@ -91,8 +88,6 @@ public partial class DialogueRunner : Godot.Node
 
 	#endregion Signals
 
-	#region Public Constructors
-
 	public DialogueRunner()
 	{
 		DialogueStarting += () => GD.Print("DialogueRunner: DialogueStarting");
@@ -100,10 +95,6 @@ public partial class DialogueRunner : Godot.Node
 		NodeCompleted += (node) => GD.Print($"DialogueRunner: NodeCompleted = {node}");
 		DialogueCompleted += () => GD.Print("DialogueRunner: DialogueCompleted");
 	}
-
-	#endregion Public Constructors
-
-	#region Properties
 
 	#region Exports
 
@@ -156,10 +147,6 @@ public partial class DialogueRunner : Godot.Node
 	/// The <see cref="LocalizedLine"/> currently being displayed on the dialogue views.
 	/// </summary>
 	public LocalizedLine CurrentLine { get; private set; }
-
-	#endregion Properties
-
-	#region Public Methods
 
 	#region Getter Methods
 
@@ -319,9 +306,7 @@ public partial class DialogueRunner : Godot.Node
 
 		SetInitialVariables();
 
-		// Calling EmitSignal from here crashes with error:
-		//"!is_accessible_from_caller_thread() is true"
-		//EmitSignal(SignalName.DialogueStarting);
+		LineProvider.StringTable = YarnProject.StringTable;
 
 		// Try CallDeferred instead
 		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12
@@ -335,8 +320,13 @@ public partial class DialogueRunner : Godot.Node
 		// running; as a side effect, our prepareForLines delegate may be called.
 		Dialogue.SetNode(startNode);
 
-		var waitForLines = LineProvider.PrepareForLines(YarnProject.StringTable);
-		await WaitForTask(waitForLines, () => ContinueDialogue());
+		// if lines aren't ready yet, wait
+		if (!LineProvider.LinesAvailable)
+		{
+			await ToSignal(LineProvider, LineProvider.SignalName.LinesBecameAvailable);
+		}
+
+		ContinueDialogue();
 	}
 
 	/// <summary>
@@ -361,8 +351,6 @@ public partial class DialogueRunner : Godot.Node
 	}
 
 	#endregion Dialogue Control Methods
-
-	#endregion Public Methods
 
 	#region Dialogue Callback Handlers
 
@@ -634,8 +622,6 @@ public partial class DialogueRunner : Godot.Node
 
 	#endregion Dialogue Callback Handlers
 
-	#region Private Methods
-
 	private static async Task WaitForTask(Task task, Action onTaskComplete)
 	{
 		if (task == null)
@@ -794,6 +780,7 @@ public partial class DialogueRunner : Godot.Node
 				GD.PushError(message);
 			},
 
+			PrepareForLinesHandler = (lineIds) => LineProvider?.PrepareForLines(lineIds),
 			LineHandler = (line) => _ = HandleLine(line),
 			CommandHandler = HandleCommand,
 			OptionsHandler = (options) => _ = HandleOptions(options),
@@ -804,6 +791,4 @@ public partial class DialogueRunner : Godot.Node
 
 		return dialogue;
 	}
-
-	#endregion Private Methods
 }

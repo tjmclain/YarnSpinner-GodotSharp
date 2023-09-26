@@ -9,19 +9,9 @@ namespace Yarn.GodotSharp.LineProviders
 	[GlobalClass]
 	public partial class TextLineProvider : LineProvider
 	{
-		protected virtual Dictionary<string, StringInfo> StringTable { get; set; } = new();
-
-		public override async Task PrepareForLines(Dictionary<string, StringInfo> stringTable)
+		public override void PrepareForLines(IEnumerable<string> lineIds)
 		{
-			if (stringTable == null)
-			{
-				GD.PushError("stringTable == null");
-				StringTable.Clear();
-				return;
-			}
-
-			StringTable = new(stringTable);
-			await Task.CompletedTask;
+			LinesAvailable = true;
 		}
 
 		public override LocalizedLine GetLocalizedLine(Line line)

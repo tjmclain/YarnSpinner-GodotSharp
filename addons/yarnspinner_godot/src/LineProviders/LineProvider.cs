@@ -6,9 +6,45 @@ using System;
 
 namespace Yarn.GodotSharp.LineProviders
 {
+	[GlobalClass]
 	public partial class LineProvider : Resource
 	{
-		public virtual Task PrepareForLines(Dictionary<string, StringInfo> stringTable)
+		private Dictionary<string, StringInfo> _stringTable = new();
+		private bool _linesAvailable = false;
+
+		[Signal]
+		public delegate void LinesBecameAvailableEventHandler();
+
+		public Dictionary<string, StringInfo> StringTable
+		{
+			get => _stringTable;
+			set
+			{
+				if (value != null)
+				{
+					_stringTable = new(value);
+				}
+				else
+				{
+					_stringTable.Clear();
+				}
+			}
+		}
+
+		public bool LinesAvailable
+		{
+			get => _linesAvailable;
+			protected set
+			{
+				_linesAvailable = value;
+				if (value)
+				{
+					EmitSignal(SignalName.LinesBecameAvailable);
+				}
+			}
+		}
+
+		public virtual void PrepareForLines(IEnumerable<string> lineIds)
 		{
 			throw new NotImplementedException();
 		}

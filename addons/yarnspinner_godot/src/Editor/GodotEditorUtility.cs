@@ -1,3 +1,5 @@
+#if TOOLS
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +11,7 @@ namespace Yarn.GodotSharp.Editor
 {
 	public static class GodotEditorUtility
 	{
-		#region Fields
-
 		private const string _translationsSettingName = "internationalization/locale/translations";
-
-		#endregion Fields
-
-		#region Public Methods
 
 		public static string[] GetTranslationsSetting()
 		{
@@ -46,7 +42,7 @@ namespace Yarn.GodotSharp.Editor
 				SetTranslations(translations);
 			}
 		}
-
-		#endregion Public Methods
 	}
 }
+
+#endif
