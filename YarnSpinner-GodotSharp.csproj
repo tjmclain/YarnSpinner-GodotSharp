@@ -9,4 +9,7 @@
 		<PackageReference Include="YarnSpinner" Version="2.3.1" />
 		<PackageReference Include="YarnSpinner.Compiler" Version="2.3.1" />
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="addons\yarnspinner_godot\src\LineProviders\" />
+	</ItemGroup>
 </Project>

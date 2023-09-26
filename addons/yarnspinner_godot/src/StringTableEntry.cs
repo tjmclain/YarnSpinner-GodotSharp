@@ -9,7 +9,7 @@ namespace Yarn.GodotSharp
 {
 	public partial class StringTableEntry : Resource
 	{
-		#region Properties
+		private const string _metadataDelimeter = " ";
 
 		/// <summary>
 		/// The line ID for this line. This value will be the same across all localizations.
@@ -23,25 +23,8 @@ namespace Yarn.GodotSharp
 		[Export]
 		public string Text { get; set; } = string.Empty;
 
-		/// <summary>
-		/// The name of the Yarn script in which this line was originally found.
-		/// </summary>
 		[Export]
-		public string File { get; set; } = string.Empty;
-
-		/// <summary>
-		/// The name of the node in which this line was originally found.
-		/// </summary>
-		/// <remarks>This node can be found in the file indicated by <see cref="File"/>.</remarks>
-		[Export]
-		public string Node { get; set; } = string.Empty;
-
-		/// <summary>
-		/// The line number in the file indicated by <see cref="File"/> at which the original
-		/// version of this line can be found.
-		/// </summary>
-		[Export]
-		public string LineNumber { get; set; } = string.Empty;
+		public string Asset { get; set; } = string.Empty;
 
 		/// <summary>
 		/// A string used as part of a mechanism for checking if translated versions of this string
@@ -72,15 +55,11 @@ namespace Yarn.GodotSharp
 		[Export]
 		public string Comment { get; set; } = string.Empty;
 
-		/// <summary>
-		/// Additional metadata included in this line.
-		/// </summary>
 		[Export]
 		public string[] Metadata { get; set; } = Array.Empty<string>();
 
-		#endregion Properties
-
-		#region Public Constructors
+		[Export]
+		public Godot.Collections.Dictionary<string, string> Translations = new();
 
 		public StringTableEntry()
 		{
@@ -90,17 +69,92 @@ namespace Yarn.GodotSharp
 		{
 			Id = id;
 			Text = stringInfo.text;
-			File = stringInfo.fileName;
-			Node = stringInfo.nodeName;
-			LineNumber = stringInfo.lineNumber.ToString();
 			Lock = GetHashString(stringInfo.text, 8);
-			Comment = GenerateCommentWithLineMetadata(stringInfo.metadata);
-			Metadata = RemoveLineIdFromMetadata(stringInfo.metadata).ToArray();
+			Metadata = stringInfo.metadata;
 		}
 
-		#endregion Public Constructors
+		public StringTableEntry(IDictionary<string, string> values)
+		{
+			const string propertyNameKey = "name";
 
-		#region Private Methods
+			// Set properties
+			var propertyList = GetPropertyList();
+			foreach (var property in propertyList)
+			{
+				string propertyName = property[propertyNameKey].AsString();
+				if (propertyName == PropertyName.Metadata)
+				{
+					continue;
+				}
+
+				if (values.TryGetValue(propertyName, out string value))
+				{
+					Set(propertyName, Variant.From(value));
+				}
+			}
+
+			// Set metadata
+			if (values.TryGetValue(PropertyName.Metadata, out string metadata))
+			{
+				Metadata = metadata.Split(_metadataDelimeter);
+			}
+
+			// Set translations
+			Translations.Clear();
+			foreach (var kvp in values)
+			{
+				if (!IsLocaleCode(kvp.Key))
+				{
+					continue;
+				}
+
+				Translations[kvp.Key] = kvp.Value;
+			}
+		}
+
+		public IDictionary<string, string> ToDictionary()
+		{
+			var dict = new Dictionary<string, string>
+			{
+				[PropertyName.Id] = Id,
+				[PropertyName.Text] = Text,
+				[PropertyName.Asset] = Asset,
+				[PropertyName.Lock] = Lock,
+				[PropertyName.Metadata] = Metadata.Join(_metadataDelimeter),
+				[PropertyName.Comment] = Comment,
+			};
+
+			foreach (var kvp in Translations)
+			{
+				dict[kvp.Key] = kvp.Value;
+			}
+
+			return dict;
+		}
+
+		public string GetTranslation(string locale)
+		{
+			return Translations.TryGetValue(locale, out string value)
+				? value : Text;
+		}
+
+		public void MergeTranslationsFrom(StringTableEntry other)
+		{
+			if (other == null)
+			{
+				return;
+			}
+
+			if (other.Translations == null)
+			{
+				return;
+			}
+
+			foreach (var kvp in other.Translations)
+			{
+				Translations[kvp.Key] = kvp.Value;
+			}
+		}
 
 		/// <summary>
 		/// Returns a byte array containing a SHA-256 hash of <paramref name="inputString"/>.
@@ -133,19 +187,15 @@ namespace Yarn.GodotSharp
 			}
 		}
 
-		private static IEnumerable<string> RemoveLineIdFromMetadata(string[] metadata)
+		private static bool IsLocaleCode(string value)
 		{
-			return metadata.Where(x => !x.StartsWith("line:"));
-		}
+			if (string.IsNullOrEmpty(value))
+			{
+				return false;
+			}
 
-		private static string GenerateCommentWithLineMetadata(string[] metadata)
-		{
-			var cleanedMetadata = RemoveLineIdFromMetadata(metadata);
-			return cleanedMetadata.Any()
-				? $"Line metadata: {string.Join(" ", cleanedMetadata)}"
-				: string.Empty;
+			var locales = TranslationServer.GetAllLanguages();
+			return locales.Contains(value);
 		}
-
-		#endregion Private Methods
 	}
 }

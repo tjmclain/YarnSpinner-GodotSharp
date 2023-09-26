@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 using Yarn.GodotSharp.Actions;
-using Yarn.GodotSharp.LineProviders;
 using Yarn.GodotSharp.Variables;
 using Yarn.GodotSharp.Views;
 
@@ -230,9 +229,9 @@ public partial class DialogueRunner : Godot.Node
 		// Create a line provider if we're missing one
 		if (LineProvider == null)
 		{
-			LineProvider = new TextLineProvider();
+			LineProvider = new LineProvider();
 
-			GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(TextLineProvider).Name}");
+			GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(LineProvider).Name}");
 		}
 
 		// Register Commands and Functions
@@ -294,7 +293,7 @@ public partial class DialogueRunner : Godot.Node
 			await ToSignal(this, Godot.Node.SignalName.Ready);
 		}
 
-		YarnProject.CompileProgram();
+		var program = YarnProject.CompileProgram();
 
 		if (YarnProject.NodeNames.Contains(startNode) == false)
 		{
@@ -302,11 +301,11 @@ public partial class DialogueRunner : Godot.Node
 			return;
 		}
 
-		Dialogue.SetProgram(YarnProject.Program);
+		Dialogue.SetProgram(program);
 
 		SetInitialVariables();
 
-		LineProvider.StringTable = YarnProject.StringTable;
+		LineProvider.LocalizationTable = YarnProject.CompileStringTable();
 
 		// Try CallDeferred instead
 		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12

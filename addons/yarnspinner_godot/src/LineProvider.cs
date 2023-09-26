@@ -4,32 +4,17 @@ using Godot;
 using Yarn.Compiler;
 using System;
 
-namespace Yarn.GodotSharp.LineProviders
+namespace Yarn.GodotSharp
 {
 	[GlobalClass]
 	public partial class LineProvider : Resource
 	{
-		private Dictionary<string, StringInfo> _stringTable = new();
 		private bool _linesAvailable = false;
 
 		[Signal]
 		public delegate void LinesBecameAvailableEventHandler();
 
-		public Dictionary<string, StringInfo> StringTable
-		{
-			get => _stringTable;
-			set
-			{
-				if (value != null)
-				{
-					_stringTable = new(value);
-				}
-				else
-				{
-					_stringTable.Clear();
-				}
-			}
-		}
+		public StringTable LocalizationTable { get; set; }
 
 		public bool LinesAvailable
 		{
@@ -46,12 +31,33 @@ namespace Yarn.GodotSharp.LineProviders
 
 		public virtual void PrepareForLines(IEnumerable<string> lineIds)
 		{
-			throw new NotImplementedException();
+			// Do nothing by default
+			LinesAvailable = true;
 		}
 
 		public virtual LocalizedLine GetLocalizedLine(Line line)
 		{
-			throw new NotImplementedException();
+			if (!LocalizationTable.TryGetEntry(line.ID, out var entry))
+			{
+				GD.PushError($"!StringTable.TryGetValue: {line.ID}");
+				return LocalizedLine.Empty;
+			}
+
+			string text = entry.Text;
+			string[] metadata = entry.Metadata;
+
+			if (GodotUtility.TryTranslateString(line.ID, out var translation))
+			{
+				text = translation;
+			}
+
+			return new LocalizedLine()
+			{
+				TextID = line.ID,
+				RawText = text,
+				Substitutions = line.Substitutions,
+				Metadata = metadata,
+			};
 		}
 	}
 }

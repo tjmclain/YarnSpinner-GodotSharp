@@ -1,99 +1,30 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Godot;
 
 namespace Yarn.GodotSharp
 {
-	public partial class StringTable : Resource, IDictionary<string, StringTableEntry>
+	[GlobalClass]
+	public partial class StringTable : Resource
 	{
-		#region Properties
-
 		[Export]
-		public Godot.Collections.Dictionary<string, StringTableEntry> Table { get; set; } = new();
+		public Godot.Collections.Dictionary<string, StringTableEntry> Entries { get; set; } = new();
 
-		#endregion Properties
+		public bool TryGetEntry(string key, out StringTableEntry entry)
+			=> Entries.TryGetValue(key, out entry);
 
-		#region Indexers
+		public bool TryGetTranslation(string key, out string value)
+			=> TryGetTranslation(key, TranslationServer.GetLocale(), out value);
 
-		public StringTableEntry this[string key]
+		public bool TryGetTranslation(string key, string locale, out string value)
 		{
-			get => Table[key];
-			set => Table[key] = value;
+			if (!Entries.TryGetValue(key, out var entry))
+			{
+				GD.PushError($"!Table.TryGetValue '{key}'");
+				value = string.Empty;
+				return false;
+			}
+
+			value = entry.GetTranslation(locale);
+			return true;
 		}
-
-		#endregion Indexers
-
-		#region IDictionary Properties
-
-		public ICollection<string> Keys => Table.Keys;
-
-		public ICollection<StringTableEntry> Values => Table.Values;
-
-		public int Count => Table.Count;
-
-		public bool IsReadOnly => Table.IsReadOnly;
-
-		#endregion IDictionary Properties
-
-		#region IDictionary Methods
-
-		public void Add(string key, StringTableEntry value)
-		{
-			Table.Add(key, value);
-		}
-
-		public void Add(KeyValuePair<string, StringTableEntry> item)
-		{
-			Table.Add(item.Key, item.Value);
-		}
-
-		public void Clear()
-		{
-			Table.Clear();
-		}
-
-		public bool Contains(KeyValuePair<string, StringTableEntry> item)
-		{
-			return Table.Contains(item);
-		}
-
-		public bool ContainsKey(string key)
-		{
-			return Table.ContainsKey(key);
-		}
-
-		public void CopyTo(KeyValuePair<string, StringTableEntry>[] array, int arrayIndex)
-		{
-			throw new NotImplementedException();
-		}
-
-		public IEnumerator<KeyValuePair<string, StringTableEntry>> GetEnumerator()
-		{
-			return Table.GetEnumerator();
-		}
-
-		public bool Remove(string key)
-		{
-			return Table.Remove(key);
-		}
-
-		public bool Remove(KeyValuePair<string, StringTableEntry> item)
-		{
-			return Table.Remove(item.Key);
-		}
-
-		public bool TryGetValue(string key, out StringTableEntry value)
-		{
-			return Table.TryGetValue(key, out value);
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return Table.GetEnumerator();
-		}
-
-		#endregion IDictionary Methods
 	}
 }

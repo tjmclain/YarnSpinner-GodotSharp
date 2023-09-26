@@ -11,10 +11,9 @@ namespace Yarn.GodotSharp
 	[GlobalClass, Icon("res://addons/yarnspinner_godot/icons/YarnProjectIcon.png")]
 	public partial class YarnProject : Resource
 	{
-		/// <summary>
-		/// The cached result of deserializing <see cref="CompiledYarnProgram"/>.
-		/// </summary>
 		private Program _program = null;
+
+		private StringTable _stringTable = null;
 
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
@@ -30,14 +29,14 @@ namespace Yarn.GodotSharp
 		/// </remarks>
 		public Program Program => _program ?? CompileProgram();
 
+		public StringTable StringTable => _stringTable ?? CompileStringTable();
+
 		/// <summary>
 		/// The names of all nodes contained within the <see cref="Program"/>.
 		/// </summary>
 		public string[] NodeNames => Program != null
 					? Program.Nodes.Keys.ToArray()
 					: Array.Empty<string>();
-
-		public Dictionary<string, Compiler.StringInfo> StringTable { get; private set; } = new();
 
 		/// <summary>
 		/// Gets the headers for the requested node.
@@ -115,9 +114,13 @@ namespace Yarn.GodotSharp
 
 			_program = compilation.Program;
 
-			StringTable = new(compilation.StringTable);
-
 			return _program;
+		}
+
+		public StringTable CompileStringTable()
+		{
+			// TODO
+			throw new NotImplementedException();
 		}
 	}
 }
