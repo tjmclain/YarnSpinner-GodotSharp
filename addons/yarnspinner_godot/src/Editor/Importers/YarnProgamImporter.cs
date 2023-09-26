@@ -11,477 +11,384 @@ using System.Runtime.CompilerServices;
 
 namespace Yarn.GodotSharp.Editor.Importers
 {
-	using FileAccess = Godot.FileAccess;
-	using StringDict = System.Collections.Generic.Dictionary<string, string>;
+    using FileAccess = Godot.FileAccess;
+    using StringDict = System.Collections.Generic.Dictionary<string, string>;
 
-	[Tool]
-	public partial class YarnProgramImporter : EditorImportPlugin
-	{
-		public const string ExportTranslationOption = "export_translation";
-		public const string OverrideTranslationsDirOption = "override_translation_directory";
+    [Tool]
+    public partial class YarnProgramImporter : EditorImportPlugin
+    {
+        public const string ExportTranslationsOption = "export_translation";
+        public const string OverrideTranslationsDirOption = "override_translation_directory";
 
-		// "C:\Users\thoma\Projects\YarnSpinner-GodotSharp\addons\yarnspinner_godot\src\Editor\Importers\YarnProgramTranslationImporter.cs"
-		//private const string _defaultTranslationsImporterScriptPath = "res://addons/yarnspinner_godot/src/Editor/Importers/YarnProgramTranslationImporter.cs";
+        // "C:\Users\thoma\Projects\YarnSpinner-GodotSharp\addons\yarnspinner_godot\src\Editor\Importers\YarnProgramTranslationImporter.cs"
+        //private const string _defaultTranslationsImporterScriptPath = "res://addons/yarnspinner_godot/src/Editor/Importers/YarnProgramTranslationImporter.cs";
 
-		//private const string _defaultTranslationsImporterType = "Yarn.GodotSharp.Editor.Importers.YarnProgramTranslationImporter";
+        //private const string _defaultTranslationsImporterType = "Yarn.GodotSharp.Editor.Importers.YarnProgramTranslationImporter";
 
 		#region EditorImportPlugin
 
-		public override string _GetImporterName()
-		{
-			return typeof(YarnProgramImporter).FullName;
-		}
+        public override string _GetImporterName()
+        {
+            return typeof(YarnProgramImporter).FullName;
+        }
 
-		public override string _GetVisibleName()
-		{
-			return typeof(YarnProgramImporter).Name;
-		}
+        public override string _GetVisibleName()
+        {
+            return typeof(YarnProgramImporter).Name;
+        }
 
-		public override string[] _GetRecognizedExtensions()
-		{
-			return new string[] { "yarn" };
-		}
+        public override string[] _GetRecognizedExtensions()
+        {
+            return new string[] { "yarn" };
+        }
 
-		public override string _GetSaveExtension()
-		{
-			return "tres";
-		}
+        public override string _GetSaveExtension()
+        {
+            return "tres";
+        }
 
-		public override string _GetResourceType()
-		{
-			return "Resource";
-		}
+        public override string _GetResourceType()
+        {
+            return "Resource";
+        }
 
-		public override int _GetPresetCount()
-		{
-			return 1;
-		}
+        public override int _GetPresetCount()
+        {
+            return 1;
+        }
 
-		public override string _GetPresetName(int presetIndex)
-		{
-			return "Default";
-		}
+        public override string _GetPresetName(int presetIndex)
+        {
+            return "Default";
+        }
 
-		public override float _GetPriority()
-		{
-			return 1f;
-		}
+        public override float _GetPriority()
+        {
+            return 1f;
+        }
 
-		public override int _GetImportOrder()
-		{
-			// 0 is default, and we want this to run
-			// before the YarnProject importer, which is a default Resource
-			return -1;
-		}
+        public override int _GetImportOrder()
+        {
+            // 0 is default, and we want this to run
+            // before the YarnProject importer, which is a default Resource
+            return -1;
+        }
 
-		public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
-		{
-			return new Array<Dictionary>
-			{
-				new Dictionary
-				{
-					{ GodotEditorPropertyInfo.NameKey, ExportTranslationOption },
-					{ GodotEditorPropertyInfo.DefaultValueKey, false },
-				},
-				new Dictionary
-				{
-					{ GodotEditorPropertyInfo.NameKey, OverrideTranslationsDirOption },
-					{ GodotEditorPropertyInfo.DefaultValueKey, "" },
-					{ GodotEditorPropertyInfo.HintKey,  Variant.From(PropertyHint.Dir) }
-				},
-			};
-		}
+        public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
+        {
+            return new Array<Dictionary>
+            {
+                new Dictionary
+                {
+                    { GodotEditorPropertyInfo.NameKey, ExportTranslationsOption },
+                    { GodotEditorPropertyInfo.DefaultValueKey, false },
+                },
+                new Dictionary
+                {
+                    { GodotEditorPropertyInfo.NameKey, OverrideTranslationsDirOption },
+                    { GodotEditorPropertyInfo.DefaultValueKey, "" },
+                    { GodotEditorPropertyInfo.HintKey, Variant.From(PropertyHint.Dir) }
+                },
+            };
+        }
 
-		public override bool _GetOptionVisibility(
-			string path,
-			StringName optionName,
-			Dictionary options
-		)
-		{
-			return true;
-		}
+        public override bool _GetOptionVisibility(
+            string path,
+            StringName optionName,
+            Dictionary options
+        )
+        {
+            return true;
+        }
 
-		public override Error _Import(
-			string sourceFile,
-			string savePath,
-			Dictionary options,
-			Array<string> platformVariants,
-			Array<string> genFiles
-		)
-		{
-			// Start import
-			GD.Print($"Importing '{sourceFile}'");
+        public override Error _Import(
+            string sourceFile,
+            string savePath,
+            Dictionary options,
+            Array<string> platformVariants,
+            Array<string> genFiles
+        )
+        {
+            // Start import
+            GD.Print($"Importing '{sourceFile}'");
 
-			var yarnProgram = new YarnProgram();
+            var yarnProgram = new YarnProgram();
 
-			// Compile yarn program source file
-			var error = YarnProgram.Compile(sourceFile, out var compilationResult);
-			if (error != Error.Ok)
-			{
-				GD.PushError($"!yarnProgram.SetSourceFile '{sourceFile}'");
-				return error;
-			}
+            // Compile yarn program source file
+            var error = YarnProgram.Compile(sourceFile, out var compilationResult);
+            if (error != Error.Ok)
+            {
+                GD.PushError($"!yarnProgram.SetSourceFile '{sourceFile}'");
+                return error;
+            }
 
-			var exportTranslations = options[ExportTranslationOption];
-			if (exportTranslations.AsBool())
-			{
-				//Export translations file
-				var exportTranslationsResult = ExportTranslationFile(
-					sourceFile,
-					compilationResult,
-					options,
-					out string translationsFile
-				);
+            var exportTranslationsResult = ExportTranslationFile(
+                sourceFile,
+                compilationResult,
+                options,
+                out string translationsFile
+            );
 
-				if (exportTranslationsResult != Error.Ok)
-				{
-					return exportTranslationsResult;
-				}
+            if (exportTranslationsResult != Error.Ok)
+            {
+                return exportTranslationsResult;
+            }
 
-				//Append import of translations file
-				var appendResult = AppendImportExternalResource(translationsFile);
-				if (appendResult != Error.Ok)
-				{
-					GD.PushError($"!AppendImportExternalResource '{translationsFile}'; error = {appendResult}");
-					return appendResult;
-				}
+            if (!string.IsNullOrEmpty(translationsFile))
+            {
+                var appendResult = AppendImportExternalResource(
+                    translationsFile,
+                    customImporter: YarnLocalizationImporter.ImporterName
+                );
+				
+                if (appendResult != Error.Ok)
+                {
+                    GD.PushError(
+                        $"!AppendImportExternalResource '{translationsFile}'; error = {appendResult}"
+                    );
+                    return appendResult;
+                }
+            }
 
-				yarnProgram.TranslationsFile = translationsFile;
-			}
+            yarnProgram.TranslationsFile = translationsFile;
 
-			//if (ImportTranslations(sourceFile, options, out string translationsFile))
-			//{
-			//	//Append import of translations file
-			//	var appendResult = AppendImportExternalResource(translationsFile);
-			//	if (appendResult != Error.Ok)
-			//	{
-			//		GD.PushError($"!AppendImportExternalResource '{translationsFile}'; error = {appendResult}");
-			//		return appendResult;
-			//	}
+            // Save yarn program resource file
+            string fileName = $"{savePath}.{_GetSaveExtension()}";
+            var saveResult = ResourceSaver.Save(yarnProgram, fileName);
+            if (saveResult != Error.Ok)
+            {
+                GD.PushError($"!ResourceSaver.Save '{fileName}'; err = " + saveResult);
+                return saveResult;
+            }
 
-			//	yarnProgram.TranslationsFile = translationsFile;
-			//}
+            GD.Print($"Saved yarn program resource '{fileName}'");
 
-			// Save yarn program resource file
-			string fileName = $"{savePath}.{_GetSaveExtension()}";
-			var saveResult = ResourceSaver.Save(yarnProgram, fileName);
-			if (saveResult != Error.Ok)
-			{
-				GD.PushError($"!ResourceSaver.Save '{fileName}'; err = " + saveResult);
-				return saveResult;
-			}
-
-			GD.Print($"Saved yarn program resource '{fileName}'");
-
-			return Error.Ok;
-		}
+            return Error.Ok;
+        }
 
 		#endregion EditorImportPlugin
 
-		private static bool ImportTranslations(
-				string sourceFile,
-				Dictionary importOptions,
-				out string translationsFile
-			)
-		{
-			translationsFile = string.Empty;
+        protected virtual Error ExportTranslationFile(
+            string sourceFile,
+            CompilationResult compilationResult,
+            Dictionary importOptions,
+            out string translationFile
+        )
+        {
+            static string GetTranslationsDirectory(Dictionary importOptions)
+            {
+                if (importOptions.TryGetValue(OverrideTranslationsDirOption, out var value))
+                {
+                    string dir = value.AsString();
+                    if (!string.IsNullOrEmpty(dir))
+                    {
+                        return dir;
+                    }
+                }
 
-			var exportTranslations = importOptions[ExportTranslationOption];
-			if (!exportTranslations.AsBool())
-			{
-				return false;
-			}
+                var translationsDirSetting = ProjectSettings.GetSetting(
+                    Plugin.TranslationsDirProperty
+                );
+                return translationsDirSetting.AsString();
+            }
 
-			// TODO: allow overriding this from project settings
-			//string scriptPath = _defaultTranslationsImporterScriptPath;
-			//if (string.IsNullOrEmpty(scriptPath))
-			//{
-			//	GD.PushError("ImportTranslations: string.IsNullOrEmpty(scriptPath)");
-			//	return false;
-			//}
+            translationFile = string.Empty;
 
-			//var script = ResourceLoader.Load<CSharpScript>(scriptPath);
-			//if (script == null)
-			//{
-			//	GD.PushError("ImportTranslations: string.IsNullOrEmpty(scriptPath)");
-			//	return false;
-			//}
+            if (!importOptions.TryGetValue(ExportTranslationsOption, out var option))
+            {
+                GD.PushWarning("!importOptions.TryGetValue 'ExportTranslationsOption'");
+                return Error.Ok;
+            }
 
-			//var result = script.Call(YarnProgramTranslationImporter.MethodName.Import, sourceFile, importOptions);
-			//translationsFile = result.AsString();
+            if (!option.AsBool())
+            {
+                return Error.Ok;
+            }
 
-			//string typeString = _defaultTranslationsImporterType;
-			//if (string.IsNullOrEmpty(typeString))
-			//{
-			//	GD.PushError("ImportTranslations: string.IsNullOrEmpty(typeString)");
-			//	return false;
-			//}
+            var stringInfoTable = compilationResult.StringTable;
+            if (!stringInfoTable.Any())
+            {
+                GD.PushWarning("!stringInfoTable.Any");
+                return Error.Ok;
+            }
 
-			//var type = Type.GetType(typeString);
-			//if (type == null)
-			//{
-			//	GD.PushError("ImportTranslations: type == null");
-			//	return false;
-			//}
+            string translationsDir = GetTranslationsDirectory(importOptions);
+            if (string.IsNullOrEmpty(translationsDir))
+            {
+                GD.PushError("string.IsNullOrEmpty(translationsDir)");
+                return Error.InvalidData;
+            }
 
-			//var method = type.GetMethod("Import");
-			//if (method == null)
-			//{
-			//	GD.PushError("ImportTranslations: method == null");
-			//	return false;
-			//}
+            // remove trailing slash for consistency
+            if (translationsDir.EndsWith("/"))
+            {
+                translationsDir = translationsDir.Left(translationsDir.Length - 1);
+            }
 
-			//object result;
-			//var args = new object[] { sourceFile, importOptions };
-			//if (method.IsStatic)
-			//{
-			//	result = method.Invoke(null, args);
-			//}
-			//else
-			//{
-			//	var instance = Activator.CreateInstance(type);
-			//	result = method.Invoke(instance, args);
-			//}
+            GD.Print("translationsDir = " + translationsDir);
 
-			//if (result == null)
-			//{
-			//	GD.PushError("ImportTranslations: result == null");
-			//	return false;
-			//}
+            string fileName;
+            try
+            {
+                fileName = Path.GetFileNameWithoutExtension(sourceFile);
+            }
+            catch (Exception ex)
+            {
+                GD.PushError(ex);
+                return Error.InvalidData;
+            }
 
-			//translationsFile = result.ToString();
+            if (string.IsNullOrEmpty(fileName))
+            {
+                GD.PushError("string.IsNullOrEmpty(fileName)");
+                return Error.InvalidData;
+            }
 
-			//GD.Print("ImportTranslations: result = " + translationsFile);
+            if (!DirAccess.DirExistsAbsolute(translationsDir))
+            {
+                var makeDirErr = DirAccess.MakeDirAbsolute(translationsDir);
+                if (makeDirErr != Error.Ok)
+                {
+                    GD.PushError(
+                        $"!DirAccess.MakeDirAbsolute ({translationsDir}); error = {makeDirErr}"
+                    );
+                    return makeDirErr;
+                }
+            }
 
-			return true;
-		}
+            translationFile = $"{translationsDir}/{fileName}.csv";
 
-		protected virtual Error ExportTranslationFile(
-			string sourceFile,
-			CompilationResult compilationResult,
-			Dictionary options,
-			out string translationFile
-		)
-		{
-			static string GetTranslationsDirectory(Dictionary importOptions)
-			{
-				if (importOptions.TryGetValue(OverrideTranslationsDirOption, out var value))
-				{
-					string dir = value.AsString();
-					if (!string.IsNullOrEmpty(dir))
-					{
-						return dir;
-					}
-				}
+            // create a hashset of headers, starting with the entry's 'key'
+            // each column after the first is a translated string
+            var headers = new HashSet<string>(StringTableEntry.GetCsvHeaders());
 
-				var translationsDirSetting = ProjectSettings.GetSetting(Plugin.TranslationsDirProperty);
-				return translationsDirSetting.AsString();
-			}
+            // read the existing table, if it exists
+            GodotUtility.ReadCsv(translationFile, out var existingHeaders, out var existingTable);
 
-			static string GetBaseLocale()
-			{
-				var baseLocaleSetting = ProjectSettings.GetSetting(Plugin.BaseLocaleProperty);
-				return baseLocaleSetting.AsString();
-			}
+            foreach (var header in existingHeaders)
+            {
+                headers.Add(header);
+            }
 
-			translationFile = string.Empty;
+            // create a table of entries from the existing csv
+            var existingEntries = new Godot.Collections.Dictionary<string, StringTableEntry>();
+            foreach (var kvp in existingTable)
+            {
+                var entry = new StringTableEntry(kvp.Value);
+                existingEntries[kvp.Key] = entry;
+            }
 
-			var stringTable = compilationResult.StringTable;
-			if (!stringTable.Any())
-			{
-				GD.PushError("!stringTableEntries.Any == 0");
-				return Error.InvalidData;
-			}
+            // create a table of entries from our compiled string table
+            var entries = new Godot.Collections.Dictionary<string, StringTableEntry>();
+            foreach (var kvp in stringInfoTable)
+            {
+                var entry = new StringTableEntry(kvp.Key, kvp.Value);
+                entries[kvp.Key] = entry;
+            }
 
-			string translationsDir = GetTranslationsDirectory(options);
-			if (string.IsNullOrEmpty(translationsDir))
-			{
-				GD.PushError("string.IsNullOrEmpty(translationsDir)");
-				return Error.InvalidData;
-			}
+            foreach (var kvp in existingEntries)
+            {
+                var existingEntry = kvp.Value;
+                if (!entries.TryGetValue(kvp.Key, out var entry))
+                {
+                    existingEntry.Lock = string.Empty;
+                    entries[kvp.Key] = existingEntry;
+                    continue;
+                }
 
-			// remove trailing slash for consistency
-			if (translationsDir.EndsWith("/"))
-			{
-				translationsDir = translationsDir.Left(translationsDir.Length - 1);
-			}
+                entry.MergeTranslationsFrom(existingEntry);
+            }
 
-			GD.Print("translationsDir = " + translationsDir);
+            // Write translations from string entries
+            using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Write))
+            {
+                if (file == null)
+                {
+                    var error = FileAccess.GetOpenError();
+                    GD.PushError($"!FileAccess.Open '{translationFile}'; error = {error}");
+                    return error;
+                }
 
-			string baseLocale = GetBaseLocale();
-			if (string.IsNullOrEmpty(baseLocale))
-			{
-				GD.PushError("string.IsNullOrEmpty(baseLocale)");
-				return Error.InvalidData;
-			}
-			GD.Print("baseLanguage = " + baseLocale);
+                // Write header row
+                var headerRow = headers.ToArray();
+                file.StoreCsvLine(headerRow);
 
-			string fileName;
-			try
-			{
-				fileName = Path.GetFileNameWithoutExtension(sourceFile);
-			}
-			catch (Exception ex)
-			{
-				GD.PushError(ex);
-				return Error.InvalidData;
-			}
+                // Read rows from entries
+                foreach (var entry in entries.Values)
+                {
+                    var row = entry.ToDictionary();
 
-			if (string.IsNullOrEmpty(fileName))
-			{
-				GD.PushError("string.IsNullOrEmpty(fileName)");
-				return Error.InvalidData;
-			}
+                    string[] line = new string[headerRow.Length];
+                    for (int i = 0; i < headerRow.Length; i++)
+                    {
+                        string key = headerRow[i];
+                        row.TryGetValue(key, out line[i]);
+                    }
+                    file.StoreCsvLine(line);
+                }
 
-			if (!DirAccess.DirExistsAbsolute(translationsDir))
-			{
-				var makeDirErr = DirAccess.MakeDirAbsolute(translationsDir);
-				if (makeDirErr != Error.Ok)
-				{
-					GD.PushError($"!DirAccess.MakeDirAbsolute ({translationsDir}); error = {makeDirErr}");
-					return makeDirErr;
-				}
-			}
+                GD.Print($"Exported translation at '{translationFile}'");
+            }
 
-			translationFile = $"{translationsDir}/{fileName}.csv";
+            // NOTE: if I don't include this, AppendImportExternalResource
+            // below returns a 'FileNotFound' error
+            var fs = GetResourceFilesystem();
+            if (fs == null)
+            {
+                GD.PushWarning("GodotEditorUtility.GetResourceFilesystem() == null");
+                return Error.Failed;
+            }
+            else
+            {
+                fs.UpdateFile(translationFile);
+            }
 
-			// read the existing table, if it exists
-			GodotUtility.ReadCsv(translationFile, out var existingHeaders, out var existingTable);
+            // string globalPath = ProjectSettings.GlobalizePath(translationFile);
+            // string dir = Path.GetDirectoryName(globalPath);
+            // string baseFileName = Path.GetFileNameWithoutExtension(translationFile);
+            // string searchPattern = $"{baseFileName}.*.translation";
 
-			// create a hashset of headers, starting with the entry's 'key'
-			// each column after the first is a translated string
-			const string keyHeader = "key";
-			var headers = new HashSet<string>()
-			{
-				keyHeader,
-				baseLocale
-			};
+            // var files = Directory.GetFiles(dir, searchPattern);
+            // if (files.Length == 0)
+            // {
+            //     GD.PushError(
+            //         $"No translation files found; dir = {dir}, searchPattern = {searchPattern}"
+            //     );
+            //     return Error.Failed;
+            // }
 
-			foreach (var header in existingHeaders)
-			{
-				headers.Add(header);
-			}
+            // var translations = new HashSet<string>(GodotEditorUtility.GetTranslationsSetting());
 
-			// create a table of entries from our compiled string table
-			var table = new System.Collections.Generic.Dictionary<string, StringDict>();
-			foreach (var stringTableEntry in stringTable)
-			{
-				string key = stringTableEntry.Key;
-				var row = new StringDict()
-				{
-					{ keyHeader, key },
-					{ baseLocale, stringTableEntry.Value.text }
-				};
-				table[key] = row;
+            // bool changed = false;
+            // foreach (var file in files)
+            // {
+            //     // NOTE: LocalizePath isn't working for some reason. It's just giving me back the
+            //     //       global path. So, I'm using my own utility method. I should ask about this
+            //     //       on Discord or Github and get a better answer. This works, but it's not ideal.
+            //     // string localPath = ProjectSettings.LocalizePath(file);
+            //     string localPath = GodotUtility.LocalizePath(file);
+            //     if (translations.Add(localPath))
+            //     {
+            //         GD.Print($"Add translation: " + localPath);
+            //         changed = true;
+            //     }
+            // }
 
-				if (!existingTable.TryGetValue(key, out var otherRow))
-				{
-					continue;
-				}
+            // if (changed)
+            // {
+            //     GodotEditorUtility.SetTranslations(translations.ToArray());
+            // }
 
-				// add existing translations to our table entries
-				foreach (var kvp in otherRow)
-				{
-					if (kvp.Key == keyHeader)
-					{
-						continue;
-					}
+            return Error.Ok;
+        }
 
-					if (kvp.Key == baseLocale)
-					{
-						continue;
-					}
-
-					row[kvp.Key] = kvp.Value;
-				}
-			}
-
-			// Write translations from string entries
-			using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Write))
-			{
-				if (file == null)
-				{
-					var error = FileAccess.GetOpenError();
-					GD.PushError($"!FileAccess.Open '{translationFile}'; error = {error}");
-					return error;
-				}
-
-				// Write header row
-				var headerRow = headers.ToArray();
-				file.StoreCsvLine(headerRow);
-
-				// Read rows from entries
-				foreach (var row in table.Values)
-				{
-					string[] line = new string[headerRow.Length];
-					for (int i = 0; i < headerRow.Length; i++)
-					{
-						string key = headerRow[i];
-						row.TryGetValue(key, out line[i]);
-					}
-					file.StoreCsvLine(line);
-				}
-
-				GD.Print($"Exported translation at '{translationFile}'");
-			}
-
-			// NOTE: if I don't include this, AppendImportExternalResource
-			// below returns a 'FileNotFound' error
-			var fs = GetResourceFilesystem();
-			if (fs == null)
-			{
-				GD.PushWarning("GodotEditorUtility.GetResourceFilesystem() == null");
-				return Error.Failed;
-			}
-			else
-			{
-				fs.UpdateFile(translationFile);
-			}
-
-			string globalPath = ProjectSettings.GlobalizePath(translationFile);
-			string dir = Path.GetDirectoryName(globalPath);
-			string baseFileName = Path.GetFileNameWithoutExtension(translationFile);
-			string searchPattern = $"{baseFileName}.*.translation";
-
-			var files = Directory.GetFiles(dir, searchPattern);
-			if (files.Length == 0)
-			{
-				GD.PushError($"No translation files found; dir = {dir}, searchPattern = {searchPattern}");
-				return Error.Failed;
-			}
-
-			var translations = new HashSet<string>(GodotEditorUtility.GetTranslationsSetting());
-
-			bool changed = false;
-			foreach (var file in files)
-			{
-				// NOTE: LocalizePath isn't working for some reason. It's just giving me back the
-				//       global path. So, I'm using my own utility method. I should ask about this
-				//       on Discord or Github and get a better answer. This works, but it's not ideal.
-				// string localPath = ProjectSettings.LocalizePath(file);
-				string localPath = GodotUtility.LocalizePath(file);
-				if (translations.Add(localPath))
-				{
-					GD.Print($"Add translation: " + localPath);
-					changed = true;
-				}
-			}
-
-			if (changed)
-			{
-				GodotEditorUtility.SetTranslations(translations.ToArray());
-			}
-
-			return Error.Ok;
-		}
-
-		protected virtual EditorFileSystem GetResourceFilesystem()
-		{
-			// this is weird, but it works. I'll keep looking for a better way to do this
-			var dummyScript = new EditorScript();
-			return dummyScript.GetEditorInterface()?.GetResourceFilesystem();
-		}
-	}
+        protected virtual EditorFileSystem GetResourceFilesystem()
+        {
+            // this is weird, but it works. I'll keep looking for a better way to do this
+            var dummyScript = new EditorScript();
+            return dummyScript.GetEditorInterface()?.GetResourceFilesystem();
+        }
+    }
 }
 
 #endif
