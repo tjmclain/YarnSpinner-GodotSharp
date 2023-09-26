@@ -85,55 +85,6 @@ public static class GodotUtility
 		return LocalizePath(dir);
 	}
 
-	public static string VariableNameToFriendlyName(string value)
-	{
-		if (string.IsNullOrEmpty(value))
-		{
-			GD.PushError("string.IsNullOrEmpty(value)");
-			return string.Empty;
-		}
-
-		const char nullChar = '\0';
-		char prev = nullChar;
-		var sb = new StringBuilder();
-		foreach (char c in value)
-		{
-			if (char.IsLower(c))
-			{
-				prev = (prev == nullChar || prev == ' ')
-					? char.ToUpper(c)
-					: char.ToLower(c);
-
-				sb.Append(prev);
-				continue;
-			}
-
-			if (c == '_')
-			{
-				if (prev != nullChar && prev != ' ')
-				{
-					prev = ' ';
-					sb.Append(prev);
-				}
-				continue;
-			}
-
-			if (char.IsUpper(c))
-			{
-				if (prev != nullChar && !char.IsUpper(prev))
-				{
-					sb.Append(' ');
-				}
-			}
-
-			prev = c;
-			sb.Append(prev);
-		}
-
-		string result = sb.ToString();
-		return result;
-	}
-
 	public static bool TryTranslateString(StringName key, out StringName value)
 		=> TryTranslateString(key, null, out value);
 

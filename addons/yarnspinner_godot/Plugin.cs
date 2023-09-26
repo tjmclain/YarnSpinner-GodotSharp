@@ -142,11 +142,9 @@ public partial class Plugin : EditorPlugin
 
 	private static IEnumerable<T> GetInstancesOfEditorTypes<T>()
 	{
-		const string editorNamespace = "Yarn.GodotSharp.Editor";
-
 		return Assembly.GetExecutingAssembly().GetTypes()
 			.Where(x => !x.IsAbstract)
-			.Where(x => x.Namespace.Contains(editorNamespace))
+			.Where(x => x.Namespace.Contains("Yarn.GodotSharp.Editor"))
 			.Where(x => typeof(T).IsAssignableFrom(x))
 			.Select(x => (T)Activator.CreateInstance(x));
 	}

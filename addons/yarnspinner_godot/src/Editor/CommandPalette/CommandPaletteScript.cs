@@ -1,19 +1,17 @@
 #if TOOLS
 
+using System.Text;
 using Godot;
 
 namespace Yarn.GodotSharp.Editor
 {
-	public partial class CommandPaletteScript : EditorScript
+	public abstract partial class CommandPaletteScript : EditorScript
 	{
-		#region Properties
+		protected virtual string CommandName
+			=> ToFriendlyName(GetType().Name.ReplaceN("Command", ""));
 
-		protected virtual string CommandName => GodotUtility.VariableNameToFriendlyName(GetType().Name);
-		protected virtual string CommandKey => $"yarn_spinner/{GetType().Name.ToSnakeCase()}";
-
-		#endregion Properties
-
-		#region Public Methods
+		protected virtual string CommandKey
+			=> $"yarn_spinner/{GetType().Name.ToSnakeCase()}";
 
 		public void RegisterCommand()
 		{
@@ -38,14 +36,56 @@ namespace Yarn.GodotSharp.Editor
 			commandPalette.RemoveCommand(CommandKey);
 		}
 
-		#endregion Public Methods
-
-		#region Private Methods
-
-		private EditorCommandPalette GetCommandPalette()
+		protected EditorCommandPalette GetCommandPalette()
 			=> GetEditorInterface()?.GetCommandPalette();
 
-		#endregion Private Methods
+		protected static string ToFriendlyName(string value)
+		{
+			if (string.IsNullOrEmpty(value))
+			{
+				GD.PushError("string.IsNullOrEmpty(value)");
+				return string.Empty;
+			}
+
+			const char nullChar = '\0';
+			char prev = nullChar;
+			var sb = new StringBuilder();
+			foreach (char c in value)
+			{
+				if (char.IsLower(c))
+				{
+					prev = (prev == nullChar || prev == ' ')
+						? char.ToUpper(c) : c;
+
+					sb.Append(prev);
+					continue;
+				}
+
+				if (c == '_')
+				{
+					if (prev != nullChar && prev != ' ')
+					{
+						prev = ' ';
+						sb.Append(prev);
+					}
+					continue;
+				}
+
+				if (char.IsUpper(c))
+				{
+					if (prev != nullChar && !char.IsUpper(prev))
+					{
+						sb.Append(' ');
+					}
+				}
+
+				prev = c;
+				sb.Append(prev);
+			}
+
+			string result = sb.ToString();
+			return result;
+		}
 	}
 }
 

@@ -28,6 +28,12 @@ namespace Yarn.GodotSharp.Views
 
 		#endregion Godot.Control
 
+		protected virtual CancellationToken GetInternalCancellationToken()
+		{
+			InternalTokenSource ??= new CancellationTokenSource();
+			return InternalTokenSource.Token;
+		}
+
 		protected static async Task WaitForCancellation(CancellationToken token)
 		{
 			if (!token.CanBeCanceled)
@@ -40,26 +46,9 @@ namespace Yarn.GodotSharp.Views
 				return;
 			}
 
-			try
-			{
-				await new CancellationTokenAwaiter(token);
-			}
-			catch (OperationCanceledException)
-			{
-				// Token was cancelled, so we're done waiting
-			}
-			catch (InvalidOperationException ioe)
-			{
-				GD.PushError(ioe);
-			}
+			await new CancellationTokenAwaiter(token);
 
 			GD.Print("AsyncViewControl.WaitForCancellation: Completed");
-		}
-
-		protected virtual CancellationToken GetInternalCancellationToken()
-		{
-			InternalTokenSource ??= new CancellationTokenSource();
-			return InternalTokenSource.Token;
 		}
 
 		protected virtual CancellationTokenSource CreateLinkedTokenSource(CancellationToken otherToken)
