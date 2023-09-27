@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Yarn.GodotSharp.Editor.Importers;
 
@@ -15,8 +16,7 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 [Tool]
 public partial class YarnLocalizationImporter : EditorImportPlugin
 {
-	public static readonly string ImporterName = "yarn_localization"; //typeof(YarnLocalizationImporter).FullName.ToLower();
-	public const string VisibleName = "Yarn Localization";
+	public static readonly string ImporterName = typeof(YarnLocalizationImporter).FullName.ToLower();
 
 	public override string _GetImporterName()
 	{
@@ -25,7 +25,7 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 
 	public override string _GetVisibleName()
 	{
-		return VisibleName;
+		return "Yarn Localization";
 	}
 
 	public override string[] _GetRecognizedExtensions()
@@ -55,19 +55,31 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 
 	public override float _GetPriority()
 	{
-		return 2f;
+		return 0f;
 	}
 
 	public override int _GetImportOrder()
 	{
-		// 0 is default, and we want this to run
-		// before the YarnProject importer, which is a default Resource
-		return -1;
+		return 0;
 	}
 
 	public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
 	{
-		return new Array<Dictionary>();
+		return new Array<Dictionary>()
+		{
+			new Dictionary()
+			{
+				{ GodotEditorPropertyInfo.NameKey, "export_godot_translations" },
+				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.Bool) },
+				{ GodotEditorPropertyInfo.DefaultValueKey, Variant.From(false) }
+			}
+		};
+	}
+
+	public override bool _GetOptionVisibility(string path, StringName optionName, Dictionary options)
+	{
+		// options always visible
+		return true;
 	}
 
 	public override Error _Import(
@@ -78,8 +90,21 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 			Array<string> genFiles
 		)
 	{
+		var fileError = GodotUtility.ReadCsv(sourceFile, out var headers, out var table);
+		if (fileError != Error.Ok)
+		{
+			return fileError;
+		}
+
 		var stringTable = new StringTable();
-		return ResourceSaver.Save(stringTable, savePath);
+		foreach (var kvp in table)
+		{
+			var entry = new StringTableEntry(kvp.Value);
+			stringTable.Entries[kvp.Key] = entry;
+		}
+
+		string saveFile = $"{savePath}.{_GetSaveExtension()}";
+		return ResourceSaver.Save(stringTable, saveFile);
 	}
 }
 

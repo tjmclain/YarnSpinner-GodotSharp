@@ -11,6 +11,9 @@ namespace Yarn.GodotSharp
 	[GlobalClass, Icon("res://addons/yarnspinner_godot/icons/YarnScriptIcon.png")]
 	public partial class YarnProgram : Resource
 	{
+		[Export(PropertyHint.File)]
+		public string SourceFile { get; set; } = string.Empty;
+
 		// Do I need to cache this here?
 		[Export(PropertyHint.File)]
 		public string TranslationsFile { get; set; } = string.Empty;

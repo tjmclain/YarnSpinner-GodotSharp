@@ -77,6 +77,9 @@ public partial class Plugin : EditorPlugin
 		}
 	}
 
+	// IMPORTANT! Be careful of using GD.Print in _EnterTree and _ExitTree
+	// In this version, GD.Print will crash the editor when reloading a project
+	// https://github.com/godotengine/godot/issues/74549
 	public override void _ExitTree()
 	{
 		// Deinitialize custom importers

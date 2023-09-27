@@ -14,17 +14,11 @@ namespace Yarn.GodotSharp.Editor
 
 	public class GodotEditorPropertyInfo : Godot.Collections.Dictionary<string, Variant>
 	{
-		#region Fields
-
 		public const string NameKey = "name";
 		public const string TypeKey = "type";
 		public const string HintKey = "hint";
 		public const string HintStringKey = "hint_string";
 		public const string DefaultValueKey = "default_value";
-
-		#endregion Fields
-
-		#region Properties
 
 		public string Name
 		{
@@ -55,8 +49,6 @@ namespace Yarn.GodotSharp.Editor
 			get => TryGetValue(DefaultValueKey, out var value) ? value.AsString() : null;
 			set => this[DefaultValueKey] = Variant.From(value);
 		}
-
-		#endregion Properties
 
 		public bool AddToProjectSettings()
 		{

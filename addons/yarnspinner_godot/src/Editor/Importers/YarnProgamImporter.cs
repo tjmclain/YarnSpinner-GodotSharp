@@ -32,7 +32,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 		public override string _GetVisibleName()
 		{
-			return typeof(YarnProgramImporter).Name;
+			return "Yarn Program";
 		}
 
 		public override string[] _GetRecognizedExtensions()
@@ -110,7 +110,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 			// Start import
 			GD.Print($"Importing '{sourceFile}'");
 
-			var yarnProgram = new YarnProgram();
+			var yarnProgram = new YarnProgram() { SourceFile = sourceFile };
 
 			// Compile yarn program source file
 			var error = YarnProgram.Compile(sourceFile, out var compilationResult);
@@ -135,15 +135,15 @@ namespace Yarn.GodotSharp.Editor.Importers
 			yarnProgram.TranslationsFile = translationFile;
 
 			// Save yarn program resource file
-			string fileName = $"{savePath}.{_GetSaveExtension()}";
-			var saveResult = ResourceSaver.Save(yarnProgram, fileName);
+			string saveFile = $"{savePath}.{_GetSaveExtension()}";
+			var saveResult = ResourceSaver.Save(yarnProgram, saveFile);
 			if (saveResult != Error.Ok)
 			{
-				GD.PushError($"!ResourceSaver.Save '{fileName}'; err = " + saveResult);
+				GD.PushError($"!ResourceSaver.Save '{saveFile}'; err = " + saveResult);
 				return saveResult;
 			}
 
-			GD.Print($"Saved yarn program resource '{fileName}'");
+			GD.Print($"Saved yarn program resource '{saveFile}'");
 
 			if (!string.IsNullOrEmpty(translationFile))
 			{
@@ -151,6 +151,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 					translationFile,
 					customImporter: YarnLocalizationImporter.ImporterName
 				);
+
+				//var appendResult = AppendImportExternalResource(translationFile);
+
+				if (appendResult != Error.Ok)
+				{
+					GD.PushError($"AppendImportExternalResource: {appendResult}; translationFile = {translationFile}");
+				}
 			}
 
 			return Error.Ok;

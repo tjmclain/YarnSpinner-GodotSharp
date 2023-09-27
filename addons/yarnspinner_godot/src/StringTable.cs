@@ -16,7 +16,7 @@ namespace Yarn.GodotSharp
 
 		public bool TryGetTranslation(string key, string locale, out string value)
 		{
-			if (!Entries.TryGetValue(key, out var entry))
+			if (!TryGetEntry(key, out var entry))
 			{
 				GD.PushError($"!Table.TryGetValue '{key}'");
 				value = string.Empty;
