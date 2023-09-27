@@ -13,12 +13,13 @@ namespace Yarn.GodotSharp
 	{
 		private Program _program = null;
 
-		private StringTable _stringTable = null;
-
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
 		[Export]
-		public Godot.Collections.Array<Resource> Programs { get; set; } = new();
+		public Godot.Collections.Array<YarnProgram> Programs { get; set; } = new();
+
+		[Export]
+		public StringTable StringTable { get; set; } = new();
 
 		/// <summary>
 		/// Gets the Yarn Program stored in this project.
@@ -28,8 +29,6 @@ namespace Yarn.GodotSharp
 		/// is deserialized and cached. Future calls to this method will return the cached value.
 		/// </remarks>
 		public Program Program => _program ?? CompileProgram();
-
-		public StringTable StringTable => _stringTable ?? CompileStringTable();
 
 		/// <summary>
 		/// The names of all nodes contained within the <see cref="Program"/>.
@@ -95,6 +94,7 @@ namespace Yarn.GodotSharp
 			return Program.Nodes.TryGetValue(nodeName, out Node node) ? node : null;
 		}
 
+		// TODO: allow this work to be done offline
 		public Program CompileProgram()
 		{
 			if (Programs.Count == 0)
@@ -106,7 +106,7 @@ namespace Yarn.GodotSharp
 
 			// Compile program
 			var filePaths = Programs
-				.Select(x => x.ResourcePath)
+				.Select(x => x.SourceFile)
 				.Select(x => ProjectSettings.GlobalizePath(x));
 
 			var job = Compiler.CompilationJob.CreateFromFiles(filePaths);
@@ -114,13 +114,29 @@ namespace Yarn.GodotSharp
 
 			_program = compilation.Program;
 
-			return _program;
-		}
+			// Populate string table
+			StringTable ??= new StringTable();
+			StringTable.Clear();
+			StringTable.CreateEntriesFrom(compilation.StringTable);
 
-		public StringTable CompileStringTable()
-		{
-			// TODO
-			throw new NotImplementedException();
+			foreach (var program in Programs)
+			{
+				if (string.IsNullOrEmpty(program.StringTableFile))
+				{
+					continue;
+				}
+
+				var stringTable = ResourceLoader.Load<StringTable>(program.StringTableFile);
+				if (stringTable == null)
+				{
+					GD.PushWarning($"Could not load StringTable at '{program.StringTableFile}'");
+					continue;
+				}
+
+				StringTable.MergeTranslationsFrom(stringTable);
+			}
+
+			return _program;
 		}
 	}
 }

@@ -1,0 +1,15 @@
+[remap]
+
+importer="yarn.godotsharp.editor.importers.yarnstringtableimporter"
+type="Resource"
+uid="uid://bvhif7ydt1gm6"
+path="res://.godot/imported/demo.csv-9158fa1e3107c9e609d45fcc46e248fd.tres"
+
+[deps]
+
+source_file="res://addons/yarnspinner_godot/demo/demo.csv"
+dest_files=["res://.godot/imported/demo.csv-9158fa1e3107c9e609d45fcc46e248fd.tres"]
+
+[params]
+
+export_godot_translations=false

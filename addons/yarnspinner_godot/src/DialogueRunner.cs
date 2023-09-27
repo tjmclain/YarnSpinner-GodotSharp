@@ -305,7 +305,7 @@ public partial class DialogueRunner : Godot.Node
 
 		SetInitialVariables();
 
-		LineProvider.StringTable = YarnProject.CompileStringTable();
+		LineProvider.StringTable = YarnProject.StringTable;
 
 		// Try CallDeferred instead
 		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12

@@ -19,8 +19,8 @@ namespace Yarn.GodotSharp.Editor.Importers
 	{
 		public static class OptionName
 		{
-			public const string ExportTranslations = "export_translations";
-			public const string TranslationFilePath = "translation_file_path";
+			public const string ExportStringsForTranslation = "export_strings_for_translation";
+			public const string StringTableFilePath = "string_table_file_path";
 		}
 
 		#region EditorImportPlugin
@@ -78,13 +78,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 			{
 				new Dictionary
 				{
-					{ GodotEditorPropertyInfo.NameKey, OptionName.ExportTranslations },
+					{ GodotEditorPropertyInfo.NameKey, OptionName.ExportStringsForTranslation },
 					{ GodotEditorPropertyInfo.DefaultValueKey, false },
 				},
 				new Dictionary
 				{
-					{ GodotEditorPropertyInfo.NameKey, OptionName.TranslationFilePath },
-					{ GodotEditorPropertyInfo.DefaultValueKey,  "$(SourceDir)/translations/$(SourceFileName).csv" },
+					{ GodotEditorPropertyInfo.NameKey, OptionName.StringTableFilePath },
+					{ GodotEditorPropertyInfo.DefaultValueKey,  "$(SourceDir)/$(SourceFileName).csv" },
 					{ GodotEditorPropertyInfo.HintKey, Variant.From(PropertyHint.File) }
 				}
 			};
@@ -124,7 +124,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				sourceFile,
 				compilationResult,
 				options,
-				out string translationFile
+				out string stringTableFile
 			);
 
 			if (exportTranslationsResult != Error.Ok)
@@ -132,7 +132,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return exportTranslationsResult;
 			}
 
-			yarnProgram.TranslationsFile = translationFile;
+			yarnProgram.StringTableFile = stringTableFile;
 
 			// Save yarn program resource file
 			string saveFile = $"{savePath}.{_GetSaveExtension()}";
@@ -143,22 +143,23 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return saveResult;
 			}
 
-			GD.Print($"Saved yarn program resource '{saveFile}'");
+			GD.Print($"Saved yarn program resource @ '{saveFile}'");
 
-			if (!string.IsNullOrEmpty(translationFile))
-			{
-				var appendResult = AppendImportExternalResource(
-					translationFile,
-					customImporter: YarnLocalizationImporter.ImporterName
-				);
+			//if (!string.IsNullOrEmpty(stringTableFile))
+			//{
+			//	var appendResult = AppendImportExternalResource(
+			//		stringTableFile,
+			//		customImporter: YarnStringTableImporter.ImporterName
+			//	);
 
-				//var appendResult = AppendImportExternalResource(translationFile);
+			//	if (appendResult != Error.Ok)
+			//	{
+			//		GD.PushError($"AppendImportExternalResource: {appendResult}; translationFile = {stringTableFile}");
+			//		return appendResult;
+			//	}
 
-				if (appendResult != Error.Ok)
-				{
-					GD.PushError($"AppendImportExternalResource: {appendResult}; translationFile = {translationFile}");
-				}
-			}
+			//	GD.Print($"Exported string table @ '{stringTableFile}'");
+			//}
 
 			return Error.Ok;
 		}
@@ -169,12 +170,12 @@ namespace Yarn.GodotSharp.Editor.Importers
 			string sourceFile,
 			CompilationResult compilationResult,
 			Dictionary importOptions,
-			out string translationFile
+			out string stringTableFile
 		)
 		{
-			translationFile = string.Empty;
+			stringTableFile = string.Empty;
 
-			if (!importOptions.TryGetValue(OptionName.ExportTranslations, out var option))
+			if (!importOptions.TryGetValue(OptionName.ExportStringsForTranslation, out var option))
 			{
 				GD.PushWarning("!importOptions.TryGetValue OptionName.ExportTranslations");
 				return Error.Ok;
@@ -185,107 +186,85 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.Ok;
 			}
 
-			var stringInfoTable = compilationResult.StringTable;
-			if (!stringInfoTable.Any())
+			var stringInfo = compilationResult.StringTable;
+			if (!stringInfo.Any())
 			{
 				GD.PushWarning("!stringInfoTable.Any");
 				return Error.Ok;
 			}
 
-			if (!importOptions.TryGetValue(OptionName.TranslationFilePath, out var tranlationFilePath))
+			if (!importOptions.TryGetValue(OptionName.StringTableFilePath, out var tranlationFilePath))
 			{
 				GD.PushWarning("!importOptions.TryGetValue OptionName.TranslationFilePath");
 				return Error.Ok;
 			}
 
-			translationFile = tranlationFilePath.AsString();
+			stringTableFile = tranlationFilePath.AsString();
 
 			sourceFile = ProjectSettings.GlobalizePath(sourceFile);
 
 			string sourceDir = Path.GetDirectoryName(sourceFile);
-			translationFile = translationFile.Replace("$(SourceDir)", sourceDir);
+			stringTableFile = stringTableFile.Replace("$(SourceDir)", sourceDir);
 
 			string sourceFileName = Path.GetFileNameWithoutExtension(sourceFile);
-			translationFile = translationFile.Replace("$(SourceFileName)", sourceFileName);
+			stringTableFile = stringTableFile.Replace("$(SourceFileName)", sourceFileName);
 
-			string globalPath = ProjectSettings.GlobalizePath(translationFile);
+			string globalPath = ProjectSettings.GlobalizePath(stringTableFile);
 			string globalDir = Path.GetDirectoryName(globalPath);
 
 			DirAccess.MakeDirRecursiveAbsolute(globalDir);
 
-			translationFile = GodotUtility.LocalizePath(translationFile);
-			GD.Print("translationFile = " + translationFile);
+			stringTableFile = GodotEditorUtility.LocalizePath(stringTableFile);
+			GD.Print("stringTableFile = " + stringTableFile);
+
+			// create a table of entries from our compiled string table
+			var stringTable = new StringTable();
+			stringTable.CreateEntriesFrom(stringInfo);
 
 			// create a hashset of headers, starting with the entry's 'key'
 			// each column after the first is a translated string
 			var headers = new HashSet<string>(StringTableEntry.GetCsvHeaders());
 
-			// read the existing table, if it exists
-			GodotUtility.ReadCsv(translationFile, out var existingHeaders, out var existingTable);
-
-			foreach (var header in existingHeaders)
+			// Try to load an existing table at out desired path and merge it with our new table
+			var existingTable = ResourceLoader.Load<StringTable>(stringTableFile);
+			if (existingTable != null)
 			{
-				headers.Add(header);
-			}
-
-			// create a table of entries from the existing csv
-			var existingEntries = new Godot.Collections.Dictionary<string, StringTableEntry>();
-			foreach (var kvp in existingTable)
-			{
-				var entry = new StringTableEntry(kvp.Value);
-				existingEntries[kvp.Key] = entry;
-			}
-
-			// create a table of entries from our compiled string table
-			var entries = new Godot.Collections.Dictionary<string, StringTableEntry>();
-			foreach (var kvp in stringInfoTable)
-			{
-				var entry = new StringTableEntry(kvp.Key, kvp.Value);
-				entries[kvp.Key] = entry;
-			}
-
-			foreach (var kvp in existingEntries)
-			{
-				var existingEntry = kvp.Value;
-				if (!entries.TryGetValue(kvp.Key, out var entry))
+				foreach (var header in existingTable.CsvHeaders)
 				{
-					existingEntry.Lock = string.Empty;
-					entries[kvp.Key] = existingEntry;
-					continue;
+					headers.Add(header);
 				}
-
-				entry.MergeTranslationsFrom(existingEntry);
+				stringTable.MergeTranslationsFrom(existingTable);
 			}
 
 			// Write translations from string entries
-			using (var file = FileAccess.Open(translationFile, FileAccess.ModeFlags.Write))
+			using (var file = FileAccess.Open(stringTableFile, FileAccess.ModeFlags.Write))
 			{
 				if (file == null)
 				{
 					var error = FileAccess.GetOpenError();
-					GD.PushError($"!FileAccess.Open '{translationFile}'; error = {error}");
+					GD.PushError($"!FileAccess.Open '{stringTableFile}'; error = {error}");
 					return error;
 				}
 
 				// Write header row
-				var headerRow = headers.ToArray();
-				file.StoreCsvLine(headerRow);
+				var keys = headers.ToArray();
+				file.StoreCsvLine(keys);
 
 				// Read rows from entries
-				foreach (var entry in entries.Values)
+				foreach (var entry in stringTable.Values)
 				{
-					var row = entry.ToDictionary();
+					var row = entry.ToCsvRow();
 
-					string[] line = new string[headerRow.Length];
-					for (int i = 0; i < headerRow.Length; i++)
+					string[] line = new string[keys.Length];
+					for (int i = 0; i < keys.Length; i++)
 					{
-						string key = headerRow[i];
+						string key = keys[i];
 						row.TryGetValue(key, out line[i]);
 					}
 					file.StoreCsvLine(line);
 				}
 
-				GD.Print($"Exported translation at '{translationFile}'");
+				GD.Print($"Exported translation at '{stringTableFile}'");
 			}
 
 			// NOTE: if I don't include this, AppendImportExternalResource
@@ -297,22 +276,22 @@ namespace Yarn.GodotSharp.Editor.Importers
 				return Error.Failed;
 			}
 
-			fs.UpdateFile(translationFile);
+			fs.UpdateFile(stringTableFile);
 
-			GD.Print("customImporter: " + YarnLocalizationImporter.ImporterName);
+			GD.Print("customImporter: " + YarnStringTableImporter.ImporterName);
 
-			//var appendResult = AppendImportExternalResource(
-			//	translationFile,
-			//	customImporter: YarnLocalizationImporter.ImporterName
-			//);
+			var appendResult = AppendImportExternalResource(
+				stringTableFile,
+				customImporter: YarnStringTableImporter.ImporterName
+			);
 
-			//if (appendResult != Error.Ok)
-			//{
-			//	GD.PushError(
-			//		$"!AppendImportExternalResource '{translationFile}'; error = {appendResult}"
-			//	);
-			//	return appendResult;
-			//}
+			if (appendResult != Error.Ok)
+			{
+				GD.PushError(
+					$"!AppendImportExternalResource '{stringTableFile}'; error = {appendResult}"
+				);
+				return appendResult;
+			}
 
 			return Error.Ok;
 		}

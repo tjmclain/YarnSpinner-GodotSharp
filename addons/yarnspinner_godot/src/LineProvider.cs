@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Godot;
-using Yarn.Compiler;
-using System;
 
 namespace Yarn.GodotSharp
 {
@@ -37,7 +34,7 @@ namespace Yarn.GodotSharp
 
 		public virtual LocalizedLine GetLocalizedLine(Line line)
 		{
-			if (!StringTable.TryGetEntry(line.ID, out var entry))
+			if (!StringTable.TryGetValue(line.ID, out var entry))
 			{
 				GD.PushError($"!StringTable.TryGetValue: {line.ID}");
 				return LocalizedLine.Empty;
@@ -46,18 +43,20 @@ namespace Yarn.GodotSharp
 			string text = entry.Text;
 			string[] metadata = entry.Metadata;
 
-			if (GodotUtility.TryTranslateString(line.ID, out var translation))
-			{
-				text = translation;
-			}
-
 			return new LocalizedLine()
 			{
 				TextID = line.ID,
 				RawText = text,
+				Asset = GetAsset(line.ID),
 				Substitutions = line.Substitutions,
 				Metadata = metadata,
 			};
+		}
+
+		protected virtual Resource GetAsset(string lineId)
+		{
+			// Do not return an asset
+			return null;
 		}
 	}
 }

@@ -2,21 +2,18 @@
 
 using Godot;
 using Godot.Collections;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Yarn.GodotSharp.Editor.Importers;
 
-using FileAccess = Godot.FileAccess;
-using StringDict = System.Collections.Generic.Dictionary<string, string>;
-
 [Tool]
-public partial class YarnLocalizationImporter : EditorImportPlugin
+public partial class YarnStringTableImporter : EditorImportPlugin
 {
-	public static readonly string ImporterName = typeof(YarnLocalizationImporter).FullName.ToLower();
+	public static class OptionNames
+	{
+		public static readonly string ExportGodotTranslations = "export_godot_translations";
+	}
+
+	public static readonly string ImporterName = typeof(YarnStringTableImporter).FullName.ToLower();
 
 	public override string _GetImporterName()
 	{
@@ -25,7 +22,7 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 
 	public override string _GetVisibleName()
 	{
-		return "Yarn Localization";
+		return "Yarn String Table";
 	}
 
 	public override string[] _GetRecognizedExtensions()
@@ -69,7 +66,7 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 		{
 			new Dictionary()
 			{
-				{ GodotEditorPropertyInfo.NameKey, "export_godot_translations" },
+				{ GodotEditorPropertyInfo.NameKey, OptionNames.ExportGodotTranslations },
 				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.Bool) },
 				{ GodotEditorPropertyInfo.DefaultValueKey, Variant.From(false) }
 			}
@@ -90,18 +87,28 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 			Array<string> genFiles
 		)
 	{
-		var fileError = GodotUtility.ReadCsv(sourceFile, out var headers, out var table);
+		var fileError = GodotUtility.ReadCsv(sourceFile, out var headers, out var data);
 		if (fileError != Error.Ok)
 		{
 			return fileError;
 		}
 
 		var stringTable = new StringTable();
-		foreach (var kvp in table)
+		stringTable.CsvHeaders = headers;
+
+		foreach (var row in data)
 		{
-			var entry = new StringTableEntry(kvp.Value);
-			stringTable.Entries[kvp.Key] = entry;
+			var entry = new StringTableEntry(row);
+			stringTable[entry.Id] = entry;
 		}
+
+		options.TryGetValue(OptionNames.ExportGodotTranslations, out var exportGodotTranslations);
+		if (exportGodotTranslations.AsBool())
+		{
+			// TODO;
+		}
+
+		stringTable.UseGodotTranslations = exportGodotTranslations.AsBool();
 
 		string saveFile = $"{savePath}.{_GetSaveExtension()}";
 		return ResourceSaver.Save(stringTable, saveFile);

@@ -16,7 +16,7 @@ namespace Yarn.GodotSharp
 
 		// Do I need to cache this here?
 		[Export(PropertyHint.File)]
-		public string TranslationsFile { get; set; } = string.Empty;
+		public string StringTableFile { get; set; } = string.Empty;
 
 		public static Error Compile(string sourceFile, out CompilationResult compilationResult)
 		{

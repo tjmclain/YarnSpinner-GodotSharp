@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Godot;
 using Yarn.Compiler;
@@ -23,9 +24,6 @@ namespace Yarn.GodotSharp
 		/// </summary>
 		[Export]
 		public string Text { get; set; } = string.Empty;
-
-		[Export]
-		public string Asset { get; set; } = string.Empty;
 
 		/// <summary>
 		/// A string used as part of a mechanism for checking if translated versions of this string
@@ -60,6 +58,8 @@ namespace Yarn.GodotSharp
 		public Godot.Collections.Dictionary<string, string> Translations = new();
 
 		public string[] Metadata { get; set; } = Array.Empty<string>();
+
+		#region Public Constructors
 
 		public StringTableEntry()
 		{
@@ -100,7 +100,6 @@ namespace Yarn.GodotSharp
 			}
 
 			// Set translations
-			Translations.Clear();
 			foreach (var kvp in values)
 			{
 				if (!IsLocaleCode(kvp.Key))
@@ -112,54 +111,11 @@ namespace Yarn.GodotSharp
 			}
 		}
 
-		public static string[] GetCsvHeaders()
-		{
-			return new string[]
-			{
-				PropertyName.Id,
-				PropertyName.Text,
-				PropertyName.Lock,
-				PropertyName.Asset,
-				PropertyName.Comment,
-			};
-		}
+		#endregion Public Constructors
 
 		public string GetTranslation(string locale)
 		{
 			return Translations.TryGetValue(locale, out string value) ? value : Text;
-		}
-
-		public IDictionary<string, string> ToDictionary()
-		{
-			var dict = new Dictionary<string, string>
-			{
-				[PropertyName.Id] = Id,
-				[PropertyName.Text] = Text,
-				[PropertyName.Asset] = Asset,
-				[PropertyName.Lock] = Lock,
-				[PropertyName.Metadata] = Metadata.Join(_metadataDelimeter),
-				[PropertyName.Comment] = Comment,
-			};
-
-			foreach (var kvp in Translations)
-			{
-				dict[kvp.Key] = kvp.Value;
-			}
-
-			return dict;
-		}
-
-		public Translation ToGodotTranslation()
-		{
-			var translation = new Translation();
-			translation.AddMessage(TranslationServer.GetLocale(), Text);
-
-			foreach (var kvp in Translations)
-			{
-				translation.AddMessage(kvp.Key, kvp.Value);
-			}
-
-			return translation;
 		}
 
 		public void MergeTranslationsFrom(StringTableEntry other)
@@ -195,6 +151,37 @@ namespace Yarn.GodotSharp
 				Translations[locale] = kvp.Value;
 			}
 		}
+
+		#region CSV Import / Export
+
+		public static IEnumerable<string> GetCsvHeaders()
+		{
+			return typeof(StringTableEntry)
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.GetCustomAttribute<ExportAttribute>() != null)
+				.Select(x => x.Name)
+				.Where(x => x != nameof(Translations));
+		}
+
+		public IDictionary<string, string> ToCsvRow()
+		{
+			var row = new Dictionary<string, string>();
+
+			var headers = GetCsvHeaders();
+			foreach (var key in headers)
+			{
+				row[key] = Get(key).ToString();
+			}
+
+			foreach (var kvp in Translations)
+			{
+				row[kvp.Key] = kvp.Value;
+			}
+
+			return row;
+		}
+
+		#endregion CSV Import / Export
 
 		/// <summary>
 		/// Returns a byte array containing a SHA-256 hash of <paramref name="inputString"/>.
