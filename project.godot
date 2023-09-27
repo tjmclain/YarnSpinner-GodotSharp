@@ -42,5 +42,5 @@ renderer/rendering_method="mobile"
 
 [yarn_spinner]
 
-translations_directory="res://translations/"
 base_locale="en"
+translations_directory="$(SourceDir)/translations/$(SourceFileName).csv"

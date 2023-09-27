@@ -6,10 +6,11 @@
 		<Configurations>Debug;ExportDebug;ExportRelease</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="YarnSpinner" Version="2.3.1" />
-		<PackageReference Include="YarnSpinner.Compiler" Version="2.3.1" />
+	  <Compile Remove="addons\yarnspinner_godot\src\LineProviders\**" />
+	  <EmbeddedResource Remove="addons\yarnspinner_godot\src\LineProviders\**" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="addons\yarnspinner_godot\src\LineProviders\" />
+		<PackageReference Include="YarnSpinner" Version="2.3.1" />
+		<PackageReference Include="YarnSpinner.Compiler" Version="2.3.1" />
 	</ItemGroup>
 </Project>

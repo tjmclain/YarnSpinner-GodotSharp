@@ -12,7 +12,6 @@ namespace Yarn.GodotSharp.Editor;
 public partial class Plugin : EditorPlugin
 {
 	public const string TranslationsDirProperty = "yarn_spinner/translations_directory";
-	public const string BaseLocaleProperty = "yarn_spinner/base_locale";
 
 	private static readonly GodotEditorPropertyInfo[] _editorProperties = new GodotEditorPropertyInfo[]
 	{
@@ -21,14 +20,7 @@ public partial class Plugin : EditorPlugin
 				Name = TranslationsDirProperty,
 				Type = Variant.Type.String,
 				Hint = PropertyHint.Dir,
-				DefaultValue = "res://translations/"
-			},
-			new GodotEditorPropertyInfo()
-			{
-				Name = BaseLocaleProperty,
-				Type = Variant.Type.String,
-				Hint = PropertyHint.LocaleId,
-				DefaultValue = "en"
+				DefaultValue = "$(SourceDir)/translations/$(SourceFileName).csv"
 			},
 	};
 

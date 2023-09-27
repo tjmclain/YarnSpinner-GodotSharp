@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/yarnspinner_godot/src/DialogueRunner.cs" id="1_5adwn"]
 [ext_resource type="Resource" uid="uid://wx745dh3wfqy" path="res://addons/yarnspinner_godot/demo/demo_project.tres" id="2_lpf3b"]
-[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/LineProviders/TextLineProvider.cs" id="3_flhym"]
+[ext_resource type="Script" path="res://addons/yarnspinner_godot/src/LineProvider.cs" id="3_flhym"]
 [ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Variables/VariableStorage.cs" id="4_8jc1k"]
 [ext_resource type="Script" path="res://addons/yarnspinner_godot/src/Actions/ActionLibrary.cs" id="5_7r12h"]
 [ext_resource type="PackedScene" uid="uid://dxq5trhdiesfh" path="res://addons/yarnspinner_godot/demo/demo_dialogue_view_group.tscn" id="6_f4sxn"]

@@ -15,7 +15,8 @@ using StringDict = System.Collections.Generic.Dictionary<string, string>;
 [Tool]
 public partial class YarnLocalizationImporter : EditorImportPlugin
 {
-	public static readonly string ImporterName = typeof(YarnLocalizationImporter).FullName;
+	public static readonly string ImporterName = "yarn_localization"; //typeof(YarnLocalizationImporter).FullName.ToLower();
+	public const string VisibleName = "Yarn Localization";
 
 	public override string _GetImporterName()
 	{
@@ -24,7 +25,7 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 
 	public override string _GetVisibleName()
 	{
-		return "Yarn Localization";
+		return VisibleName;
 	}
 
 	public override string[] _GetRecognizedExtensions()
@@ -54,7 +55,7 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 
 	public override float _GetPriority()
 	{
-		return 1f;
+		return 2f;
 	}
 
 	public override int _GetImportOrder()
@@ -62,6 +63,11 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 		// 0 is default, and we want this to run
 		// before the YarnProject importer, which is a default Resource
 		return -1;
+	}
+
+	public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
+	{
+		return new Array<Dictionary>();
 	}
 
 	public override Error _Import(
@@ -72,7 +78,8 @@ public partial class YarnLocalizationImporter : EditorImportPlugin
 			Array<string> genFiles
 		)
 	{
-		return Error.Ok;
+		var stringTable = new StringTable();
+		return ResourceSaver.Save(stringTable, savePath);
 	}
 }
 

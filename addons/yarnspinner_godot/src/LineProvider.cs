@@ -14,7 +14,7 @@ namespace Yarn.GodotSharp
 		[Signal]
 		public delegate void LinesBecameAvailableEventHandler();
 
-		public StringTable LocalizationTable { get; set; }
+		public StringTable StringTable { get; set; }
 
 		public bool LinesAvailable
 		{
@@ -37,7 +37,7 @@ namespace Yarn.GodotSharp
 
 		public virtual LocalizedLine GetLocalizedLine(Line line)
 		{
-			if (!LocalizationTable.TryGetEntry(line.ID, out var entry))
+			if (!StringTable.TryGetEntry(line.ID, out var entry))
 			{
 				GD.PushError($"!StringTable.TryGetValue: {line.ID}");
 				return LocalizedLine.Empty;

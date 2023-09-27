@@ -42,6 +42,12 @@ namespace Yarn.GodotSharp.Editor
 				SetTranslations(translations);
 			}
 		}
+
+		public static EditorInterface GetEditorInterface()
+		{
+			var dummyScript = new EditorScript();
+			return dummyScript.GetEditorInterface();
+		}
 	}
 }
 

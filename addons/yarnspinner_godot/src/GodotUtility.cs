@@ -9,8 +9,6 @@ namespace Yarn.GodotSharp;
 
 public static class GodotUtility
 {
-	#region Public Methods
-
 	public static SceneTree GetSceneTree()
 	{
 		if (Engine.GetMainLoop() is not SceneTree sceneTree)
@@ -147,6 +145,4 @@ public static class GodotUtility
 
 		return Error.Ok;
 	}
-
-	#endregion Public Methods
 }
