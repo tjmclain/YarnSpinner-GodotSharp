@@ -10,13 +10,7 @@ namespace Yarn.GodotSharp.Actions
 	[Tool]
 	public partial class ActionInfo : Resource
 	{
-		#region Fields
-
 		private MethodInfo _methodInfo;
-
-		#endregion Fields
-
-		#region Constructors
 
 		public ActionInfo()
 		{
@@ -40,8 +34,6 @@ namespace Yarn.GodotSharp.Actions
 			_methodInfo = methodInfo;
 		}
 
-		#endregion Constructors
-
 		#region Exports
 
 		[Export]
@@ -55,15 +47,9 @@ namespace Yarn.GodotSharp.Actions
 
 		#endregion Exports
 
-		#region Properties
-
 		public MethodInfo MethodInfo => _methodInfo ?? CreateMethodInfo();
 		public Type ReturnType => MethodInfo.ReturnType;
 		public bool IsStatic => MethodInfo.IsStatic;
-
-		#endregion Properties
-
-		#region Public Methods
 
 		public MethodInfo CreateMethodInfo()
 		{
@@ -118,7 +104,5 @@ namespace Yarn.GodotSharp.Actions
 				? Delegate.CreateDelegate(getType(types.ToArray()), methodInfo)
 				: Delegate.CreateDelegate(getType(types.ToArray()), target, methodInfo.Name);
 		}
-
-		#endregion Public Methods
 	}
 }

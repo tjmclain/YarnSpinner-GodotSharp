@@ -12,8 +12,6 @@ namespace Yarn.GodotSharp.Actions
 
 	public partial class CommandInfo : ActionInfo
 	{
-		#region Public Constructors
-
 		public CommandInfo(string name, MethodInfo method) : base(name, method)
 		{
 			Target = null;
@@ -26,18 +24,12 @@ namespace Yarn.GodotSharp.Actions
 			Converters = CreateConverters(MethodInfo);
 		}
 
-		#endregion Public Constructors
-
-		#region Enums
-
 		public enum CommandType
 		{
 			Invalid = -1,
 			IsVoid,
 			IsTask,
 		}
-
-		#endregion Enums
 
 		#region Properties
 

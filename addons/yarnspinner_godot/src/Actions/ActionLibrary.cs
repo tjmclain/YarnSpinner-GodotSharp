@@ -9,8 +9,6 @@ namespace Yarn.GodotSharp.Actions
 	[GlobalClass]
 	public partial class ActionLibrary : Resource
 	{
-		#region Properties
-
 		#region Exports
 
 		[Export]
@@ -26,10 +24,6 @@ namespace Yarn.GodotSharp.Actions
 		public string[] OverrideAssemblyNames { get; private set; } = Array.Empty<string>();
 
 		#endregion Exports
-
-		#endregion Properties
-
-		#region Public Methods
 
 		public virtual void RefreshActions()
 		{
@@ -54,8 +48,6 @@ namespace Yarn.GodotSharp.Actions
 
 			GD.Print($"{GetType().Name} found {Commands.Count} commands and {Functions.Count} functions in {assemblies.Length} assemblies");
 		}
-
-		#endregion Public Methods
 
 		protected virtual void EvaluateMethodInfo(MethodInfo method)
 		{

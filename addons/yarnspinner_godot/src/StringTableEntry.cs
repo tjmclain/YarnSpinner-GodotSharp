@@ -49,14 +49,11 @@ namespace Yarn.GodotSharp
 		[Export]
 		public string Lock { get; set; } = string.Empty;
 
-		/// <summary>
-		/// A comment used to describe this line to translators.
-		/// </summary>
-		[Export]
-		public string Comment { get; set; } = string.Empty;
-
 		[Export]
 		public Godot.Collections.Dictionary<string, string> Translations = new();
+
+		[Export]
+		public Godot.Collections.Dictionary<string, string> CustomFields = new();
 
 		public string[] Metadata { get; set; } = Array.Empty<string>();
 
@@ -76,39 +73,33 @@ namespace Yarn.GodotSharp
 
 		public StringTableEntry(IDictionary<string, string> values)
 		{
-			const string propertyNameKey = "name";
-
-			// Set properties
-			var properties = GetPropertyList();
-			foreach (var property in properties)
+			var properties = new Dictionary<string, Godot.Collections.Dictionary>();
+			foreach (var property in GetPropertyList())
 			{
-				string propertyName = property[propertyNameKey].AsString();
-				if (propertyName == PropertyName.Metadata)
-				{
-					continue;
-				}
-
-				if (values.TryGetValue(propertyName, out string value))
-				{
-					Set(propertyName, Variant.From(value));
-				}
+				string name = property["name"].AsString();
+				properties[name] = property;
 			}
 
-			// Parse Metadata from string
-			if (values.TryGetValue(PropertyName.Metadata, out string metadata))
-			{
-				Metadata = metadata.Split(_metadataDelimeter);
-			}
-
-			// Set translations
 			foreach (var kvp in values)
 			{
-				if (!IsLocaleCode(kvp.Key))
+				if (properties.TryGetValue(kvp.Key, out var property))
 				{
+					var type = property["type"].As<Variant.Type>();
+					var value = type == Variant.Type.String
+						? kvp.Value
+						: GD.StrToVar(kvp.Value);
+
+					Set(kvp.Key, value);
 					continue;
 				}
 
-				Translations[kvp.Key] = kvp.Value;
+				if (IsLocaleCode(kvp.Key))
+				{
+					Translations[kvp.Key] = kvp.Value;
+					continue;
+				}
+
+				CustomFields[kvp.Key] = kvp.Value;
 			}
 		}
 
@@ -166,9 +157,9 @@ namespace Yarn.GodotSharp
 
 		public string[] ToCsvLine(IEnumerable<string> csvHeaders)
 		{
-			const string propertyNameKey = "name";
-
 			var properties = GetPropertyList();
+			var propertyNames = GetPropertyList()
+				.Select(x => x["name"].AsString());
 
 			var line = new List<string>();
 			foreach (var key in csvHeaders)
@@ -179,20 +170,19 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				foreach (var property in properties)
+				if (propertyNames.Contains(key))
 				{
-					string propertyName = property[propertyNameKey].AsString();
-					if (propertyName == key)
-					{
-						value = Get(propertyName).ToString();
-						line.Add(value);
-						continue;
-					}
+					var variant = Get(key);
+					value = variant.VariantType == Variant.Type.String
+						? variant.AsString()
+						: GD.VarToStr(variant);
+
+					line.Add(value);
+					continue;
 				}
 
-				// couldn't find key
-				// the 'key' in this case could be a locale id for a translation we don't have,
-				// so this result is totally fine / not something we should print a warning for
+				CustomFields.TryGetValue(key, out value);
+				line.Add(value);
 			}
 
 			return line.ToArray();
