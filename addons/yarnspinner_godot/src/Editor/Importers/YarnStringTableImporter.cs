@@ -11,6 +11,7 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 	public static class OptionNames
 	{
 		public static readonly string ExportGodotTranslations = "export_godot_translations";
+		public static readonly string GodotTranslationsFilePath = "godot_translations_file_path";
 	}
 
 	public static readonly string ImporterName = typeof(YarnStringTableImporter).FullName.ToLower();
@@ -70,6 +71,13 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 				{ GodotEditorPropertyInfo.NameKey, OptionNames.ExportGodotTranslations },
 				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.Bool) },
 				{ GodotEditorPropertyInfo.DefaultValueKey, Variant.From(false) }
+			},
+			new Dictionary()
+			{
+				{ GodotEditorPropertyInfo.NameKey, OptionNames.GodotTranslationsFilePath },
+				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.String) },
+				{ GodotEditorPropertyInfo.HintKey, Variant.From(PropertyHint.File) },
+				{ GodotEditorPropertyInfo.DefaultValueKey, "res://translations/translations.csv" }
 			}
 		};
 	}
@@ -99,8 +107,6 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 		{
 			// TODO;
 		}
-
-		stringTable.UseGodotTranslations = exportGodotTranslations.AsBool();
 
 		string saveFile = $"{savePath}.{_GetSaveExtension()}";
 		return ResourceSaver.Save(stringTable, saveFile);

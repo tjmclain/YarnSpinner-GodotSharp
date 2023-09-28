@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Godot;
 using Yarn.Compiler;
@@ -112,6 +113,9 @@ namespace Yarn.GodotSharp
 		}
 
 		#endregion Public Constructors
+
+		public string GetTranslation()
+			=> GetTranslation(TranslationServer.GetLocale());
 
 		public string GetTranslation(string locale)
 		{

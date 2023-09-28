@@ -9,9 +9,6 @@ namespace Yarn.GodotSharp
 	public partial class StringTable : Resource
 	{
 		[Export]
-		public bool UseGodotTranslations { get; set; } = false;
-
-		[Export]
 		public string[] CsvHeaders { get; set; } = System.Array.Empty<string>();
 
 		[Export]
@@ -41,12 +38,6 @@ namespace Yarn.GodotSharp
 
 		public bool TryGetTranslation(string key, string locale, out string value)
 		{
-			if (UseGodotTranslations)
-			{
-				value = TranslationServer.Translate(key);
-				return true;
-			}
-
 			if (!TryGetValue(key, out var entry))
 			{
 				GD.PushError($"!Table.TryGetValue '{key}'");

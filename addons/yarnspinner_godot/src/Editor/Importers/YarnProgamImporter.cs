@@ -145,28 +145,12 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			GD.Print($"Saved yarn program resource @ '{saveFile}'");
 
-			//if (!string.IsNullOrEmpty(stringTableFile))
-			//{
-			//	var appendResult = AppendImportExternalResource(
-			//		stringTableFile,
-			//		customImporter: YarnStringTableImporter.ImporterName
-			//	);
-
-			//	if (appendResult != Error.Ok)
-			//	{
-			//		GD.PushError($"AppendImportExternalResource: {appendResult}; translationFile = {stringTableFile}");
-			//		return appendResult;
-			//	}
-
-			//	GD.Print($"Exported string table @ '{stringTableFile}'");
-			//}
-
 			return Error.Ok;
 		}
 
 		#endregion EditorImportPlugin
 
-		private Error ExportTranslationFile(
+		protected virtual Error ExportTranslationFile(
 			string sourceFile,
 			CompilationResult compilationResult,
 			Dictionary importOptions,

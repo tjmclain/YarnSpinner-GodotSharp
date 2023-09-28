@@ -11,6 +11,9 @@ namespace Yarn.GodotSharp
 		[Signal]
 		public delegate void LinesBecameAvailableEventHandler();
 
+		[Export]
+		public bool UseGodotTranslations { get; set; } = false;
+
 		public StringTable StringTable { get; set; }
 
 		public bool LinesAvailable
@@ -34,14 +37,21 @@ namespace Yarn.GodotSharp
 
 		public virtual LocalizedLine GetLocalizedLine(Line line)
 		{
+			if (StringTable == null)
+			{
+				GD.PushError("GetLocalizedLine: StringTable == null");
+				return LocalizedLine.Empty;
+			}
+
 			if (!StringTable.TryGetValue(line.ID, out var entry))
 			{
 				GD.PushError($"!StringTable.TryGetValue: {line.ID}");
 				return LocalizedLine.Empty;
 			}
 
-			string text = entry.Text;
-			string[] metadata = entry.Metadata;
+			string text = UseGodotTranslations
+				? TranslationServer.Translate(line.ID)
+				: entry.GetTranslation();
 
 			return new LocalizedLine()
 			{
@@ -49,7 +59,7 @@ namespace Yarn.GodotSharp
 				RawText = text,
 				Asset = GetAsset(line.ID),
 				Substitutions = line.Substitutions,
-				Metadata = metadata,
+				Metadata = entry.Metadata,
 			};
 		}
 
