@@ -9,6 +9,7 @@
 
 [sub_resource type="Resource" id="Resource_8cueh"]
 script = ExtResource("3_flhym")
+UseGodotTranslations = false
 
 [sub_resource type="Resource" id="Resource_hder4"]
 script = ExtResource("4_8jc1k")
