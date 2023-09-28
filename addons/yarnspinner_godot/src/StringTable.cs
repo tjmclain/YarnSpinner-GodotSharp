@@ -1,5 +1,7 @@
 using Godot;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Linq;
 
 namespace Yarn.GodotSharp
 {
@@ -88,5 +90,18 @@ namespace Yarn.GodotSharp
 				this[kvp.Key] = kvp.Value;
 			}
 		}
+
+		#region CSV Import / Export
+
+		public static IEnumerable<string> GetDefaultCsvHeaders()
+		{
+			return typeof(StringTableEntry)
+				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.GetCustomAttribute<ExportAttribute>() != null)
+				.Select(x => x.Name)
+				.Where(x => x != nameof(StringTableEntry.Translations)); // don't include 'Translations' in headers
+		}
+
+		#endregion CSV Import / Export
 	}
 }

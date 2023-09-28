@@ -78,8 +78,8 @@ namespace Yarn.GodotSharp
 			const string propertyNameKey = "name";
 
 			// Set properties
-			var propertyList = GetPropertyList();
-			foreach (var property in propertyList)
+			var properties = GetPropertyList();
+			foreach (var property in properties)
 			{
 				string propertyName = property[propertyNameKey].AsString();
 				if (propertyName == PropertyName.Metadata)
@@ -133,10 +133,9 @@ namespace Yarn.GodotSharp
 				return;
 			}
 
-			bool mismatch = Lock != other.Lock;
-			if (mismatch)
+			bool lockMismatch = Lock != other.Lock;
+			if (lockMismatch)
 			{
-				// TODO: do something with the translation strings here (check what YarnSpinner does)
 				GD.PushWarning($"Lock mismatch. Translations may be out of date. line id = {Id}, {Lock} != {other.Lock}");
 			}
 
@@ -148,37 +147,51 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				Translations[locale] = kvp.Value;
+				string value = kvp.Value;
+				if (lockMismatch)
+				{
+					// don't remove the translation if there's a mismatch; just append a metadata tag
+					value += $" #lock={other.Lock}";
+				}
+
+				Translations[locale] = value;
 			}
 		}
 
 		#region CSV Import / Export
 
-		public static IEnumerable<string> GetCsvHeaders()
+		public string[] ToCsvLine(IEnumerable<string> csvHeaders)
 		{
-			return typeof(StringTableEntry)
-				.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-				.Where(x => x.GetCustomAttribute<ExportAttribute>() != null)
-				.Select(x => x.Name)
-				.Where(x => x != nameof(Translations));
-		}
+			const string propertyNameKey = "name";
 
-		public IDictionary<string, string> ToCsvRow()
-		{
-			var row = new Dictionary<string, string>();
+			var properties = GetPropertyList();
 
-			var headers = GetCsvHeaders();
-			foreach (var key in headers)
+			var line = new List<string>();
+			foreach (var key in csvHeaders)
 			{
-				row[key] = Get(key).ToString();
+				if (Translations.TryGetValue(key, out string value))
+				{
+					line.Add(value);
+					continue;
+				}
+
+				foreach (var property in properties)
+				{
+					string propertyName = property[propertyNameKey].AsString();
+					if (propertyName == key)
+					{
+						value = Get(propertyName).ToString();
+						line.Add(value);
+						continue;
+					}
+				}
+
+				// couldn't find key
+				// the 'key' in this case could be a locale id for a translation we don't have,
+				// so this result is totally fine / not something we should print a warning for
 			}
 
-			foreach (var kvp in Translations)
-			{
-				row[kvp.Key] = kvp.Value;
-			}
-
-			return row;
+			return line.ToArray();
 		}
 
 		#endregion CSV Import / Export

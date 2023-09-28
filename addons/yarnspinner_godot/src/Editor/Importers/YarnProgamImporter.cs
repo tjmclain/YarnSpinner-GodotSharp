@@ -223,11 +223,22 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			// create a hashset of headers, starting with the entry's 'key'
 			// each column after the first is a translated string
-			var headers = new HashSet<string>(StringTableEntry.GetCsvHeaders());
+			var headers = new HashSet<string>(StringTable.GetDefaultCsvHeaders());
 
-			// Try to load an existing table at out desired path and merge it with our new table
-			var existingTable = ResourceLoader.Load<StringTable>(stringTableFile);
-			if (existingTable != null)
+			//Try to load an existing table at out desired path and merge it with our new table
+			static bool TryLoadExistingStringTable(string filePath, out StringTable existingTable)
+			{
+				existingTable = default;
+				if (!FileAccess.FileExists(filePath))
+				{
+					return false;
+				}
+
+				var importError = YarnStringTableImporter.ImportStringTable(filePath, out existingTable);
+				return importError == Error.Ok;
+			}
+
+			if (TryLoadExistingStringTable(stringTableFile, out var existingTable))
 			{
 				foreach (var header in existingTable.CsvHeaders)
 				{
@@ -253,14 +264,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				// Read rows from entries
 				foreach (var entry in stringTable.Values)
 				{
-					var row = entry.ToCsvRow();
-
-					string[] line = new string[keys.Length];
-					for (int i = 0; i < keys.Length; i++)
-					{
-						string key = keys[i];
-						row.TryGetValue(key, out line[i]);
-					}
+					string[] line = entry.ToCsvLine(headers);
 					file.StoreCsvLine(line);
 				}
 

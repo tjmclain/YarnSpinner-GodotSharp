@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Godot;
 
 namespace Yarn.GodotSharp
@@ -119,6 +120,8 @@ namespace Yarn.GodotSharp
 			StringTable.Clear();
 			StringTable.CreateEntriesFrom(compilation.StringTable);
 
+			// Create a list of unique string table file paths
+			var stringTableFiles = new HashSet<string>();
 			foreach (var program in Programs)
 			{
 				if (string.IsNullOrEmpty(program.StringTableFile))
@@ -126,10 +129,21 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				var stringTable = ResourceLoader.Load<StringTable>(program.StringTableFile);
-				if (stringTable == null)
+				stringTableFiles.Add(program.StringTableFile);
+			}
+
+			// load and merge individual string tables into our central table
+			foreach (string file in stringTableFiles)
+			{
+				if (!FileAccess.FileExists(file))
 				{
-					GD.PushWarning($"Could not load StringTable at '{program.StringTableFile}'");
+					GD.PushWarning($"!FileAccess.FileExists '{file}'");
+					continue;
+				}
+
+				if (ResourceLoader.Load(file) is not StringTable stringTable)
+				{
+					GD.PushWarning($"Could not load StringTable at '{file}'");
 					continue;
 				}
 
