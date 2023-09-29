@@ -11,19 +11,6 @@ namespace Yarn.GodotSharp.Editor;
 [Tool]
 public partial class Plugin : EditorPlugin
 {
-	public const string TranslationsDirProperty = "yarn_spinner/translations_directory";
-
-	private static readonly GodotEditorPropertyInfo[] _editorProperties = new GodotEditorPropertyInfo[]
-	{
-			new GodotEditorPropertyInfo()
-			{
-				Name = TranslationsDirProperty,
-				Type = Variant.Type.String,
-				Hint = PropertyHint.Dir,
-				DefaultValue = "$(SourceDir)/translations/$(SourceFileName).csv"
-			},
-	};
-
 	private IEnumerable<EditorImportPlugin> _importPlugins;
 	private IEnumerable<EditorInspectorPlugin> _inspectorPlugins;
 	private IEnumerable<CommandPaletteScript> _commandScripts;
@@ -127,12 +114,12 @@ public partial class Plugin : EditorPlugin
 
 	public override void _EnablePlugin()
 	{
-		AddEditorProperties();
+		SetTextFileExtensionsSetting(true);
 	}
 
 	public override void _DisablePlugin()
 	{
-		RemoveEditorProperties();
+		SetTextFileExtensionsSetting(false);
 	}
 
 	private static IEnumerable<T> GetInstancesOfEditorTypes<T>()
@@ -144,23 +131,30 @@ public partial class Plugin : EditorPlugin
 			.Select(x => (T)Activator.CreateInstance(x));
 	}
 
-	private static void AddEditorProperties()
+	private void SetTextFileExtensionsSetting(bool addYarnExtension)
 	{
-		foreach (var property in _editorProperties)
+		var editorSettings = GetEditorInterface()?.GetEditorSettings();
+		if (editorSettings == null)
 		{
-			property.AddToProjectSettings();
-		}
-		ProjectSettings.Save();
-	}
-
-	private static void RemoveEditorProperties()
-	{
-		foreach (var property in _editorProperties)
-		{
-			property.RemoveFromProjectSettings();
+			return;
 		}
 
-		ProjectSettings.Save();
+		const string textFileExtensionsKey = "docks/filesystem/textfile_extensions";
+		const string yarnExt = "yarn";
+		const string delim = ",";
+
+		var textFileExtensions = editorSettings.Get(textFileExtensionsKey);
+		var list = textFileExtensions.AsString().Split(delim).ToHashSet();
+		if (addYarnExtension)
+		{
+			list.Add(yarnExt);
+		}
+		else
+		{
+			list.Remove(yarnExt);
+		}
+
+		editorSettings.Set(textFileExtensionsKey, string.Join(delim, list));
 	}
 }
 

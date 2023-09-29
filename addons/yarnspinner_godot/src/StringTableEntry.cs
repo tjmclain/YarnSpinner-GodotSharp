@@ -12,8 +12,6 @@ namespace Yarn.GodotSharp
 	[GlobalClass]
 	public partial class StringTableEntry : Resource
 	{
-		private const string _metadataDelimeter = " ";
-
 		/// <summary>
 		/// The line ID for this line. This value will be the same across all localizations.
 		/// </summary>

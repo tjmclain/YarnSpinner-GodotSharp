@@ -8,13 +8,37 @@ namespace Yarn.GodotSharp.Editor.Importers;
 [Tool]
 public partial class YarnStringTableImporter : EditorImportPlugin
 {
+	public static readonly string ImporterName = typeof(YarnStringTableImporter).FullName.ToLower();
+
+	protected ImporterStringSubstitutions Substitutions { get; private set; }
+
+	public static Error ImportStringTable(string sourceFile, out StringTable stringTable)
+	{
+		stringTable = new StringTable();
+
+		var fileError = GodotUtility.ReadCsv(sourceFile, out var headers, out var data);
+		if (fileError != Error.Ok)
+		{
+			return fileError;
+		}
+
+		stringTable.CsvHeaders = headers;
+		foreach (var row in data)
+		{
+			var entry = new StringTableEntry(row);
+			stringTable[entry.Id] = entry;
+		}
+
+		return Error.Ok;
+	}
+
 	public static class OptionNames
 	{
 		public static readonly string ExportGodotTranslations = "export_godot_translations";
 		public static readonly string GodotTranslationsFilePath = "godot_translations_file_path";
 	}
 
-	public static readonly string ImporterName = typeof(YarnStringTableImporter).FullName.ToLower();
+	#region EditorImportPlugin
 
 	public override string _GetImporterName()
 	{
@@ -96,6 +120,8 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 			Array<string> genFiles
 		)
 	{
+		Substitutions = new ImporterStringSubstitutions(sourceFile);
+
 		var importError = ImportStringTable(sourceFile, out var stringTable);
 		if (importError != Error.Ok)
 		{
@@ -112,25 +138,7 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 		return ResourceSaver.Save(stringTable, saveFile);
 	}
 
-	public static Error ImportStringTable(string sourceFile, out StringTable stringTable)
-	{
-		stringTable = new StringTable();
-
-		var fileError = GodotUtility.ReadCsv(sourceFile, out var headers, out var data);
-		if (fileError != Error.Ok)
-		{
-			return fileError;
-		}
-
-		stringTable.CsvHeaders = headers;
-		foreach (var row in data)
-		{
-			var entry = new StringTableEntry(row);
-			stringTable[entry.Id] = entry;
-		}
-
-		return Error.Ok;
-	}
+	#endregion EditorImportPlugin
 }
 
 #endif

@@ -64,15 +64,7 @@ namespace Yarn.GodotSharp.Actions
 				};
 			}
 
-			if (Commands.TryGetValue(parameters[0], out var commandInfo))
-			{
-				// The first part of the command is the command name itself. Remove it to get the
-				// collection of parameters that were passed to the command.
-				parameters.RemoveAt(0);
-
-				return commandInfo.Invoke(parameters, out commandTask);
-			}
-			else
+			if (!Commands.TryGetValue(parameters[0], out var commandInfo))
 			{
 				commandTask = default;
 				return new CommandDispatchResult
@@ -80,6 +72,12 @@ namespace Yarn.GodotSharp.Actions
 					Status = CommandDispatchResult.StatusType.CommandUnknown
 				};
 			}
+
+			// The first part of the command is the command name itself. Remove it to get the
+			// collection of parameters that were passed to the command.
+			parameters.RemoveAt(0);
+
+			return commandInfo.Invoke(parameters, out commandTask);
 		}
 
 		protected static IEnumerable<string> SplitCommandText(string input)

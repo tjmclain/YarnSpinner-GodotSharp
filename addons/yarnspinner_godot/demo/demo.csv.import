@@ -13,4 +13,3 @@ dest_files=["res://.godot/imported/demo.csv-9158fa1e3107c9e609d45fcc46e248fd.tre
 [params]
 
 export_godot_translations=false
-godot_translations_file_path="res://translations/translations.csv"
