@@ -18,8 +18,6 @@ namespace Yarn.GodotSharp;
 [GlobalClass]
 public partial class DialogueRunner : Godot.Node
 {
-	private readonly Dictionary<string, CommandInfo> _commands = new();
-
 	/// <summary>
 	/// The underlying object that executes Yarn instructions and provides lines, options and commands.
 	/// </summary>
@@ -59,31 +57,8 @@ public partial class DialogueRunner : Godot.Node
 	[Signal]
 	public delegate void DialogueCompletedEventHandler();
 
-	/// <summary>
-	/// A <see cref="StringUnityEvent"/> that is called when a <see cref="Command"/> is received.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// Use this method to dispatch a command to other parts of your game. This method is only
-	/// called if the <see cref="Command"/> has not been handled by a command handler that has been
-	/// added to the <see cref="DialogueRunner"/>, or by a method on a <see cref="MonoBehaviour"/>
-	/// in the scene with the attribute <see cref="YarnCommandAttribute"/>.
-	/// </para>
-	/// <para style="hint">
-	/// When a command is delivered in this way, the <see cref="DialogueRunner"/> will not pause
-	/// execution. If you want a command to make the DialogueRunner pause execution, see <see
-	/// cref="AddCommandHandler(string, CommandHandler)"/>.
-	/// </para>
-	/// <para>
-	/// This method receives the full text of the command, as it appears between the <c>&lt;&lt;</c>
-	/// and <c>&gt;&gt;</c> markers.
-	/// </para>
-	/// </remarks>
-	/// <seealso cref="AddCommandHandler(string, CommandHandler)"/>
-	/// <seealso cref="AddCommandHandler(string, CommandHandler)"/>
-	/// <seealso cref="YarnCommandAttribute"/>
 	[Signal]
-	public delegate void CommandReceivedEventHandler(string commandName);
+	public delegate void CommandDispatchedEventHandler(string commandName);
 
 	#endregion Signals
 
@@ -243,13 +218,6 @@ public partial class DialogueRunner : Godot.Node
 
 		ActionLibrary.RefreshActions();
 
-		_commands.Clear();
-		foreach (var command in ActionLibrary.Commands)
-		{
-			var commandInfo = new CommandInfo(command);
-			_commands[commandInfo.Name] = commandInfo;
-		}
-
 		var library = Dialogue.Library;
 		foreach (var function in ActionLibrary.Functions)
 		{
@@ -355,81 +323,31 @@ public partial class DialogueRunner : Godot.Node
 
 	private void HandleCommand(Command command)
 	{
-		CommandDispatchResult DispatchCommand(string commandText, out Task commandTask)
+		var result = ActionLibrary.DispatchCommand(command.Text, out Task commandTask);
+
+		switch (result.Status)
 		{
-			var split = SplitCommandText(commandText);
-			var parameters = new List<string>(split);
-
-			if (parameters.Count == 0)
-			{
-				// No text was found inside the command, so we won't be able to find it.
-				commandTask = default;
-				return new CommandDispatchResult
-				{
-					Status = CommandDispatchResult.StatusType.CommandUnknown
-				};
-			}
-
-			if (_commands.TryGetValue(parameters[0], out var commandInfo))
-			{
-				// The first part of the command is the command name itself. Remove it to get the
-				// collection of parameters that were passed to the command.
-				parameters.RemoveAt(0);
-
-				return commandInfo.Invoke(parameters, out commandTask);
-			}
-			else
-			{
-				commandTask = default;
-				return new CommandDispatchResult
-				{
-					Status = CommandDispatchResult.StatusType.CommandUnknown
-				};
-			}
-		}
-
-		var dispatchResult = DispatchCommand(command.Text, out Task commandTask);
-
-		switch (dispatchResult.Status)
-		{
-			case CommandDispatchResult.StatusType.SucceededSync:
-				// No need to wait; continue immediately.
-				ContinueDialogue();
-				return;
-
 			case CommandDispatchResult.StatusType.SucceededAsync:
-				// We got a coroutine to wait for. Wait for it, and call Continue.
-				_ = WaitForTask(commandTask, () => ContinueDialogue(true));
-				return;
-		}
-
-		var parts = SplitCommandText(command.Text);
-		string commandName = parts.ElementAtOrDefault(0);
-
-		switch (dispatchResult.Status)
-		{
-			case CommandDispatchResult.StatusType.NoTargetFound:
-				GD.PushError($"Can't call command {commandName}: failed to find a game object named {parts.ElementAtOrDefault(1)}", this);
+			case CommandDispatchResult.StatusType.SucceededSync:
 				break;
-
-			case CommandDispatchResult.StatusType.TargetMissingComponent:
-				GD.PushError($"Can't call command {commandName}, because {parts.ElementAtOrDefault(1)} doesn't have the correct component");
-				break;
-
-			case CommandDispatchResult.StatusType.InvalidParameterCount:
-				GD.PushError($"Can't call command {commandName}: incorrect number of parameters");
-				break;
-
-			case CommandDispatchResult.StatusType.CommandUnknown:
-				// Attempt a last-ditch dispatch by invoking our 'onCommand' Unity Event.
-				EmitSignal(SignalName.CommandReceived, command.Text);
-				return;
 
 			default:
-				throw new ArgumentOutOfRangeException($"Internal error: Unknown command dispatch result status {dispatchResult}");
+				GD.PushError(result);
+				break;
 		}
 
-		ContinueDialogue();
+		EmitSignal(SignalName.CommandDispatched, result.CommandName);
+
+		if (commandTask == null)
+		{
+			// No need to wait; continue immediately.
+			ContinueDialogue();
+		}
+		else
+		{
+			// We got a task to wait for. Wait for it, and call Continue.
+			_ = WaitForTask(commandTask, () => ContinueDialogue(true));
+		}
 	}
 
 	/// <summary>
@@ -626,120 +544,12 @@ public partial class DialogueRunner : Godot.Node
 		if (task == null)
 		{
 			GD.PushError("task == null");
+			onTaskComplete?.Invoke();
 			return;
 		}
 
 		await task;
 		onTaskComplete?.Invoke();
-	}
-
-	/// <summary>
-	/// Splits input into a number of non-empty sub-strings, separated by whitespace, and grouping
-	/// double-quoted strings into a single sub-string.
-	/// </summary>
-	/// <param name="input">The string to split.</param>
-	/// <returns>A collection of sub-strings.</returns>
-	/// <remarks>
-	/// This method behaves similarly to the <see cref="string.Split(char[], StringSplitOptions)"/>
-	/// method with the <see cref="StringSplitOptions"/> parameter set to <see
-	/// cref="StringSplitOptions.RemoveEmptyEntries"/>, with the following differences: ///
-	/// <list type="bullet">
-	/// <item>Text that appears inside a pair of double-quote characters will not be split.</item>
-	/// ///
-	/// <item>
-	/// Text that appears after a double-quote character and before the end of the input will not be
-	/// split (that is, an unterminated double-quoted string will be treated as though it had been
-	/// terminated at the end of the input.)
-	/// </item>
-	/// ///
-	/// <item>
-	/// When inside a pair of double-quote characters, the string <c>\\</c> will be converted to
-	/// <c>\</c>, and the string <c>\"</c> will be converted to <c>"</c>.
-	/// </item>
-	/// </list>
-	/// </remarks>
-	private static IEnumerable<string> SplitCommandText(string input)
-	{
-		var reader = new System.IO.StringReader(input.Normalize());
-
-		int c;
-
-		var results = new List<string>();
-		var currentComponent = new System.Text.StringBuilder();
-
-		while ((c = reader.Read()) != -1)
-		{
-			if (char.IsWhiteSpace((char)c))
-			{
-				if (currentComponent.Length > 0)
-				{
-					// We've reached the end of a run of visible characters. Add this run to the
-					// result list and prepare for the next one.
-					results.Add(currentComponent.ToString());
-					currentComponent.Clear();
-				}
-				else
-				{
-					// We encountered a whitespace character, but didn't have any characters queued
-					// up. Skip this character.
-				}
-
-				continue;
-			}
-			else if (c == '\"')
-			{
-				// We've entered a quoted string!
-				while (true)
-				{
-					c = reader.Read();
-					if (c == -1)
-					{
-						results.Add(currentComponent.ToString());
-						return results;
-					}
-					else if (c == '\\')
-					{
-						// Possibly an escaped character!
-						var next = reader.Peek();
-						if (next == '\\' || next == '\"')
-						{
-							// It is! Skip the \ and use the character after it.
-							reader.Read();
-							currentComponent.Append((char)next);
-						}
-						else
-						{
-							// Oops, an invalid escape. Add the \ and whatever is after it.
-							currentComponent.Append((char)c);
-						}
-					}
-					else if (c == '\"')
-					{
-						// The end of a string!
-						break;
-					}
-					else
-					{
-						// Any other character. Add it to the buffer.
-						currentComponent.Append((char)c);
-					}
-				}
-
-				results.Add(currentComponent.ToString());
-				currentComponent.Clear();
-			}
-			else
-			{
-				currentComponent.Append((char)c);
-			}
-		}
-
-		if (currentComponent.Length > 0)
-		{
-			results.Add(currentComponent.ToString());
-		}
-
-		return results;
 	}
 
 	private Dialogue CreateDialogueInstance()

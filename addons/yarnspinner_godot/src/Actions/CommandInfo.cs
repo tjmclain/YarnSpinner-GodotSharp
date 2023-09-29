@@ -1,105 +1,98 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using Godot;
 
 namespace Yarn.GodotSharp.Actions
 {
 	using Converter = Func<string, object>;
 	using GodotNode = Godot.Node;
 
+	[GlobalClass]
 	public partial class CommandInfo : ActionInfo
 	{
-		public CommandInfo(string name, MethodInfo method) : base(name, method)
+		private Converter[] _converters = null;
+
+		public CommandInfo(string name, MethodInfo methodInfo) : base(name, methodInfo)
 		{
-			Target = null;
-			Converters = CreateConverters(method);
 		}
 
-		public CommandInfo(ActionInfo other) : base(other)
-		{
-			Target = null;
-			Converters = CreateConverters(MethodInfo);
-		}
+		public Converter[] Converters => _converters ?? CreateConverters();
 
-		public enum CommandType
-		{
-			Invalid = -1,
-			IsVoid,
-			IsTask,
-		}
-
-		#region Properties
-
-		public object Target { get; private set; }
-		public Converter[] Converters { get; private set; } = Array.Empty<Converter>();
-
-		public CommandType Type
-		{
-			get
-			{
-				Type returnType = ReturnType;
-
-				if (typeof(void).IsAssignableFrom(returnType))
-				{
-					return CommandType.IsVoid;
-				}
-				if (typeof(Task).IsAssignableFrom(returnType))
-				{
-					return CommandType.IsTask;
-				}
-				return CommandType.Invalid;
-			}
-		}
-
-		#endregion Properties
-
-		#region Public Methods
+		protected Dictionary<string, GodotNode> CachedTargets { get; private set; } = new();
 
 		public CommandDispatchResult Invoke(List<string> parameters, out Task commandTask)
 		{
-			object target = !IsStatic ? Target : null;
-			if (!IsStatic && target == null)
-			{
-				throw new ArgumentException("!IsStatic && target == null; method = " + GetFullMethodName(MethodInfo));
-			}
+			commandTask = default;
 
-			if (TryParseArgs(parameters.ToArray(), out var finalParameters, out var errorMessage) == false)
+			if (!TryParseArgs(parameters.ToArray(), out var args, out var errorMessage))
 			{
-				commandTask = default;
 				return new CommandDispatchResult
 				{
+					CommandName = Name,
 					Status = CommandDispatchResult.StatusType.InvalidParameterCount,
 					Message = errorMessage,
 				};
 			}
 
-			var returnValue = MethodInfo.Invoke(target, finalParameters);
+			bool TryGetTarget(out GodotNode target)
+			{
+				target = null;
+				if (IsStatic)
+				{
+					return true;
+				}
+
+				if (args.Length == 0)
+				{
+					return false;
+				}
+
+				string targetName = args[0].ToString();
+				return TryFindTargetInScene(targetName, out target);
+			}
+
+			if (!TryGetTarget(out GodotNode target))
+			{
+				return new CommandDispatchResult()
+				{
+					CommandName = Name,
+					Status = CommandDispatchResult.StatusType.NoTargetFound,
+					Message = new StringBuilder()
+						.Append("CommandInfo.Invoke: ")
+						.Append("!TryGetTarget; ")
+						.Append($"Name = {Name}")
+						.Append($"target = {(args.Length > 0 ? args[0] : null)}")
+						.ToString()
+				};
+			}
+
+			var returnValue = MethodInfo.Invoke(target, args);
 			if (returnValue is Task task)
 			{
 				commandTask = task;
 				return new CommandDispatchResult
 				{
+					CommandName = Name,
 					Status = CommandDispatchResult.StatusType.SucceededAsync
 				};
 			}
 			else
 			{
-				commandTask = default;
 				return new CommandDispatchResult
 				{
+					CommandName = Name,
 					Status = CommandDispatchResult.StatusType.SucceededSync
 				};
 			}
 		}
 
-		#endregion Public Methods
-
-		#region Private Methods
-
-		private static Converter[] CreateConverters(MethodInfo method)
+		protected virtual Converter[] CreateConverters()
 		{
 			static Converter CreateConverter(ParameterInfo parameter, int index)
 			{
@@ -111,7 +104,7 @@ namespace Yarn.GodotSharp.Actions
 					return arg => arg;
 				}
 
-				// find the GameObject.
+				// find the GodotNode.
 				if (typeof(GodotNode).IsAssignableFrom(targetType))
 				{
 					return arg => GodotUtility.GetNode(arg);
@@ -169,7 +162,14 @@ namespace Yarn.GodotSharp.Actions
 				};
 			}
 
-			ParameterInfo[] parameterInfos = method.GetParameters();
+			if (MethodInfo == null)
+			{
+				GD.PushError($"{nameof(CreateConverters)}: {nameof(MethodInfo)} == null");
+				_converters = null;
+				return null;
+			}
+
+			ParameterInfo[] parameterInfos = MethodInfo.GetParameters();
 			Converter[] result = new Converter[parameterInfos.Length];
 
 			for (int i = 0; i < parameterInfos.Length; i++)
@@ -177,7 +177,31 @@ namespace Yarn.GodotSharp.Actions
 				var info = parameterInfos[i];
 				result[i] = CreateConverter(info, i);
 			}
+
+			_converters = result;
 			return result;
+		}
+
+		protected virtual bool TryFindTargetInScene(string name, out GodotNode target)
+		{
+			if (CachedTargets.TryGetValue(name, out target))
+			{
+				if (target != null)
+				{
+					return true;
+				}
+
+				CachedTargets.Remove(name);
+			}
+
+			target = GodotUtility.GetNode(name);
+			if (target != null)
+			{
+				CachedTargets[name] = target;
+				return true;
+			}
+
+			return false;
 		}
 
 		private (int Min, int Max) GetParameterCount()
@@ -301,7 +325,5 @@ namespace Yarn.GodotSharp.Actions
 		}
 
 		#endregion Diagnostic Utility Methods
-
-		#endregion Private Methods
 	}
 }

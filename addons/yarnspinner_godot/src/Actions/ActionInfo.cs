@@ -7,7 +7,7 @@ namespace Yarn.GodotSharp.Actions
 {
 	using Expression = System.Linq.Expressions.Expression;
 
-	[Tool]
+	[GlobalClass]
 	public partial class ActionInfo : Resource
 	{
 		private MethodInfo _methodInfo;

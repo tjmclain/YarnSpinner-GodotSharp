@@ -44,25 +44,25 @@ public static class GodotUtility
 		return currentScene?.GetNode<T>(path);
 	}
 
-	public static GodotNode GetChild(GodotNode node, Type type)
+	public static GodotNode GetChild<T>(GodotNode node) where T : GodotNode
 	{
 		if (node == null)
 		{
-			GD.PrintErr("node == null");
-			return null;
+			GD.PushError("node == null");
+			return default;
 		}
 
 		int count = node.GetChildCount();
 		for (int i = 0; i < count; i++)
 		{
 			var child = node.GetChild(i);
-			if (type.IsAssignableFrom(child.GetType()))
+			if (child is T result)
 			{
-				return child;
+				return result;
 			}
 		}
 
-		return null;
+		return default;
 	}
 
 	public static Error ReadCsv(string csvFile, out string[] headers, out List<Dictionary<string, string>> data)
