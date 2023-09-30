@@ -156,7 +156,6 @@ namespace Yarn.GodotSharp
 
 			foreach (var kvp in other.CustomFields)
 			{
-				GD.PushWarning($"{kvp.Key}: {kvp.Value}");
 				CustomFields[kvp.Key] = kvp.Value;
 			}
 		}
