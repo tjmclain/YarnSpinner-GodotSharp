@@ -8,6 +8,14 @@ The scripts included in this plugin are based on Yarn Spinner's own [Unity packa
 
 If you encounter an issue, please report it to the [Github page for this project](https://github.com/tjmclain/YarnSpinner-GodotSharp).
 
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+1. [Quick Start](#quick-start)
+1. [Features](#features)
+1. [Migrating from Unity](#migrating-from-unity)
+1. [Using async / await in Godot](#using-async--await-in-godot)
+
 ## Prerequisites
 
 > **⚠️ Important**
