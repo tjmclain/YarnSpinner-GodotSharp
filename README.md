@@ -51,6 +51,7 @@ TODO
   - [x] `Variable`: save Yarn variables as Godot `Variant`s during runtime
 - [x] `ActionLibrary`: stores Yarn commands and functions
   - [x] Add `YarnCommand` and `YarnFunction` attributes to methods to find them automatically
+  - [x] Supports both static and non-static `YarnCommand`s; however, `YarnFunction`s must be static
 
 ### Dialogue Views:
 
