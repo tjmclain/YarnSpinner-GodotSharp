@@ -54,7 +54,13 @@ TODO
 
 ### Dialogue Views:
 
-- [x] `DialogueViewGroup`: container for other dialogue views
+- [x] Dialogue View interfaces: implement one or more of these in a custom `Control` class to present dialogue
+  - [x] IDialogueStartedHandler
+  - [x] IDialogueCompleteHandler
+  - [x] IRunLineHandler
+  - [x] IRunOptionsHandler
+- [x] Use `async` / `await` operators to present dialogue via multithreaded C# `Task`s
+- [x] `DialogueViewGroup`: container for other dialogue views or view groups
 - [x] `DialogueLine`: displays a line of dialogue and (optionally) the speaking character's name
 - [x] `OptionsListView`: displays dialogue options and handles option selection
 - [x] `OptionView`: displays a single option
