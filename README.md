@@ -4,7 +4,7 @@ This plugin is an implementation of the [Yarn Spinner](https://yarnspinner.dev/)
 
 This plugin uses C# exclusively. If you are writing your game in GDScript, consider using the awesome [GDYarn plugin](https://godotengine.org/asset-library/asset/747) instead of this one.
 
-The scripts included in this plugin are based on Yarn Spinner's own [Unity package](https://github.com/YarnSpinnerTool/YarnSpinner-Unity), but there are some important differences. Those are noted in the [wiki](https://github.com/tjmclain/YarnSpinner-GodotSharp/wiki/Getting-Started).
+The scripts included in this plugin are based on Yarn Spinner's own [Unity package](https://github.com/YarnSpinnerTool/YarnSpinner-Unity), but there are some important differences. See [Migrating from Unity](#migrating-from-unity) for more information.
 
 If you encounter an issue, please report it to the [Github page for this project](https://github.com/tjmclain/YarnSpinner-GodotSharp).
 
@@ -36,7 +36,7 @@ If you're using Visual Studio as your IDE for your C# project, you can add these
 
 If you encounter any issues with installing these packages, you can consult the official [NuGet documentation](https://learn.microsoft.com/en-gb/nuget/what-is-nuget). If you don't find any an answer to your problem there, please create an issue on this project's [Github page](https://github.com/tjmclain/YarnSpinner-GodotSharp/issues).
 
-## Getting Started
+## Quick Start
 
 TODO
 
@@ -76,14 +76,24 @@ TODO
   - [x] "Lock" field is used to identify when translations are out of date with their source string
   - [x] "CustomFields" stores any custom values imported from the CSV (e.g. if you add a "Comments" field, it will be stored here)
 
+### Examples
+
+TODO
+
 ### TODO
 
+- [ ] Update README 'Quick Start' section
+- [ ] Update README 'Migrating from Unity' section
 - [ ] Create example scenes to demo addon functionality
 - [ ] Allow using Godot's internationalization system for translating strings
 - [ ] Cache certain data offline to optimize `DialogueRunner` startup
   - [ ] Cache `YarnProject` program as a `PackedByteArray`
   - [ ] Cache `YarnProject`'s internal `StringTable`
   - [ ] Cache `ActionLibrary`'s lists of `ActionInfo`s
+
+## Migrating from Unity
+
+TODO
 
 ## Using `async` / `await` in Godot
 
