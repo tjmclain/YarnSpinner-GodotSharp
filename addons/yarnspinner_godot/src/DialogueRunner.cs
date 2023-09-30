@@ -93,7 +93,7 @@ public partial class DialogueRunner : Godot.Node
 	public ActionLibrary ActionLibrary { get; private set; } = null;
 
 	[Export]
-	public DialogueViewGroup DialogueViewGroup { get; set; } = null;
+	public DialogueViewGroup MainDialogueViewGroup { get; set; } = null;
 
 	[Export(PropertyHint.None, "If true, will print GD.Print messages every time it enters a node, and other frequent events")]
 	public bool VerboseLogging { get; set; }
@@ -280,7 +280,7 @@ public partial class DialogueRunner : Godot.Node
 		CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.DialogueStarting);
 
 		// Signal that we're starting up.
-		DialogueViewGroup?.DialogueStarted();
+		MainDialogueViewGroup?.DialogueStarted();
 
 		// Request that the dialogue select the current node. This will prepare the dialogue for
 		// running; as a side effect, our prepareForLines delegate may be called.
@@ -355,7 +355,7 @@ public partial class DialogueRunner : Godot.Node
 	/// <param name="line">The line to send to the dialogue views.</param>
 	private async Task HandleLine(Line line)
 	{
-		if (DialogueViewGroup == null)
+		if (MainDialogueViewGroup == null)
 		{
 			GD.PushError("HandleLine: DialogueViewGroup == null");
 			ContinueDialogue();
@@ -401,7 +401,7 @@ public partial class DialogueRunner : Godot.Node
 		GD.Print("Run line: " + CurrentLine.Text.Text);
 		using (var cts = new CancellationTokenSource())
 		{
-			await DialogueViewGroup.RunLine(
+			await MainDialogueViewGroup.RunLine(
 				CurrentLine,
 				() => cts.Cancel(),
 				cts.Token
@@ -409,7 +409,7 @@ public partial class DialogueRunner : Godot.Node
 		}
 
 		GD.Print("Dismiss line");
-		await DialogueViewGroup.DismissLine(CurrentLine);
+		await MainDialogueViewGroup.DismissLine(CurrentLine);
 
 		ContinueDialogue();
 	}
@@ -434,7 +434,7 @@ public partial class DialogueRunner : Godot.Node
 			return;
 		}
 
-		if (DialogueViewGroup == null)
+		if (MainDialogueViewGroup == null)
 		{
 			GD.PushError("HandleOptions: DialogueViewGroup == null");
 			Dialogue.SetSelectedOption(options[0].ID);
@@ -475,7 +475,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			// RunOptions
 			await Task.Run(
-				() => DialogueViewGroup.RunOptions(dialogueOptions, (index) =>
+				() => MainDialogueViewGroup.RunOptions(dialogueOptions, (index) =>
 				{
 					selectedOptionIndex = index;
 					cts.Cancel();
@@ -493,7 +493,7 @@ public partial class DialogueRunner : Godot.Node
 		}
 
 		// DismissOptions
-		await DialogueViewGroup.DismissOptions(dialogueOptions, selectedOptionIndex);
+		await MainDialogueViewGroup.DismissOptions(dialogueOptions, selectedOptionIndex);
 
 		var selectedOption = dialogueOptions[selectedOptionIndex];
 		Dialogue.SetSelectedOption(selectedOption.DialogueOptionID);
@@ -513,13 +513,13 @@ public partial class DialogueRunner : Godot.Node
 	{
 		EmitSignal(SignalName.DialogueCompleted);
 
-		if (DialogueViewGroup == null)
+		if (MainDialogueViewGroup == null)
 		{
 			GD.PushError("HandleOptions: DialogueViewGroup == null");
 			return;
 		}
 
-		DialogueViewGroup.DialogueComplete();
+		MainDialogueViewGroup.DialogueComplete();
 	}
 
 	private void ContinueDialogue(bool dontRestart = false)

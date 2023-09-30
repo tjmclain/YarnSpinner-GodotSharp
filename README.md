@@ -63,12 +63,12 @@ TODO
 
 ### Dialogue Views:
 
-- [x] Dialogue View interfaces: implement one or more of these in a custom `Control` class to present dialogue
-  - [x] IDialogueStartedHandler
-  - [x] IDialogueCompleteHandler
-  - [x] IRunLineHandler
-  - [x] IRunOptionsHandler
-- [x] Use `async` / `await` operators to present dialogue via multithreaded C# `Task`s (see [Using `async` / `await` in Godot](#using-async--await-in-godot))
+- [x] Dialogue View interfaces: implement one or more of these in a custom `Control`
+  - [x] IDialogueStartedHandler: receive a callback when dialogue starts
+  - [x] IDialogueCompleteHandler: receive a callback when dialogue completes
+  - [x] IRunLineHandler: handle presenting and dismissing a line of dialogue
+  - [x] IRunOptionsHandler: handle presenting and selecting dialogue options
+- [x] [Use `async` / `await` operators](#using-async--await-in-godot) to present dialogue via multithreaded C# `Task`s
 - [x] `DialogueViewGroup`: container for other dialogue views or view groups
 - [x] `DialogueLine`: displays a line of dialogue and (optionally) the speaking character's name
 - [x] `OptionsListView`: displays dialogue options and handles option selection
@@ -86,7 +86,26 @@ TODO
 
 ### Examples
 
-TODO
+This plugin for Godot is similar in many ways to YarnSpinner's offical Unity plugin. The main types used in this plugin are the same, and much of the code is simliar if not exactly the same. However, this code base differs in some important ways, and that means migrating an existing Yarn Spinner project in Unity to Godot using this plugin will require some refactoring.
+
+- Dialogue Runner
+  - Uses `async` / `await` operations and `Task`s to handle dialogue flow instead of callbacks.
+  - Holds a reference to one `DialogueViewGroup` rather than a list of `DialogueViewBase`s
+- Commands
+  - Commands can return either `void` or `Task`.
+  - Commands cannot return `IEnumerator` because Unity-style `Coroutine`s are not supported in Godot.
+- Dialogue Views
+  - There is no `DialogueViewBase` class for Dialouge Views to inherit from; instead there are individual interfaces:
+    - IDialogueStartedHandler
+    - IDialogueCompleteHandler
+    - IRunLineHandler
+    - IRunOptionsHandler
+  - To create a Dialogue View:
+    - Create a class that inherits from `Godot.Control` (or one of its subclasses)
+    - Implement one or more of the above interfaces in that class
+  - Dialogue Views are stored in a `DialogueViewGroup` rather than in `DialougeRunner`
+    - `DialogueViewGroup` should be the main container for the other dialogue views
+    - `DialogueViewGroup`s can contain other `DialogueViewGroup`s
 
 ### TODO
 
@@ -94,6 +113,8 @@ TODO
 - [ ] Update README 'Migrating from Unity' section
 - [ ] Create example scenes to demo addon functionality
 - [ ] Allow using Godot's internationalization system for translating strings
+- [ ] Add `ITransitionInHandler` and `ITransitionOutHandler` interfaces
+- [ ] Create `DialogueViewGroupController` class to allow switching between active view groups
 - [ ] Cache certain data offline to optimize `DialogueRunner` startup
   - [ ] Cache `YarnProject` program as a `PackedByteArray`
   - [ ] Cache `YarnProject`'s internal `StringTable`

@@ -13,9 +13,14 @@ namespace Yarn.GodotSharp.Views
 		[Export]
 		public virtual Godot.Collections.Array<Godot.Node> DialogueViews { get; set; } = new();
 
+		protected virtual IEnumerable<Godot.Node> GetActiveDialogueViews()
+		{
+			return DialogueViews;
+		}
+
 		public virtual void DialogueStarted()
 		{
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IDialogueStartedHandler)
 				.Where(x => x != null);
 
@@ -27,7 +32,7 @@ namespace Yarn.GodotSharp.Views
 
 		public virtual void DialogueComplete()
 		{
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IDialogueCompleteHandler)
 				.Where(x => x != null);
 
@@ -52,7 +57,7 @@ namespace Yarn.GodotSharp.Views
 				return;
 			}
 
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IRunLineHandler)
 				.Where(x => x != null);
 
@@ -97,7 +102,7 @@ namespace Yarn.GodotSharp.Views
 			GD.Print($"DialogueViewGroup.DismissLine - Begin; Name = {Name}");
 			SafeDisposeInternalTokenSource();
 
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IRunLineHandler)
 				.Where(x => x != null);
 
@@ -127,7 +132,7 @@ namespace Yarn.GodotSharp.Views
 
 			int selectedOptionIndex = -1;
 
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IRunOptionsHandler)
 				.Where(x => x != null);
 
@@ -171,7 +176,7 @@ namespace Yarn.GodotSharp.Views
 		{
 			SafeDisposeInternalTokenSource();
 
-			var views = DialogueViews
+			var views = GetActiveDialogueViews()
 				.Select(x => x as IRunOptionsHandler)
 				.Where(x => x != null);
 
