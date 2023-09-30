@@ -8,4 +8,3 @@ The scripts included in this plugin are based on Yarn Spinner's own [Unity packa
 
 If you encounter an issue, please report it to the [Github page for this project](https://github.com/tjmclain/YarnSpinner-GodotSharp).
 
-For more information about this plugin and best practices for its use, please refer to the [project wiki](https://github.com/tjmclain/YarnSpinner-GodotSharp/wiki/Getting-Started).
