@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Linq;
 using System.Collections;
 using System;
+using System.Resources;
 
 namespace Yarn.GodotSharp
 {
@@ -100,7 +101,7 @@ namespace Yarn.GodotSharp
 			}
 		}
 
-		public void MergeFrom(StringTable other)
+		public virtual void MergeFrom(StringTable other)
 		{
 			if (other == null)
 			{
@@ -110,11 +111,30 @@ namespace Yarn.GodotSharp
 
 			foreach (var kvp in other.Entries)
 			{
+				// try to find an entry with matching id to merge with
 				if (TryGetValue(kvp.Key, out var entry))
 				{
 					entry.MergeFrom(kvp.Value);
 					continue;
 				}
+
+				var translations = kvp.Value.Translations;
+				if (!translations.Any())
+				{
+					// abort merging entries that:
+					// 1) do not have the id of any entry in our table
+					// 2) do not have any translations
+					continue;
+				}
+
+				// if an entry has tranlations, add it to the table but let the user know we're
+				// doing this because they will likely want to manually merge it
+				GD.PushWarning("StringTable.MergeFrom: ",
+					$"Adding entry '{kvp.Key}' during merge; ",
+					"remove this entry from the table if no longer valid, ",
+					"or manually merge it with another entry. ",
+					$"(this = {ResourceName}, other = {other.ResourceName})"
+				);
 
 				this[kvp.Key] = kvp.Value;
 			}

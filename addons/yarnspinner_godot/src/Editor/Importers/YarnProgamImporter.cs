@@ -16,9 +16,8 @@ namespace Yarn.GodotSharp.Editor.Importers
 	{
 		protected ImporterStringSubstitutions Substitutions { get; private set; }
 
-		protected virtual Error ExportTranslationFile(
+		protected virtual Error ExportStringTableFile(
 			string sourceFile,
-			CompilationResult compilationResult,
 			Dictionary importOptions,
 			out string stringTableFile
 		)
@@ -34,6 +33,13 @@ namespace Yarn.GodotSharp.Editor.Importers
 			if (!option.AsBool())
 			{
 				return Error.Ok;
+			}
+
+			var compileError = YarnProgram.Compile(sourceFile, out var compilationResult);
+			if (compileError != Error.Ok)
+			{
+				GD.PushError($"!YarnProgram.Compile '{sourceFile}'");
+				return compileError;
 			}
 
 			var stringInfo = compilationResult.StringTable;
@@ -95,9 +101,9 @@ namespace Yarn.GodotSharp.Editor.Importers
 			{
 				if (file == null)
 				{
-					var error = FileAccess.GetOpenError();
-					GD.PushError($"!FileAccess.Open '{stringTableFile}'; error = {error}");
-					return error;
+					var openError = FileAccess.GetOpenError();
+					GD.PushError($"!FileAccess.Open '{stringTableFile}'; openError = {openError}");
+					return openError;
 				}
 
 				// Write header row
@@ -143,8 +149,47 @@ namespace Yarn.GodotSharp.Editor.Importers
 			return Error.Ok;
 		}
 
+		protected virtual Error AddLineIdTags(string sourceFile, Dictionary options)
+		{
+			options.TryGetValue(OptionName.AddLineIdTags, out var addLineIdTags);
+			if (!addLineIdTags.AsBool())
+			{
+				return Error.Ok;
+			}
+
+			string globalPath = ProjectSettings.GlobalizePath(sourceFile);
+			string contents = File.ReadAllText(globalPath);
+			if (string.IsNullOrEmpty(contents))
+			{
+				GD.PushError("AddLineIdTags: File.ReadAllText encounted an error");
+				return Error.InvalidData;
+			}
+
+			// Produce a version of this file that contains line
+			// tags added where they're needed.
+			var taggedContents = Utility.AddTagsToLines(contents);
+
+			// if the file has an error it returns null
+			// we want to bail out then otherwise we'd wipe the yarn file
+			if (string.IsNullOrEmpty(taggedContents))
+			{
+				GD.PushError("AddLineIdTags: Utility.AddTagsToLines encountered an error");
+				return Error.InvalidData;
+			}
+
+			// If this produced a modified version of the file,
+			// write it out and re-import it.
+			if (contents != taggedContents)
+			{
+				File.WriteAllText(globalPath, taggedContents);
+			}
+
+			return Error.Ok;
+		}
+
 		public static class OptionName
 		{
+			public const string AddLineIdTags = "add_line_id_tags";
 			public const string ExportStringsForTranslation = "export_strings_for_translation";
 			public const string StringTableFilePath = "string_table_file_path";
 		}
@@ -204,6 +249,11 @@ namespace Yarn.GodotSharp.Editor.Importers
 			{
 				new Dictionary
 				{
+					{ GodotEditorPropertyInfo.NameKey, OptionName.AddLineIdTags },
+					{ GodotEditorPropertyInfo.DefaultValueKey, false },
+				},
+				new Dictionary
+				{
 					{ GodotEditorPropertyInfo.NameKey, OptionName.ExportStringsForTranslation },
 					{ GodotEditorPropertyInfo.DefaultValueKey, false },
 				},
@@ -240,24 +290,21 @@ namespace Yarn.GodotSharp.Editor.Importers
 
 			var yarnProgram = new YarnProgram() { SourceFile = sourceFile };
 
-			// Compile yarn program source file
-			var error = YarnProgram.Compile(sourceFile, out var compilationResult);
-			if (error != Error.Ok)
+			var addLineIdTagsResult = AddLineIdTags(sourceFile, options);
+			if (addLineIdTagsResult != Error.Ok)
 			{
-				GD.PushError($"!yarnProgram.SetSourceFile '{sourceFile}'");
-				return error;
+				return addLineIdTagsResult;
 			}
 
-			var exportTranslationsResult = ExportTranslationFile(
+			var exportStringTableResult = ExportStringTableFile(
 				sourceFile,
-				compilationResult,
 				options,
 				out string stringTableFile
 			);
 
-			if (exportTranslationsResult != Error.Ok)
+			if (exportStringTableResult != Error.Ok)
 			{
-				return exportTranslationsResult;
+				return exportStringTableResult;
 			}
 
 			yarnProgram.StringTableFile = stringTableFile;

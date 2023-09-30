@@ -12,5 +12,6 @@ dest_files=["res://.godot/imported/demo.yarn-8d5e074499d34464a94adb67ecf88f94.tr
 
 [params]
 
+add_line_id_tags=true
 export_strings_for_translation=true
 string_table_file_path="$(SourceDir)/$(SourceFileName).csv"

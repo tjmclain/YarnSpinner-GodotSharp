@@ -1,18 +1,18 @@
 title: Start
 ---
 
-This is a line of action description.
+This line is a bit of action description. #line:053bd8f 
 
-Character: This is a line of dialogue. #emote:neutral #focus:Character
+Character: This is a line of dialogue. #emote:neutral #focus:Character #line:04b22f5 
 
-Here are some options.
--> Heads.
-	It's tails. Better luck next time!
-	Character: Drat!
--> Tails.
-	The coin lands on tails. You called it!
-	Character: Yes!
--> The coin lands perfectly balanced on its side.
-	Character: How did that happen?
+Here are some options. #line:00c5d0d 
+-> Heads. #line:0a11b57 
+	It's tails. Better luck next time! #line:0683c72 
+	Character: Drat! #line:0884af0 
+-> Tails. #line:02d1e1c 
+	The coin lands on tails. You called it! #line:05b73e7 
+	Character: Yes! #line:0850d50 
+-> The coin lands perfectly balanced on its side. #line:0cbb59d 
+	Character: How did that happen? #line:007f7f1 
 
 ===

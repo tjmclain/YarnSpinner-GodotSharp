@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Godot;
 using Yarn.Compiler;
@@ -127,7 +125,7 @@ namespace Yarn.GodotSharp
 		public string GetTranslation(string locale)
 			=> Translations.TryGetValue(locale, out string value) ? value : Text;
 
-		public void MergeFrom(StringTableEntry other)
+		public virtual void MergeFrom(StringTableEntry other)
 		{
 			if (other == null)
 			{
@@ -138,7 +136,11 @@ namespace Yarn.GodotSharp
 			bool lockMismatch = Lock != other.Lock;
 			if (lockMismatch)
 			{
-				GD.PushWarning($"Lock mismatch. Translations may be out of date. line id = {Id}, {Lock} != {other.Lock}");
+				GD.PushWarning($"StringTableEntry.MergeFrom: Lock mismatch! ",
+					"Translations may be out of date. ",
+					$"Adding '#lock:{other.Lock}' tags to translated strings; ",
+					"remove these manually if strings do not require updates. ",
+					$"(line id = {Id}, {Lock} != {other.Lock})");
 			}
 
 			foreach (var kvp in other.Translations)
@@ -147,8 +149,7 @@ namespace Yarn.GodotSharp
 				string value = kvp.Value;
 				if (lockMismatch)
 				{
-					// don't remove the translation if there's a mismatch; just append a metadata tag
-					value += $" #lock={other.Lock}";
+					value += $" #lock:{other.Lock}";
 				}
 
 				Translations[locale] = value;
