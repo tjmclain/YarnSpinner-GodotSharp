@@ -58,6 +58,11 @@ namespace Yarn.GodotSharp.Editor.Importers
 			stringTableFile = tranlationFilePath.AsString();
 			stringTableFile = Substitutions.InterpolateString(stringTableFile);
 
+			if (!stringTableFile.EndsWith(".csv"))
+			{
+				stringTableFile += ".csv";
+			}
+
 			string globalPath = ProjectSettings.GlobalizePath(stringTableFile);
 			string globalDir = Path.GetDirectoryName(globalPath);
 

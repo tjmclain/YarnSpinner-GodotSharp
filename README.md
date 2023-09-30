@@ -32,7 +32,7 @@ If you're using Visual Studio as your IDE for your C# project, you can add these
 2. On the **Browse** tab, search for YarnSpinner
 3. Install the **YarnSpinner** and **YarnSpinner.Compiler** projects by selecting them in the list and then clicking the **Install** button.
 
-![NuGet Package Manager](https://github.com/tjmclain/YarnSpinner-GodotSharp/blob/master/addons/yarnspinner_godot/.screenshots/vs_nuget_package_manager_highlights.png)
+![NuGet Package Manager](./addons/yarnspinner_godot/.screenshots/vs_nuget_package_manager_highlights.png)
 
 If you encounter any issues with installing these packages, you can consult the official [NuGet documentation](https://learn.microsoft.com/en-gb/nuget/what-is-nuget). If you don't find any an answer to your problem there, please create an issue on this project's [Github page](https://github.com/tjmclain/YarnSpinner-GodotSharp/issues).
 
@@ -40,4 +40,40 @@ If you encounter any issues with installing these packages, you can consult the 
 
 TODO
 
-## Feature
+## Features
+
+### Runtime:
+
+- [x] `DialogueRunner`: runtime Dialogue state control
+- [x] `LineProvider`: serves localized dialogue lines to dialogue views
+  - [ ] Serve localized audio files
+- [x] `VariableStorage`: stores Yarn variables
+  - [x] `Variable`: save Yarn variables as Godot `Variant`s during runtime
+- [x] `ActionLibrary`: stores Yarn commands and functions
+  - [x] Add `YarnCommand` and `YarnFunction` attributes to methods to find them automatically
+
+### Dialogue Views:
+
+- [x] `DialogueViewGroup`: container for other dialogue views
+- [x] `DialogueLine`: displays a line of dialogue and (optionally) the speaking character's name
+- [x] `OptionsListView`: displays dialogue options and handles option selection
+- [x] `OptionView`: displays a single option
+
+### Yarn Data:
+
+- [x] `YarnProgram`: a '.yarn' file that contains a single yarn program
+  - [x] "Add Line ID Tags": optionally generate and assign `lineid` tags to each line in a '.yarn' file
+  - [x] "Export Strings For Translation": optionally export a csv file representing a `StringTable`
+- [x] `YarnProject`: collects and compiles several yarn programs into one unified program
+- [x] `StringTable`: a collection of `StringTableEntry`s that associates a translatable string with its translations and metadata
+  - [x] "Lock" field is used to identify when translations are out of date with their source string
+  - [x] "CustomFields" stores any custom values imported from the CSV (e.g. if you add a "Comments" field, it will be stored here)
+
+### TODO
+
+- [ ] Create example scenes to demo addon functionality
+- [ ] Allow using Godot's internationalization system for translating strings
+- [ ] Cache certain data offline to optimize `DialogueRunner` startup
+  - [ ] Cache `YarnProject` program as a `PackedByteArray`
+  - [ ] Cache `YarnProject`'s internal `StringTable`
+  - [ ] Cache `ActionLibrary`'s lists of `ActionInfo`s
