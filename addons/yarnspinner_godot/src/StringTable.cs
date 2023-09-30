@@ -2,14 +2,16 @@ using Godot;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
+using System.Collections;
+using System;
 
 namespace Yarn.GodotSharp
 {
 	[GlobalClass]
-	public partial class StringTable : Resource
+	public partial class StringTable : Resource, IDictionary<string, StringTableEntry>
 	{
 		[Export]
-		public string[] CsvHeaders { get; set; } = System.Array.Empty<string>();
+		public string[] CsvHeaders { get; set; } = Array.Empty<string>();
 
 		[Export]
 		public Godot.Collections.Dictionary<string, StringTableEntry> Entries { get; set; } = new();
@@ -20,18 +22,54 @@ namespace Yarn.GodotSharp
 
 		public ICollection<StringTableEntry> Values => Entries.Values;
 
+		public int Count => Entries.Count;
+
+		public bool IsReadOnly => Entries.IsReadOnly;
+
 		public StringTableEntry this[string key]
 		{
 			get => Entries[key];
 			set => Entries[key] = value;
 		}
 
+		public bool ContainsKey(string key) => Entries.ContainsKey(key);
+
 		public bool TryGetValue(string key, out StringTableEntry entry)
 			=> Entries.TryGetValue(key, out entry);
 
-		#endregion IDictionary<string, StringTableEntry>
+		public void Add(string key, StringTableEntry value)
+			=> Entries.ContainsKey(key);
+
+		public bool Remove(string key)
+			=> Entries.Remove(key);
+
+		public void Add(KeyValuePair<string, StringTableEntry> item)
+			=> Entries.Add(item.Key, item.Value);
+
+		public bool Contains(KeyValuePair<string, StringTableEntry> item)
+			=> Entries.Contains(item);
+
+		public void CopyTo(KeyValuePair<string, StringTableEntry>[] array, int arrayIndex)
+		{
+			foreach (var kvp in Entries)
+			{
+				array[arrayIndex] = kvp;
+				arrayIndex++;
+			}
+		}
+
+		public bool Remove(KeyValuePair<string, StringTableEntry> item)
+			=> Entries.Remove(item.Key);
+
+		public IEnumerator<KeyValuePair<string, StringTableEntry>> GetEnumerator()
+			=> Entries.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator()
+			=> Entries.GetEnumerator();
 
 		public void Clear() => Entries.Clear();
+
+		#endregion IDictionary<string, StringTableEntry>
 
 		public bool TryGetTranslation(string key, out string value)
 			=> TryGetTranslation(key, TranslationServer.GetLocale(), out value);

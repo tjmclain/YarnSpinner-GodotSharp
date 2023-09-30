@@ -12,6 +12,8 @@ namespace Yarn.GodotSharp
 	[GlobalClass]
 	public partial class StringTableEntry : Resource
 	{
+		private const string _delimeter = ", ";
+
 		/// <summary>
 		/// The line ID for this line. This value will be the same across all localizations.
 		/// </summary>
@@ -48,12 +50,10 @@ namespace Yarn.GodotSharp
 		public string Lock { get; set; } = string.Empty;
 
 		[Export]
-		public Godot.Collections.Dictionary<string, string> Translations = new();
+		public string[] Metadata { get; set; } = Array.Empty<string>();
 
 		[Export]
-		public Godot.Collections.Dictionary<string, string> CustomFields = new();
-
-		public string[] Metadata { get; set; } = Array.Empty<string>();
+		public Godot.Collections.Dictionary<string, string> Translations = new();
 
 		#region Public Constructors
 
@@ -83,11 +83,21 @@ namespace Yarn.GodotSharp
 				if (properties.TryGetValue(kvp.Key, out var property))
 				{
 					var type = property["type"].As<Variant.Type>();
-					var value = type == Variant.Type.String
-						? kvp.Value
-						: GD.StrToVar(kvp.Value);
+					switch (type)
+					{
+						case Variant.Type.String:
+							Set(kvp.Key, kvp.Value);
+							break;
 
-					Set(kvp.Key, value);
+						case Variant.Type.PackedStringArray:
+							Set(kvp.Key, kvp.Value.Split(_delimeter));
+							break;
+
+						default:
+							Set(kvp.Key, GD.StrToVar(kvp.Value));
+							break;
+					}
+
 					continue;
 				}
 
@@ -96,8 +106,6 @@ namespace Yarn.GodotSharp
 					Translations[kvp.Key] = kvp.Value;
 					continue;
 				}
-
-				CustomFields[kvp.Key] = kvp.Value;
 			}
 		}
 
@@ -107,9 +115,7 @@ namespace Yarn.GodotSharp
 			=> GetTranslation(TranslationServer.GetLocale());
 
 		public string GetTranslation(string locale)
-		{
-			return Translations.TryGetValue(locale, out string value) ? value : Text;
-		}
+			=> Translations.TryGetValue(locale, out string value) ? value : Text;
 
 		public void MergeTranslationsFrom(StringTableEntry other)
 		{
@@ -171,16 +177,24 @@ namespace Yarn.GodotSharp
 				if (propertyNames.Contains(key))
 				{
 					var variant = Get(key);
-					value = variant.VariantType == Variant.Type.String
-						? variant.AsString()
-						: GD.VarToStr(variant);
+					switch (variant.VariantType)
+					{
+						case Variant.Type.String:
+							value = variant.AsString();
+							break;
+
+						case Variant.Type.PackedStringArray:
+							value = string.Join(_delimeter, variant.AsStringArray());
+							break;
+
+						default:
+							value = GD.VarToStr(variant);
+							break;
+					}
 
 					line.Add(value);
 					continue;
 				}
-
-				CustomFields.TryGetValue(key, out value);
-				line.Add(value);
 			}
 
 			return line.ToArray();
