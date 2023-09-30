@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Transactions;
 using Godot;
 using Yarn.Compiler;
 
@@ -68,6 +69,17 @@ namespace Yarn.GodotSharp
 			Text = stringInfo.text;
 			Lock = GetHashString(stringInfo.text, 8);
 			Metadata = stringInfo.metadata;
+		}
+
+		public StringTableEntry(StringTableEntry other)
+		{
+			Id = other.Id;
+			Text = other.Text;
+			Lock = other.Lock;
+			Metadata = new string[other.Metadata.Length];
+			Array.Copy(other.Metadata, Metadata, other.Metadata.Length);
+			Translations = new Godot.Collections.Dictionary<string, string>(other.Translations);
+			CustomFields = new Godot.Collections.Dictionary<string, string>(other.CustomFields);
 		}
 
 		public StringTableEntry(IDictionary<string, string> values)

@@ -133,10 +133,12 @@ namespace Yarn.GodotSharp
 					$"Adding entry '{kvp.Key}' during merge; ",
 					"remove this entry from the table if no longer valid, ",
 					"or manually merge it with another entry. ",
-					$"(this = {ResourceName}, other = {other.ResourceName})"
+					"(look for entries with no 'Lock' value)"
 				);
 
-				this[kvp.Key] = kvp.Value;
+				var copy = new StringTableEntry(kvp.Value);
+				copy.Lock = string.Empty;
+				this[kvp.Key] = copy;
 			}
 		}
 
