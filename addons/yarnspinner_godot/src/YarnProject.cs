@@ -147,7 +147,7 @@ namespace Yarn.GodotSharp
 					continue;
 				}
 
-				StringTable.MergeTranslationsFrom(stringTable);
+				StringTable.MergeFrom(stringTable);
 			}
 
 			return _program;

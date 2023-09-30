@@ -55,6 +55,9 @@ namespace Yarn.GodotSharp
 		[Export]
 		public Godot.Collections.Dictionary<string, string> Translations = new();
 
+		[Export]
+		public Godot.Collections.Dictionary<string, string> CustomFields = new();
+
 		#region Public Constructors
 
 		public StringTableEntry()
@@ -80,6 +83,11 @@ namespace Yarn.GodotSharp
 
 			foreach (var kvp in values)
 			{
+				if (string.IsNullOrEmpty(kvp.Value))
+				{
+					continue;
+				}
+
 				if (properties.TryGetValue(kvp.Key, out var property))
 				{
 					var type = property["type"].As<Variant.Type>();
@@ -106,6 +114,8 @@ namespace Yarn.GodotSharp
 					Translations[kvp.Key] = kvp.Value;
 					continue;
 				}
+
+				CustomFields[kvp.Key] = kvp.Value;
 			}
 		}
 
@@ -117,18 +127,11 @@ namespace Yarn.GodotSharp
 		public string GetTranslation(string locale)
 			=> Translations.TryGetValue(locale, out string value) ? value : Text;
 
-		public void MergeTranslationsFrom(StringTableEntry other)
+		public void MergeFrom(StringTableEntry other)
 		{
 			if (other == null)
 			{
 				GD.PushError("MergeTranslationsFrom: other == null");
-				return;
-			}
-
-			var translations = other.Translations;
-			if (translations == null)
-			{
-				GD.PushError("MergeTranslationsFrom: translations == null");
 				return;
 			}
 
@@ -138,14 +141,9 @@ namespace Yarn.GodotSharp
 				GD.PushWarning($"Lock mismatch. Translations may be out of date. line id = {Id}, {Lock} != {other.Lock}");
 			}
 
-			foreach (var kvp in translations)
+			foreach (var kvp in other.Translations)
 			{
 				string locale = kvp.Key;
-				if (!IsLocaleCode(locale))
-				{
-					continue;
-				}
-
 				string value = kvp.Value;
 				if (lockMismatch)
 				{
@@ -154,6 +152,12 @@ namespace Yarn.GodotSharp
 				}
 
 				Translations[locale] = value;
+			}
+
+			foreach (var kvp in other.CustomFields)
+			{
+				GD.PushWarning($"{kvp.Key}: {kvp.Value}");
+				CustomFields[kvp.Key] = kvp.Value;
 			}
 		}
 
@@ -195,6 +199,14 @@ namespace Yarn.GodotSharp
 					line.Add(value);
 					continue;
 				}
+
+				if (CustomFields.TryGetValue(key, out value))
+				{
+					line.Add(value);
+					continue;
+				}
+
+				line.Add(string.Empty);
 			}
 
 			return line.ToArray();

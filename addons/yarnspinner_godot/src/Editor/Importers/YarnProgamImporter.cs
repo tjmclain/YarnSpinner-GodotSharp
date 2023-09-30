@@ -87,7 +87,7 @@ namespace Yarn.GodotSharp.Editor.Importers
 				{
 					headers.Add(header);
 				}
-				stringTable.MergeTranslationsFrom(existingTable);
+				stringTable.MergeFrom(existingTable);
 			}
 
 			// Write translations from string entries

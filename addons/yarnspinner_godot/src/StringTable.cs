@@ -94,13 +94,13 @@ namespace Yarn.GodotSharp
 				var entry = new StringTableEntry(kvp.Key, kvp.Value);
 				if (TryGetValue(kvp.Key, out var existingEntry))
 				{
-					entry.MergeTranslationsFrom(existingEntry);
+					entry.MergeFrom(existingEntry);
 				}
 				this[kvp.Key] = entry;
 			}
 		}
 
-		public void MergeTranslationsFrom(StringTable other)
+		public void MergeFrom(StringTable other)
 		{
 			if (other == null)
 			{
@@ -112,7 +112,7 @@ namespace Yarn.GodotSharp
 			{
 				if (TryGetValue(kvp.Key, out var entry))
 				{
-					entry.MergeTranslationsFrom(kvp.Value);
+					entry.MergeFrom(kvp.Value);
 					continue;
 				}
 
