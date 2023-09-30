@@ -10,8 +10,6 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 {
 	public static readonly string ImporterName = typeof(YarnStringTableImporter).FullName.ToLower();
 
-	protected ImporterStringSubstitutions Substitutions { get; private set; }
-
 	public static Error ImportStringTable(string sourceFile, out StringTable stringTable)
 	{
 		stringTable = new StringTable();
@@ -30,12 +28,6 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 		}
 
 		return Error.Ok;
-	}
-
-	public static class OptionNames
-	{
-		public static readonly string ExportGodotTranslations = "export_godot_translations";
-		public static readonly string GodotTranslationsFilePath = "godot_translations_file_path";
 	}
 
 	#region EditorImportPlugin
@@ -88,22 +80,7 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 
 	public override Array<Dictionary> _GetImportOptions(string path, int presetIndex)
 	{
-		return new Array<Dictionary>()
-		{
-			new Dictionary()
-			{
-				{ GodotEditorPropertyInfo.NameKey, OptionNames.ExportGodotTranslations },
-				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.Bool) },
-				{ GodotEditorPropertyInfo.DefaultValueKey, Variant.From(false) }
-			},
-			new Dictionary()
-			{
-				{ GodotEditorPropertyInfo.NameKey, OptionNames.GodotTranslationsFilePath },
-				{ GodotEditorPropertyInfo.TypeKey, Variant.From(Variant.Type.String) },
-				{ GodotEditorPropertyInfo.HintKey, Variant.From(PropertyHint.File) },
-				{ GodotEditorPropertyInfo.DefaultValueKey, "res://translations/translations.csv" }
-			}
-		};
+		return new Array<Dictionary>();
 	}
 
 	public override bool _GetOptionVisibility(string path, StringName optionName, Dictionary options)
@@ -120,18 +97,10 @@ public partial class YarnStringTableImporter : EditorImportPlugin
 			Array<string> genFiles
 		)
 	{
-		Substitutions = new ImporterStringSubstitutions(sourceFile);
-
 		var importError = ImportStringTable(sourceFile, out var stringTable);
 		if (importError != Error.Ok)
 		{
 			return importError;
-		}
-
-		options.TryGetValue(OptionNames.ExportGodotTranslations, out var exportGodotTranslations);
-		if (exportGodotTranslations.AsBool())
-		{
-			// TODO;
 		}
 
 		string saveFile = $"{savePath}.{_GetSaveExtension()}";
