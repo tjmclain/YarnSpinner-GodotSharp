@@ -1,5 +1,8 @@
-name: copy files
-on: [push]
+name: copy readme
+on:
+  push:
+    branches:
+      - master
 jobs:
   build:
     name: Build
