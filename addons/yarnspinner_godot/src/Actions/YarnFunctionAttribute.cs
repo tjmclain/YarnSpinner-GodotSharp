@@ -26,9 +26,9 @@ namespace Yarn.GodotSharp.Actions
 	/// done for you automatically when your code compiles.
 	/// </para>
 	/// </remarks>
-	public class FunctionAttribute : ActionAttribute
+	public class YarnFunctionAttribute : YarnActionAttribute
 	{
-		public FunctionAttribute(string name) : base(name)
+		public YarnFunctionAttribute(string name) : base(name)
 		{
 		}
 	}

@@ -20,7 +20,7 @@ namespace Yarn.GodotSharp.Views
 
 		#endregion Exports
 
-		[Actions.Command("switch_to_view")]
+		[Actions.YarnCommand("switch_to_view")]
 		public void SwitchToView(string viewName)
 		{
 			TryToggleViewVisibility(ActiveViewName, false);
@@ -28,7 +28,7 @@ namespace Yarn.GodotSharp.Views
 			ActiveViewName = viewName;
 		}
 
-		[Actions.Command("transition_to_view")]
+		[Actions.YarnCommand("transition_to_view")]
 		public async Task TransitionToView(string viewName)
 		{
 			await TransitionOutView(ActiveViewName);

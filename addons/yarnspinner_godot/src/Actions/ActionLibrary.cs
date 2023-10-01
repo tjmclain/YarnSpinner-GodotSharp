@@ -166,7 +166,7 @@ namespace Yarn.GodotSharp.Actions
 
 		protected virtual void TryGetActionInfoFromMethodInfo(MethodInfo method)
 		{
-			var commandAttribute = method.GetCustomAttribute<CommandAttribute>();
+			var commandAttribute = method.GetCustomAttribute<YarnCommandAttribute>();
 			if (commandAttribute != null)
 			{
 				string name = commandAttribute.Name;
@@ -174,7 +174,7 @@ namespace Yarn.GodotSharp.Actions
 				Commands[name] = command;
 			}
 
-			var functionAttribute = method.GetCustomAttribute<FunctionAttribute>();
+			var functionAttribute = method.GetCustomAttribute<YarnFunctionAttribute>();
 			if (functionAttribute != null)
 			{
 				string name = commandAttribute.Name;

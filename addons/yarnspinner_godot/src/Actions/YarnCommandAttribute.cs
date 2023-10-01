@@ -18,7 +18,7 @@ namespace Yarn.GodotSharp.Actions
 	/// <para>
 	/// By default, it checks for any <see cref="GameObject"/> s in the scene. If one is found, it
 	/// is checked to see if any of the <see cref="MonoBehaviour"/> s attached to the class has a
-	/// <see cref="CommandAttribute"/> whose <see cref="CommandString"/> matching the first word of
+	/// <see cref="YarnCommandAttribute"/> whose <see cref="CommandString"/> matching the first word of
 	/// the command.
 	/// </para>
 	/// <para>If the method is static, it will not try to inject an object.</para>
@@ -75,9 +75,9 @@ namespace Yarn.GodotSharp.Actions
 	/// done for you automatically when your code compiles.
 	/// </para>
 	/// </remarks>
-	public class CommandAttribute : ActionAttribute
+	public class YarnCommandAttribute : YarnActionAttribute
 	{
-		public CommandAttribute(string name) : base(name)
+		public YarnCommandAttribute(string name) : base(name)
 		{
 		}
 	}
