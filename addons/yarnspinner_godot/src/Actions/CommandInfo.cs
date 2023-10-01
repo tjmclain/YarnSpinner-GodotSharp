@@ -284,6 +284,41 @@ namespace Yarn.GodotSharp.Actions
 			return true;
 		}
 
+		/// <summary>
+		/// Represents the result of attempting to locate and call a command.
+		/// </summary>
+		public struct CommandDispatchResult
+		{
+			public string CommandName;
+
+			public StatusType Status;
+
+			public string Message;
+
+			public enum StatusType
+			{
+				SucceededSync,
+				SucceededAsync,
+				NoTargetFound,
+				TargetMissingComponent,
+				InvalidParameterCount,
+				CommandUnknown,
+			};
+
+			public readonly bool IsSuccess
+			{
+				get
+				{
+					return Status == StatusType.SucceededAsync || Status == StatusType.SucceededSync;
+				}
+			}
+
+			public override string ToString()
+			{
+				return $"{CommandName}: {Status}; {Message}";
+			}
+		}
+
 		#region Diagnostic Utility Methods
 
 		private static string EnglishPluraliseNounCount(int count, string name, bool prefixCount = false)

@@ -8,6 +8,8 @@ using Godot;
 
 namespace Yarn.GodotSharp.Actions
 {
+	using CommandDispatchResult = CommandInfo.CommandDispatchResult;
+
 	[GlobalClass]
 	public partial class ActionLibrary : Resource
 	{

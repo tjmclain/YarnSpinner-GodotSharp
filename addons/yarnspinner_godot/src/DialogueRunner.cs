@@ -10,6 +10,8 @@ using Yarn.GodotSharp.Views;
 
 namespace Yarn.GodotSharp;
 
+using CommandDispatchResult = CommandInfo.CommandDispatchResult;
+
 /// <summary>
 /// The DialogueRunner component acts as the interface between your game and Yarn Spinner.
 /// </summary>
@@ -63,7 +65,7 @@ public partial class DialogueRunner : Godot.Node
 
 	public DialogueRunner()
 	{
-		DialogueStarting += () => GD.Print("DialogueRunner: DialogueStarting");
+		DialogueStarted += () => GD.Print("DialogueRunner: DialogueStarting");
 		NodeStarted += (node) => GD.Print($"DialogueRunner: NodeStarted = {node}");
 		NodeCompleted += (node) => GD.Print($"DialogueRunner: NodeCompleted = {node}");
 		DialogueCompleted += () => GD.Print("DialogueRunner: DialogueCompleted");
@@ -313,7 +315,7 @@ public partial class DialogueRunner : Godot.Node
 	/// <summary>
 	/// Stops the <see cref="Dialogue"/>.
 	/// </summary>
-	public void Stop(bool clear)
+	public void Stop(bool clear = false)
 	{
 		Dialogue.Stop();
 
