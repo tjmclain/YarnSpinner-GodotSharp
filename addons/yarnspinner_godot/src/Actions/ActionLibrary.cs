@@ -46,7 +46,11 @@ namespace Yarn.GodotSharp.Actions
 				}
 			}
 
-			GD.Print($"{GetType().Name} found {Commands.Count} commands and {Functions.Count} functions in {assemblies.Count()} assemblies");
+			GD.Print(
+				$"{GetType().Name}.{nameof(RefreshActions)}: found ",
+				$"{Commands.Count} commands and {Functions.Count} functions ",
+				$"in {assemblies.Count()} assemblies"
+			);
 		}
 
 		public CommandDispatchResult DispatchCommand(string commandText, out Task commandTask)

@@ -47,7 +47,7 @@ public partial class DialogueRunner : Godot.Node
 	/// A Unity event that is called when the dialogue starts running.
 	/// </summary>
 	[Signal]
-	public delegate void DialogueStartingEventHandler();
+	public delegate void DialogueStartedEventHandler();
 
 	/// <summary>
 	/// A Unity event that is called once the dialogue has completed.
@@ -200,22 +200,32 @@ public partial class DialogueRunner : Godot.Node
 
 	public override void _Ready()
 	{
-		// Create a line provider if we're missing one
+		// Create a LineProvider if we're missing one
 		if (LineProvider == null)
 		{
 			LineProvider = new LineProvider();
 
-			GD.Print($"Dialogue Runner has no LineProvider; creating a {typeof(LineProvider).Name}");
+			GD.Print(
+				$"{nameof(DialogueRunner)} has no {nameof(LineProvider)}; ",
+				$"creating a {nameof(LineProvider)}"
+			);
 		}
 
-		// Register Commands and Functions
+		// Create an ActionLibrary if we're missing one, and refresh actions if necessary
 		if (ActionLibrary == null)
 		{
 			ActionLibrary = new ActionLibrary();
-			GD.Print($"Dialogue Runner has no ActionLibrary; creating a {typeof(ActionLibrary).Name}");
-		}
+			ActionLibrary.RefreshActions();
 
-		ActionLibrary.RefreshActions();
+			GD.Print(
+				$"{nameof(DialogueRunner)} has no {nameof(ActionLibrary)}; ",
+				$" creating a {nameof(ActionLibrary)}"
+			);
+		}
+		else if (Engine.IsEditorHint())
+		{
+			ActionLibrary.RefreshActions();
+		}
 
 		var library = Dialogue.Library;
 		foreach (var function in ActionLibrary.Functions)
@@ -244,7 +254,12 @@ public partial class DialogueRunner : Godot.Node
 		// the end of this method will cause confusing results. Report an error and stop here.
 		if (Dialogue.IsActive)
 		{
-			GD.PushError($"Can't start dialogue from node {startNode}: the dialogue is currently in the middle of running. Stop the dialogue first.");
+			GD.PushError(
+				$"{nameof(DialogueRunner)}.{nameof(StartDialogue)}",
+				$"Can't start dialogue from node '{startNode}': ",
+				"the dialogue is currently in the middle of running. ",
+				$"call '{nameof(Stop)}' first"
+			);
 			return;
 		}
 
@@ -274,10 +289,16 @@ public partial class DialogueRunner : Godot.Node
 
 		LineProvider.StringTable = YarnProject.StringTable;
 
+		// if lines aren't ready yet, wait
+		if (!LineProvider.LinesAvailable)
+		{
+			await ToSignal(LineProvider, LineProvider.SignalName.LinesBecameAvailable);
+		}
+
 		// Try CallDeferred instead
 		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12
 		//docs: https://docs.godotengine.org/en/stable/classes/class_object.html#class-object-method-call-deferred
-		CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.DialogueStarting);
+		CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.DialogueStarted);
 
 		// Signal that we're starting up.
 		MainDialogueViewGroup?.DialogueStarted();
@@ -286,21 +307,20 @@ public partial class DialogueRunner : Godot.Node
 		// running; as a side effect, our prepareForLines delegate may be called.
 		Dialogue.SetNode(startNode);
 
-		// if lines aren't ready yet, wait
-		if (!LineProvider.LinesAvailable)
-		{
-			await ToSignal(LineProvider, LineProvider.SignalName.LinesBecameAvailable);
-		}
-
 		ContinueDialogue();
 	}
 
 	/// <summary>
 	/// Stops the <see cref="Dialogue"/>.
 	/// </summary>
-	public void Stop()
+	public void Stop(bool clear)
 	{
 		Dialogue.Stop();
+
+		if (clear)
+		{
+			Clear();
+		}
 	}
 
 	/// <summary>

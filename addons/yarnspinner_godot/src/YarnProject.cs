@@ -1,23 +1,29 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Godot;
+using Yarn.Compiler;
 
 namespace Yarn.GodotSharp
 {
 	using NodeHeaders = Dictionary<string, List<string>>;
+	using FileAccess = Godot.FileAccess;
 
 	// https://yarnspinner.dev/docs/unity/components/yarn-programs/
 	[GlobalClass, Icon("res://addons/yarnspinner_godot/icons/YarnProjectIcon.png")]
 	public partial class YarnProject : Resource
 	{
-		private Program _program = null;
+		private Program _program = new();
 
 		private readonly Dictionary<string, NodeHeaders> _nodeHeaders = new();
 
 		[Export]
 		public Godot.Collections.Array<YarnProgram> Programs { get; set; } = new();
+
+		[Export]
+		public byte[] CompiledProgram { get; set; } = Array.Empty<byte>();
 
 		[Export]
 		public StringTable StringTable { get; set; } = new();
@@ -45,7 +51,7 @@ namespace Yarn.GodotSharp
 		/// The first time this is called, the values are extracted from <see cref="Program"/> and
 		/// cached inside <see cref="_nodeHeaders"/>. Future calls will then return the cached values.
 		/// </remarks>
-		public NodeHeaders GetHeaders(string nodeName)
+		public virtual NodeHeaders GetHeaders(string nodeName)
 		{
 			// if the headers have already been extracted just return that
 			if (_nodeHeaders.TryGetValue(nodeName, out var existingValues))
@@ -90,18 +96,25 @@ namespace Yarn.GodotSharp
 		/// <summary>
 		/// Returns a node with the specified name.
 		/// </summary>
-		public Node GetNode(string nodeName)
+		public virtual Node GetNode(string nodeName)
 		{
 			return Program.Nodes.TryGetValue(nodeName, out Node node) ? node : null;
 		}
 
-		// TODO: allow this work to be done offline
-		public Program CompileProgram()
+		public virtual Program CompileProgram()
 		{
+			return Engine.IsEditorHint()
+				? CompileProgramFromScriptFiles()
+				: ParseProgramFromCachedData();
+		}
+
+		protected virtual Program CompileProgramFromScriptFiles()
+		{
+			_nodeHeaders.Clear();
+
 			if (Programs.Count == 0)
 			{
-				GD.PushError("CompileProgram: Programs.Count == 0");
-				_program = new Program();
+				GD.PushError("CompileProgramFromScriptFiles: Programs.Count == 0");
 				return _program;
 			}
 
@@ -110,15 +123,37 @@ namespace Yarn.GodotSharp
 				.Select(x => x.SourceFile)
 				.Select(x => ProjectSettings.GlobalizePath(x));
 
-			var job = Compiler.CompilationJob.CreateFromFiles(filePaths);
-			var compilation = Compiler.Compiler.Compile(job);
+			var job = CompilationJob.CreateFromFiles(filePaths);
+			var compilationResult = Compiler.Compiler.Compile(job);
 
-			_program = compilation.Program;
+			var errorSeverity = Diagnostic.DiagnosticSeverity.Error;
+			var errors = compilationResult.Diagnostics.Where(x => x.Severity == errorSeverity);
+
+			if (errors.Any())
+			{
+				foreach (var error in errors)
+				{
+					GD.PushError($"CompileProgramFromScriptFiles: {error.Message} ({error.FileName})");
+				}
+				return _program;
+			}
+
+			_program = compilationResult.Program;
+
+			using (var memoryStream = new MemoryStream())
+			using (var outputStream = new Google.Protobuf.CodedOutputStream(memoryStream))
+			{
+				// Serialize the compiled program to memory
+				compilationResult.Program.WriteTo(outputStream);
+				outputStream.Flush();
+
+				CompiledProgram = memoryStream.ToArray();
+			}
 
 			// Populate string table
 			StringTable ??= new StringTable();
 			StringTable.Clear();
-			StringTable.CreateEntriesFrom(compilation.StringTable);
+			StringTable.CreateEntriesFrom(compilationResult.StringTable);
 
 			// Create a list of unique string table file paths
 			var stringTableFiles = new HashSet<string>();
@@ -150,6 +185,24 @@ namespace Yarn.GodotSharp
 				StringTable.MergeFrom(stringTable);
 			}
 
+			return _program;
+		}
+
+		protected virtual Program ParseProgramFromCachedData()
+		{
+			_nodeHeaders.Clear();
+
+			if (CompiledProgram.Length == 0)
+			{
+				GD.PushWarning(
+					$"{nameof(ParseProgramFromCachedData)}: " +
+					$"{nameof(CompiledProgram)}.Length == 0; ",
+					$"fallback to {nameof(CompileProgramFromScriptFiles)}"
+				);
+				return CompileProgramFromScriptFiles();
+			}
+
+			_program = Program.Parser.ParseFrom(CompiledProgram);
 			return _program;
 		}
 	}
