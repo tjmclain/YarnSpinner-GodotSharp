@@ -18,17 +18,8 @@ namespace Yarn.GodotSharp.Views.Effects
 				GD.PrintErr("label == null");
 				return;
 			}
-
-			var sceneTree = label.GetTree();
-			if (sceneTree == null)
-			{
-				GD.PrintErr("label.GetTree == null");
-				return;
-			}
-
 			if (token.IsCancellationRequested)
 			{
-				//token.ThrowIfCancellationRequested();
 				return;
 			}
 
@@ -37,7 +28,7 @@ namespace Yarn.GodotSharp.Views.Effects
 
 			label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, 0);
 
-			await ToSignal(sceneTree, SceneTree.SignalName.ProcessFrame);
+			await GodotUtility.WaitForProcessFrame();
 
 			int count = label.GetTotalCharacterCount();
 			GD.Print($"TypewriterTextEffect.Animate: label.GetTotalCharacterCount = {count}");
@@ -46,8 +37,8 @@ namespace Yarn.GodotSharp.Views.Effects
 			{
 				if (token.IsCancellationRequested)
 				{
+					GD.Print("TypewriterTextEffect.Animate: token.IsCancellationRequested == true");
 					label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
-					//token.ThrowIfCancellationRequested();
 					return;
 				}
 

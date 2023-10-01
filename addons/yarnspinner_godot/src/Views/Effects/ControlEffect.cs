@@ -6,12 +6,12 @@ using Godot;
 namespace Yarn.GodotSharp.Views.Effects
 {
 	[GlobalClass]
-	public partial class TextEffect : Resource
+	public partial class ControlEffect : Resource
 	{
-		public virtual async Task Animate(RichTextLabel label, CancellationToken token)
+		public virtual async Task Animate(Control control, CancellationToken token)
 		{
 			GD.PushWarning(
-				$"{nameof(TextEffect)} does nothing by default. ",
+				$"{nameof(ControlEffect)} does nothing by default. ",
 				$"Override {nameof(Animate)} in a subclass."
 			);
 

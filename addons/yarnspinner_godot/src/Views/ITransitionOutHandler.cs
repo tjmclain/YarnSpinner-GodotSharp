@@ -1,11 +1,10 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Yarn.GodotSharp.Views
 {
-	public interface IDialogueCompleteHandler
+	public interface ITransitionOutHandler
 	{
-		void DialogueComplete();
+		Task TransitionOut(CancellationToken token);
 	}
 }

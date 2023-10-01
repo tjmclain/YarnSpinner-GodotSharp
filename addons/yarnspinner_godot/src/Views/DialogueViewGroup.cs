@@ -10,12 +10,24 @@ namespace Yarn.GodotSharp.Views
 	[GlobalClass]
 	public partial class DialogueViewGroup : AsyncViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
 	{
-		[Export]
-		public virtual Godot.Collections.Array<Godot.Node> DialogueViews { get; set; } = new();
+		private Godot.Collections.Array<Godot.Node> _dialogueViews = new();
 
-		protected virtual IEnumerable<Godot.Node> GetActiveDialogueViews()
+		[Export]
+		public virtual Godot.Collections.Array<Godot.Node> DialogueViews
+		{
+			get => _dialogueViews;
+			set => SetDialougeViews(value);
+		}
+
+		public virtual IEnumerable<Godot.Node> GetActiveDialogueViews()
 		{
 			return DialogueViews;
+		}
+
+		public virtual void SetDialougeViews(Godot.Collections.Array<Godot.Node> value)
+		{
+			_dialogueViews.Clear();
+			_dialogueViews.AddRange(value);
 		}
 
 		public virtual void DialogueStarted()

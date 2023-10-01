@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Godot;
-using GodotNode = Godot.Node;
-using Path = System.IO.Path;
+using System.Threading.Tasks;
 
 namespace Yarn.GodotSharp;
+
+using GodotNode = Godot.Node;
 
 public static class GodotUtility
 {
@@ -13,7 +13,8 @@ public static class GodotUtility
 	{
 		if (Engine.GetMainLoop() is not SceneTree sceneTree)
 		{
-			throw new ArgumentException("Engine.GetMainLoop() is not SceneTree sceneTree");
+			GD.PushError("GodotUtility.GetSceneTree: Engine.GetMainLoop() is not SceneTree");
+			return null;
 		}
 
 		return sceneTree;
@@ -21,11 +22,10 @@ public static class GodotUtility
 
 	public static GodotNode GetCurrentScene()
 	{
-		var sceneTree = GetSceneTree();
-		var currentScene = sceneTree.CurrentScene;
+		var currentScene = GetSceneTree()?.CurrentScene;
 		if (currentScene == null)
 		{
-			GD.PrintErr("currentScene == null");
+			GD.PrintErr("GodotUtility.GetCurrentScene: currentScene == null");
 			return null;
 		}
 
@@ -34,14 +34,12 @@ public static class GodotUtility
 
 	public static GodotNode GetNode(NodePath path)
 	{
-		var currentScene = GetCurrentScene();
-		return currentScene?.GetNode(path);
+		return GetCurrentScene()?.GetNode(path);
 	}
 
 	public static T GetNode<T>(NodePath path) where T : GodotNode
 	{
-		var currentScene = GetCurrentScene();
-		return currentScene?.GetNode<T>(path);
+		return GetCurrentScene()?.GetNode<T>(path);
 	}
 
 	public static GodotNode GetChild<T>(GodotNode node) where T : GodotNode
@@ -63,6 +61,18 @@ public static class GodotUtility
 		}
 
 		return default;
+	}
+
+	public static async Task WaitForProcessFrame()
+	{
+		var sceneTree = GetSceneTree();
+		if (sceneTree == null)
+		{
+			GD.PushError("GodotUtility.WaitForProcessFrame: sceneTree == null");
+			return;
+		}
+
+		await sceneTree.ToSignal(sceneTree, SceneTree.SignalName.ProcessFrame);
 	}
 
 	public static Error ReadCsv(string csvFile, out string[] headers, out List<Dictionary<string, string>> data)

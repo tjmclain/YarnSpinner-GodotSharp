@@ -107,19 +107,6 @@ This plugin for Godot is similar in many ways to YarnSpinner's offical Unity plu
     - `DialogueViewGroup` should be the main container for the other dialogue views
     - `DialogueViewGroup`s can contain other `DialogueViewGroup`s
 
-### TODO
-
-- [ ] Update README 'Quick Start' section
-- [ ] Update README 'Migrating from Unity' section
-- [ ] Create example scenes to demo addon functionality
-- [ ] Allow using Godot's internationalization system for translating strings
-- [ ] Add `ITransitionInHandler` and `ITransitionOutHandler` interfaces
-- [ ] Create `DialogueViewGroupController` class to allow switching between active view groups
-- [ ] Cache certain data offline to optimize `DialogueRunner` startup
-  - [ ] Cache `YarnProject` program as a `PackedByteArray`
-  - [ ] Cache `YarnProject`'s internal `StringTable`
-  - [ ] Cache `ActionLibrary`'s lists of `ActionInfo`s
-
 ## Migrating from Unity
 
 TODO

@@ -6,12 +6,8 @@ namespace Yarn.GodotSharp.Views
 {
 	public interface IRunLineHandler
 	{
-		#region Public Methods
-
 		Task RunLine(LocalizedLine line, Action interruptLine, CancellationToken token);
 
 		Task DismissLine(LocalizedLine line);
-
-		#endregion Public Methods
 	}
 }
