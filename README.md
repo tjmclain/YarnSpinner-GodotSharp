@@ -84,7 +84,7 @@ TODO
   - [x] "Lock" field is used to identify when translations are out of date with their source string
   - [x] "CustomFields" stores any custom values imported from the CSV (e.g. if you add a "Comments" field, it will be stored here)
 
-### Examples
+## Migrating from Unity
 
 This plugin for Godot is similar in many ways to YarnSpinner's offical Unity plugin. The main types used in this plugin are the same, and much of the code is simliar if not exactly the same. However, this code base differs in some important ways, and that means migrating an existing Yarn Spinner project in Unity to Godot using this plugin will require some refactoring.
 
@@ -96,18 +96,16 @@ This plugin for Godot is similar in many ways to YarnSpinner's offical Unity plu
   - Commands cannot return `IEnumerator` because Unity-style `Coroutine`s are not supported in Godot.
 - Dialogue Views
   - There is no `DialogueViewBase` class for Dialouge Views to inherit from; instead there are individual interfaces:
-    - IDialogueStartedHandler
-    - IDialogueCompleteHandler
-    - IRunLineHandler
-    - IRunOptionsHandler
+  - IDialogueStartedHandler
+  - IDialogueCompleteHandler
+  - IRunLineHandler
+  - IRunOptionsHandler
   - To create a Dialogue View:
-    - Create a class that inherits from `Godot.Control` (or one of its subclasses)
-    - Implement one or more of the above interfaces in that class
+  - Create a class that inherits from `Godot.Control` (or one of its subclasses)
+  - Implement one or more of the above interfaces in that class
   - Dialogue Views are stored in a `DialogueViewGroup` rather than in `DialougeRunner`
-    - `DialogueViewGroup` should be the main container for the other dialogue views
-    - `DialogueViewGroup`s can contain other `DialogueViewGroup`s
-
-## Migrating from Unity
+  - `DialogueViewGroup` should be the main container for the other dialogue views
+  - `DialogueViewGroup`s can contain other `DialogueViewGroup`s
 
 TODO
 
