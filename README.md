@@ -84,6 +84,10 @@ TODO
   - [x] "Lock" field is used to identify when translations are out of date with their source string
   - [x] "CustomFields" stores any custom values imported from the CSV (e.g. if you add a "Comments" field, it will be stored here)
 
+### Examples
+
+TODO
+
 ## Migrating from Unity
 
 This plugin for Godot is similar in many ways to YarnSpinner's offical Unity plugin. The main types used in this plugin are the same, and much of the code is simliar if not exactly the same. However, this code base differs in some important ways, and that means migrating an existing Yarn Spinner project in Unity to Godot using this plugin will require some refactoring.
