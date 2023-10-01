@@ -20,6 +20,8 @@ public partial class Plugin : EditorPlugin
 	// https://github.com/godotengine/godot/issues/74549
 	public override void _EnterTree()
 	{
+		SetTextFileExtensionsSetting(true);
+
 		// Initialize custom importers
 		_importPlugins = GetInstancesOfEditorTypes<EditorImportPlugin>();
 		if (_importPlugins != null)
@@ -69,6 +71,8 @@ public partial class Plugin : EditorPlugin
 	// https://github.com/godotengine/godot/issues/74549
 	public override void _ExitTree()
 	{
+		SetTextFileExtensionsSetting(false);
+
 		// Deinitialize custom importers
 		if (_importPlugins != null)
 		{
@@ -110,16 +114,6 @@ public partial class Plugin : EditorPlugin
 			}
 			_commandScripts = null;
 		}
-	}
-
-	public override void _EnablePlugin()
-	{
-		SetTextFileExtensionsSetting(true);
-	}
-
-	public override void _DisablePlugin()
-	{
-		SetTextFileExtensionsSetting(false);
 	}
 
 	private static IEnumerable<T> GetInstancesOfEditorTypes<T>()

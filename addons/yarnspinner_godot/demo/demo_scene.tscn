@@ -17,20 +17,19 @@ Variables = {}
 
 [sub_resource type="Resource" id="Resource_tgwpq"]
 script = ExtResource("5_7r12h")
-Commands = []
+Commands = {}
 Functions = []
-UseOverrideAssemblyNames = false
+UseOverrideAssemblies = false
 OverrideAssemblyNames = PackedStringArray()
 
 [node name="demo_scene" type="Node"]
 
-[node name="DialogueRunner" type="Node" parent="." node_paths=PackedStringArray("DialogueViewGroup")]
+[node name="DialogueRunner" type="Node" parent="."]
 script = ExtResource("1_5adwn")
 RunAutomatically = true
 YarnProject = ExtResource("2_lpf3b")
 LineProvider = SubResource("Resource_8cueh")
 VariableStorage = SubResource("Resource_hder4")
 ActionLibrary = SubResource("Resource_tgwpq")
-DialogueViewGroup = NodePath("../DialogueWindow")
 
 [node name="DialogueWindow" parent="." instance=ExtResource("6_f4sxn")]

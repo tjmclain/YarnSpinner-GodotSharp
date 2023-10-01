@@ -41,7 +41,15 @@ namespace Yarn.GodotSharp.Actions
 			foreach (var assembly in assemblies)
 			{
 				var types = assembly.GetTypes();
-				var methods = types.SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public));
+				var methods = types.SelectMany(
+					x => x.GetMethods(
+						BindingFlags.Public
+						| BindingFlags.Instance
+						| BindingFlags.Static
+						| BindingFlags.DeclaredOnly
+					)
+				);
+
 				foreach (var method in methods)
 				{
 					TryGetActionInfoFromMethodInfo(method);
@@ -172,21 +180,38 @@ namespace Yarn.GodotSharp.Actions
 
 		protected virtual void TryGetActionInfoFromMethodInfo(MethodInfo method)
 		{
-			var commandAttribute = method.GetCustomAttribute<YarnCommandAttribute>();
-			if (commandAttribute != null)
+			TryGetCommandFromMethodInfo(method);
+			TryGetFunctionFromMethodInfo(method);
+		}
+
+		protected virtual void TryGetCommandFromMethodInfo(MethodInfo method)
+		{
+			var attribute = method.GetCustomAttribute<YarnCommandAttribute>();
+			if (attribute == null)
 			{
-				string name = commandAttribute.Name;
-				var command = new CommandInfo(name, method);
-				Commands[name] = command;
+				return;
 			}
 
-			var functionAttribute = method.GetCustomAttribute<YarnFunctionAttribute>();
-			if (functionAttribute != null)
+			string name = attribute.Name;
+			var command = new CommandInfo(name, method);
+			Commands[name] = command;
+
+			GD.Print($"{nameof(TryGetCommandFromMethodInfo)}: {name} ({method.Name})");
+		}
+
+		protected virtual void TryGetFunctionFromMethodInfo(MethodInfo method)
+		{
+			var attribute = method.GetCustomAttribute<YarnFunctionAttribute>();
+			if (attribute == null)
 			{
-				string name = commandAttribute.Name;
-				var action = new ActionInfo(name, method);
-				Functions.Add(action);
+				return;
 			}
+
+			string name = attribute.Name;
+			var action = new ActionInfo(name, method);
+			Functions.Add(action);
+
+			GD.Print($"{nameof(TryGetFunctionFromMethodInfo)}: {name} ({method.Name})");
 		}
 	}
 }

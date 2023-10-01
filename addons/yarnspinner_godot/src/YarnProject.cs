@@ -103,9 +103,11 @@ namespace Yarn.GodotSharp
 
 		public virtual Program CompileProgram()
 		{
-			return Engine.IsEditorHint()
-				? CompileProgramFromScriptFiles()
-				: ParseProgramFromCachedData();
+#if TOOLS
+			return CompileProgramFromScriptFiles();
+#else
+			return ParseProgramFromCachedData();
+#endif
 		}
 
 		protected virtual Program CompileProgramFromScriptFiles()

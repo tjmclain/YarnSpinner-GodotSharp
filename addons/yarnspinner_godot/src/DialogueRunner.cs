@@ -213,7 +213,7 @@ public partial class DialogueRunner : Godot.Node
 			);
 		}
 
-		// Create an ActionLibrary if we're missing one, and refresh actions if necessary
+		// Create an ActionLibrary if we're missing one
 		if (ActionLibrary == null)
 		{
 			ActionLibrary = new ActionLibrary();
@@ -224,10 +224,13 @@ public partial class DialogueRunner : Godot.Node
 				$" creating a {nameof(ActionLibrary)}"
 			);
 		}
-		else if (Engine.IsEditorHint())
+#if TOOLS
+		else
 		{
+			// always refresh action library in debug
 			ActionLibrary.RefreshActions();
 		}
+#endif
 
 		var library = Dialogue.Library;
 		foreach (var function in ActionLibrary.Functions)
