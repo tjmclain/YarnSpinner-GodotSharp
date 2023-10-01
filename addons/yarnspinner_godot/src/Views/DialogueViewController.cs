@@ -7,24 +7,23 @@ using Godot.Collections;
 
 namespace Yarn.GodotSharp.Views
 {
-	public partial class DialogueViewSwitchGroup : DialogueViewGroup
+	public partial class DialogueViewController : DialogueViewGroup
 	{
-		private Godot.Collections.Dictionary<string, Godot.Node> _dialogueViewDict = new();
+		private Godot.Collections.Dictionary<string, Godot.Node> _dialogueViewMap = new();
 
-		public Godot.Collections.Dictionary<string, Godot.Node> DialogueViewDict => _dialogueViewDict;
+		public Godot.Collections.Dictionary<string, Godot.Node> DialogueViewMap => _dialogueViewMap;
 
 		#region Exports
 
-		[Export]
-		public string ActiveViewName { get; set; } = string.Empty;
+		public string ActiveViewName { get; private set; } = string.Empty;
 
 		#endregion Exports
 
 		[Actions.YarnCommand("switch_to_view")]
 		public void SwitchToView(string viewName)
 		{
-			TryToggleViewVisibility(ActiveViewName, false);
-			TryToggleViewVisibility(viewName, true);
+			ToggleViewVisibility(ActiveViewName, false);
+			ToggleViewVisibility(viewName, true);
 			ActiveViewName = viewName;
 		}
 
@@ -68,20 +67,19 @@ namespace Yarn.GodotSharp.Views
 			await transitionOutHandler.TransitionOut(CancellationToken.None);
 		}
 
-		protected virtual bool TryToggleViewVisibility(string viewName, bool visible)
+		protected virtual void ToggleViewVisibility(string viewName, bool visible)
 		{
 			if (!TryGetView(viewName, out var view))
 			{
-				return false;
+				return;
 			}
 
 			if (view is not CanvasItem canvasItem)
 			{
-				return false;
+				return;
 			}
 
 			canvasItem.Visible = visible;
-			return true;
 		}
 
 		protected virtual bool TryGetView(string viewName, out Godot.Node view)
@@ -92,12 +90,12 @@ namespace Yarn.GodotSharp.Views
 				return false;
 			}
 
-			return DialogueViewDict.TryGetValue(viewName, out view);
+			return DialogueViewMap.TryGetValue(viewName, out view);
 		}
 
 		protected virtual void RefreshDialogueViewDict()
 		{
-			DialogueViewDict.Clear();
+			DialogueViewMap.Clear();
 			foreach (var view in DialogueViews)
 			{
 				if (view == null)
@@ -106,7 +104,7 @@ namespace Yarn.GodotSharp.Views
 					continue;
 				}
 
-				DialogueViewDict[view.Name] = view;
+				DialogueViewMap[view.Name] = view;
 			}
 		}
 
@@ -122,31 +120,26 @@ namespace Yarn.GodotSharp.Views
 				return;
 			}
 
-			if (string.IsNullOrEmpty(ActiveViewName))
-			{
-				foreach (var view in DialogueViews)
-				{
-					if (view == null)
-					{
-						GD.PushError("DialogueViewGroupController._Ready: view == null");
-						continue;
-					}
-
-					ActiveViewName = view.Name;
-					break;
-				}
-			}
-
+			// hide all views
 			foreach (var view in DialogueViews)
 			{
 				if (view is not CanvasItem canvasItem)
 				{
-					GD.PushWarning("DialogueViewGroupController._Ready: view is not CanvasItem");
 					continue;
 				}
 
 				canvasItem.Hide();
 			}
+
+			// switch to the first view in the list
+			var startView = DialogueViews.FirstOrDefault();
+			if (startView == null)
+			{
+				GD.PushError("DialogueViewGroupController._Ready: DialogueViews.Count == 0");
+				return;
+			}
+
+			SwitchToView(startView.Name);
 		}
 
 		#endregion Godot.Node
@@ -167,7 +160,7 @@ namespace Yarn.GodotSharp.Views
 				return Enumerable.Empty<Godot.Node>();
 			}
 
-			if (!DialogueViewDict.TryGetValue(ActiveViewName, out var dialogueView))
+			if (!DialogueViewMap.TryGetValue(ActiveViewName, out var dialogueView))
 			{
 				GD.PushError($"GetActiveDialogueViews: !DialogueViewDict.TryGetValue '{ActiveViewName}'");
 				return Enumerable.Empty<Godot.Node>();

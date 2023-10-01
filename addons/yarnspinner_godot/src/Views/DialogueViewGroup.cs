@@ -4,11 +4,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Godot;
+using Yarn.GodotSharp.Actions;
+using Yarn.GodotSharp.Views.Effects;
 
 namespace Yarn.GodotSharp.Views
 {
 	[GlobalClass]
-	public partial class DialogueViewGroup : AsyncViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler
+	public partial class DialogueViewGroup : AsyncViewControl, IDialogueStartedHandler, IDialogueCompleteHandler, IRunLineHandler, IRunOptionsHandler, ITransitionInHandler, ITransitionOutHandler
 	{
 		private Godot.Collections.Array<Godot.Node> _dialogueViews = new();
 
@@ -18,6 +20,12 @@ namespace Yarn.GodotSharp.Views
 			get => _dialogueViews;
 			set => SetDialougeViews(value);
 		}
+
+		[Export]
+		public ControlEffect TransitionInEffect { get; set; } = null;
+
+		[Export]
+		public ControlEffect TransitionOutEffect { get; set; } = null;
 
 		public virtual IEnumerable<Godot.Node> GetActiveDialogueViews()
 		{
@@ -29,6 +37,8 @@ namespace Yarn.GodotSharp.Views
 			_dialogueViews.Clear();
 			_dialogueViews.AddRange(value);
 		}
+
+		#region IDialogueStartedHandler
 
 		public virtual void DialogueStarted()
 		{
@@ -42,6 +52,10 @@ namespace Yarn.GodotSharp.Views
 			}
 		}
 
+		#endregion IDialogueStartedHandler
+
+		#region IDialogueCompleteHandler
+
 		public virtual void DialogueComplete()
 		{
 			var views = GetActiveDialogueViews()
@@ -53,6 +67,10 @@ namespace Yarn.GodotSharp.Views
 				view.DialogueComplete();
 			}
 		}
+
+		#endregion IDialogueCompleteHandler
+
+		#region IRunLineHandler
 
 		public virtual async Task RunLine(
 			LocalizedLine line,
@@ -134,6 +152,10 @@ namespace Yarn.GodotSharp.Views
 			await Task.WhenAll(tasks);
 		}
 
+		#endregion IRunLineHandler
+
+		#region IRunOptionsHandler
+
 		public virtual async Task RunOptions(
 			DialogueOption[] options,
 			Action<int> selectOption,
@@ -209,5 +231,41 @@ namespace Yarn.GodotSharp.Views
 
 			SafeDisposeInternalTokenSource();
 		}
+
+		#endregion IRunOptionsHandler
+
+		#region ITransitionInHandler
+
+		[YarnCommand("transition_in_group")]
+		public async Task TransitionIn() => await TransitionIn(CancellationToken.None);
+
+		public async Task TransitionIn(CancellationToken token)
+		{
+			if (TransitionInEffect == null)
+			{
+				return;
+			}
+
+			await TransitionInEffect.Animate(this, token);
+		}
+
+		#endregion ITransitionInHandler
+
+		#region ITransitionOutHandler
+
+		[YarnCommand("transition_out_group")]
+		public async Task TransitionOut() => await TransitionOut(CancellationToken.None);
+
+		public async Task TransitionOut(CancellationToken token)
+		{
+			if (TransitionOutEffect == null)
+			{
+				return;
+			}
+
+			await TransitionOutEffect.Animate(this, token);
+		}
+
+		#endregion ITransitionOutHandler
 	}
 }
