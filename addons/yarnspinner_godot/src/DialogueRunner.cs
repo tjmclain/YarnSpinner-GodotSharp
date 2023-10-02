@@ -330,7 +330,7 @@ public partial class DialogueRunner : Godot.Node
 
 		Dialogue.SetProgram(program);
 
-		SetInitialVariables();
+		CallDeferred(MethodName.SetInitialVariables, false);
 
 		LineProvider.StringTable = YarnProject.StringTable;
 

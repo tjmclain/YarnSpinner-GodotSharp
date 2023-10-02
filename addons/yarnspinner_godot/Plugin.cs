@@ -15,9 +15,6 @@ public partial class Plugin : EditorPlugin
 	private IEnumerable<EditorInspectorPlugin> _inspectorPlugins;
 	private IEnumerable<CommandPaletteScript> _commandScripts;
 
-	// IMPORTANT! Be careful of using GD.Print in _EnterTree and _ExitTree
-	// In this version, GD.Print will crash the editor when reloading a project
-	// https://github.com/godotengine/godot/issues/74549
 	public override void _EnterTree()
 	{
 		SetTextFileExtensionsSetting(true);
@@ -66,7 +63,7 @@ public partial class Plugin : EditorPlugin
 		}
 	}
 
-	// IMPORTANT! Be careful of using GD.Print in _EnterTree and _ExitTree
+	// IMPORTANT! Be careful of using GD.Print in _ExitTree
 	// In this version, GD.Print will crash the editor when reloading a project
 	// https://github.com/godotengine/godot/issues/74549
 	public override void _ExitTree()
