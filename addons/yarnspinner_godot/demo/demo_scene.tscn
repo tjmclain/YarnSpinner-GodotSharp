@@ -24,12 +24,15 @@ OverrideAssemblyNames = PackedStringArray()
 
 [node name="demo_scene" type="Node"]
 
-[node name="DialogueRunner" type="Node" parent="."]
+[node name="DialogueRunner" type="Node" parent="." node_paths=PackedStringArray("MainDialogueViewGroup")]
 script = ExtResource("1_5adwn")
 RunAutomatically = true
 YarnProject = ExtResource("2_lpf3b")
 LineProvider = SubResource("Resource_8cueh")
 VariableStorage = SubResource("Resource_hder4")
 ActionLibrary = SubResource("Resource_tgwpq")
+MainDialogueViewGroup = NodePath("../gui_layer/DialogueWindow")
 
-[node name="DialogueWindow" parent="." instance=ExtResource("6_f4sxn")]
+[node name="gui_layer" type="CanvasLayer" parent="."]
+
+[node name="DialogueWindow" parent="gui_layer" instance=ExtResource("6_f4sxn")]

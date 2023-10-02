@@ -7,11 +7,11 @@ using Godot.Collections;
 
 namespace Yarn.GodotSharp.Views
 {
-	public partial class DialogueViewController : DialogueViewGroup
+	public partial class DialogueViewStateController : DialogueViewGroup
 	{
-		private Godot.Collections.Dictionary<string, Godot.Node> _dialogueViewMap = new();
+		private Godot.Collections.Dictionary<string, Godot.Node> _dialogueViewStates = new();
 
-		public Godot.Collections.Dictionary<string, Godot.Node> DialogueViewMap => _dialogueViewMap;
+		public Godot.Collections.Dictionary<string, Godot.Node> DialogueViewStates => _dialogueViewStates;
 
 		#region Exports
 
@@ -90,12 +90,12 @@ namespace Yarn.GodotSharp.Views
 				return false;
 			}
 
-			return DialogueViewMap.TryGetValue(viewName, out view);
+			return DialogueViewStates.TryGetValue(viewName, out view);
 		}
 
-		protected virtual void RefreshDialogueViewDict()
+		protected virtual void RefreshDialogueViewStates()
 		{
-			DialogueViewMap.Clear();
+			DialogueViewStates.Clear();
 			foreach (var view in DialogueViews)
 			{
 				if (view == null)
@@ -104,7 +104,7 @@ namespace Yarn.GodotSharp.Views
 					continue;
 				}
 
-				DialogueViewMap[view.Name] = view;
+				DialogueViewStates[view.Name] = view;
 			}
 		}
 
@@ -114,21 +114,16 @@ namespace Yarn.GodotSharp.Views
 		{
 			base._Ready();
 
+			// make sure our state dict is up-to-date
+			RefreshDialogueViewStates();
+
+			// hide all views
+			HideAll();
+
 			if (DialogueViews.Count == 0)
 			{
 				GD.PushError("DialogueViewGroupController._Ready: DialogueViews.Count == 0");
 				return;
-			}
-
-			// hide all views
-			foreach (var view in DialogueViews)
-			{
-				if (view is not CanvasItem canvasItem)
-				{
-					continue;
-				}
-
-				canvasItem.Hide();
 			}
 
 			// switch to the first view in the list
@@ -149,7 +144,7 @@ namespace Yarn.GodotSharp.Views
 		public override void SetDialougeViews(Array<Godot.Node> value)
 		{
 			base.SetDialougeViews(value);
-			RefreshDialogueViewDict();
+			RefreshDialogueViewStates();
 		}
 
 		public override IEnumerable<Godot.Node> GetActiveDialogueViews()
@@ -160,7 +155,7 @@ namespace Yarn.GodotSharp.Views
 				return Enumerable.Empty<Godot.Node>();
 			}
 
-			if (!DialogueViewMap.TryGetValue(ActiveViewName, out var dialogueView))
+			if (!DialogueViewStates.TryGetValue(ActiveViewName, out var dialogueView))
 			{
 				GD.PushError($"GetActiveDialogueViews: !DialogueViewDict.TryGetValue '{ActiveViewName}'");
 				return Enumerable.Empty<Godot.Node>();

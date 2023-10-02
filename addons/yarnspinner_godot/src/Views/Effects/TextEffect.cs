@@ -10,12 +10,11 @@ namespace Yarn.GodotSharp.Views.Effects
 	{
 		public virtual async Task Animate(RichTextLabel label, CancellationToken token)
 		{
-			GD.PushWarning(
-				$"{nameof(TextEffect)} does nothing by default. ",
-				$"Override {nameof(Animate)} in a subclass."
-			);
-
 			await Task.CompletedTask;
+		}
+
+		public virtual void CancelAnimation(RichTextLabel label)
+		{
 		}
 	}
 }

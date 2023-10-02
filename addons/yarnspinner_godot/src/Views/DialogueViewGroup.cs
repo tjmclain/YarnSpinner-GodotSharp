@@ -38,6 +38,32 @@ namespace Yarn.GodotSharp.Views
 			_dialogueViews.AddRange(value);
 		}
 
+		public virtual void ShowAll()
+		{
+			foreach (var view in DialogueViews)
+			{
+				if (view is not CanvasItem canvasItem)
+				{
+					continue;
+				}
+
+				canvasItem.Show();
+			}
+		}
+
+		public virtual void HideAll()
+		{
+			foreach (var view in DialogueViews)
+			{
+				if (view is not CanvasItem canvasItem)
+				{
+					continue;
+				}
+
+				canvasItem.Hide();
+			}
+		}
+
 		#region IDialogueStartedHandler
 
 		public virtual void DialogueStarted()

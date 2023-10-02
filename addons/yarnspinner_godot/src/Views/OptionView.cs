@@ -26,12 +26,13 @@ namespace Yarn.GodotSharp.Views
 
 			Text = option.Line.Text.Text;
 			OptionIndex = optionIndex;
+
+			GD.Print($"SetOption ({optionIndex}): {Text}");
 		}
 
 		public override void _Pressed()
 		{
 			EmitSignal(SignalName.OptionSelected, OptionIndex);
-			base._Pressed();
 		}
 	}
 }

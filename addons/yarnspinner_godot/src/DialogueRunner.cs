@@ -25,6 +25,10 @@ public partial class DialogueRunner : Godot.Node
 	/// <remarks>Automatically created on first access.</remarks>
 	private Dialogue _dialogue;
 
+	private LineProvider _lineProvider;
+	private ActionLibrary _actionLibrary;
+	private VariableStorage _variableStorage;
+
 	#region Signals
 
 	/// <summary>
@@ -86,13 +90,65 @@ public partial class DialogueRunner : Godot.Node
 	public YarnProject YarnProject { get; private set; } = null;
 
 	[Export]
-	public LineProvider LineProvider { get; private set; } = null;
+	public LineProvider LineProvider
+	{
+		get
+		{
+			if (_lineProvider != null)
+			{
+				return _lineProvider;
+			}
+
+			GD.PushWarning(
+				$"{nameof(DialogueRunner)} has no {nameof(LineProvider)}; ",
+				$"creating a {typeof(LineProvider).Name}"
+			);
+			_lineProvider = new LineProvider();
+			return _lineProvider;
+		}
+		set => _lineProvider = value;
+	}
 
 	[Export]
-	public VariableStorage VariableStorage { get; private set; } = null;
+	public VariableStorage VariableStorage
+	{
+		get
+		{
+			if (_variableStorage != null)
+			{
+				return _variableStorage;
+			}
+
+			GD.PushWarning(
+				$"{nameof(DialogueRunner)} has no {nameof(VariableStorage)}; ",
+				$"creating a {typeof(VariableStorage).Name}"
+			);
+			_variableStorage = new VariableStorage();
+			return _variableStorage;
+		}
+		set => _variableStorage = value;
+	}
 
 	[Export]
-	public ActionLibrary ActionLibrary { get; private set; } = null;
+	public ActionLibrary ActionLibrary
+	{
+		get
+		{
+			if (_actionLibrary != null)
+			{
+				return _actionLibrary;
+			}
+
+			GD.PushWarning(
+				$"{nameof(DialogueRunner)} has no {nameof(ActionLibrary)}; ",
+				$"creating a {typeof(ActionLibrary).Name}"
+			);
+			_actionLibrary = new ActionLibrary();
+			_actionLibrary.RefreshActions();
+			return _actionLibrary;
+		}
+		set => _actionLibrary = value;
+	}
 
 	[Export]
 	public DialogueViewGroup MainDialogueViewGroup { get; set; } = null;
@@ -105,7 +161,7 @@ public partial class DialogueRunner : Godot.Node
 	/// <summary>
 	/// Gets the underlying <see cref="Dialogue"/> object that runs the Yarn code.
 	/// </summary>
-	public Dialogue Dialogue => _dialogue ??= CreateDialogueInstance();
+	public Dialogue Dialogue => _dialogue ?? CreateDialogueInstance();
 
 	/// <summary>
 	/// Gets a value that indicates if the dialogue is actively running.
@@ -202,46 +258,22 @@ public partial class DialogueRunner : Godot.Node
 
 	public override void _Ready()
 	{
-		// Create a LineProvider if we're missing one
-		if (LineProvider == null)
-		{
-			LineProvider = new LineProvider();
-
-			GD.Print(
-				$"{nameof(DialogueRunner)} has no {nameof(LineProvider)}; ",
-				$"creating a {nameof(LineProvider)}"
-			);
-		}
-
-		// Create an ActionLibrary if we're missing one
-		if (ActionLibrary == null)
-		{
-			ActionLibrary = new ActionLibrary();
-			ActionLibrary.RefreshActions();
-
-			GD.Print(
-				$"{nameof(DialogueRunner)} has no {nameof(ActionLibrary)}; ",
-				$" creating a {nameof(ActionLibrary)}"
-			);
-		}
 #if TOOLS
-		else
-		{
-			// always refresh action library in debug
-			ActionLibrary.RefreshActions();
-		}
+		// always refresh action library in debug
+		ActionLibrary.RefreshActions();
 #endif
 
-		var library = Dialogue.Library;
+		CreateDialogueInstance();
+
 		foreach (var function in ActionLibrary.Functions)
 		{
 			var implementation = function.CreateDelegate();
-			library.RegisterFunction(function.Name, implementation);
+			Dialogue.Library.RegisterFunction(function.Name, implementation);
 		}
 
 		if (RunAutomatically)
 		{
-			_ = Task.Run(() => StartDialogue(StartNode));
+			_ = StartDialogue(StartNode);
 		}
 	}
 
@@ -255,6 +287,8 @@ public partial class DialogueRunner : Godot.Node
 	/// <param name="startNode">The name of the node to start running from.</param>
 	public async Task StartDialogue(string startNode)
 	{
+		GD.Print($"{nameof(StartDialogue)}: {nameof(startNode)} = {startNode}");
+
 		// If the dialogue is currently executing instructions, then calling ContinueDialogue() at
 		// the end of this method will cause confusing results. Report an error and stop here.
 		if (Dialogue.IsActive)
@@ -270,21 +304,27 @@ public partial class DialogueRunner : Godot.Node
 
 		if (YarnProject == null)
 		{
-			GD.PushError("YarnProject == null");
+			GD.PushError($"{nameof(StartDialogue)}: {nameof(YarnProject)} == null");
 			return;
 		}
 
 		if (!IsNodeReady())
 		{
-			GD.Print("!IsNodeReady; await Ready signal");
+			GD.Print($"{nameof(StartDialogue)}: await {nameof(Godot.Node.SignalName.Ready)} -> BEGIN at frame {Engine.GetProcessFrames()}");
+
 			await ToSignal(this, Godot.Node.SignalName.Ready);
+
+			GD.Print($"{nameof(StartDialogue)}: await {nameof(Godot.Node.SignalName.Ready)} -> END at frame {Engine.GetProcessFrames()}");
 		}
 
 		var program = YarnProject.CompileProgram();
 
 		if (YarnProject.NodeNames.Contains(startNode) == false)
 		{
-			GD.Print($"Can't start dialogue from node {startNode}: the Yarn Project {YarnProject.ResourceName} does not contain a node named \"{startNode}\"", YarnProject);
+			GD.PushError(
+				$"Can't start dialogue from node {startNode}: ",
+				$"{YarnProject.ResourceName} does not contain a node named '{startNode}'"
+			);
 			return;
 		}
 
@@ -295,24 +335,30 @@ public partial class DialogueRunner : Godot.Node
 		LineProvider.StringTable = YarnProject.StringTable;
 
 		// if lines aren't ready yet, wait
-		if (!LineProvider.LinesAvailable)
+		if (LineProvider.PreparingLines)
 		{
-			await ToSignal(LineProvider, LineProvider.SignalName.LinesBecameAvailable);
+			GD.Print($"{nameof(StartDialogue)}: await {LineProvider.SignalName.LinesAvailable} -> BEGIN at frame {Engine.GetProcessFrames()}");
+
+			await ToSignal(LineProvider, LineProvider.SignalName.LinesAvailable);
+
+			GD.Print($"{nameof(StartDialogue)}: await {LineProvider.SignalName.LinesAvailable} -> END at frame {Engine.GetProcessFrames()}");
 		}
 
-		// Try CallDeferred instead
-		//forum post: https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12
-		//docs: https://docs.godotengine.org/en/stable/classes/class_object.html#class-object-method-call-deferred
+		// Use CallDeferred from non-main thread
+		// References:
+		// - https://godotforums.org/d/35232-godot-41-is-here-smoother-more-reliable-and-with-plenty-of-new-features/12
+		// - https://docs.godotengine.org/en/stable/classes/class_object.html#class-object-method-call-deferred
 		CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.DialogueStarted);
 
 		// Signal that we're starting up.
-		MainDialogueViewGroup?.DialogueStarted();
+
+		MainDialogueViewGroup?.CallDeferred(DialogueViewGroup.MethodName.DialogueStarted);
 
 		// Request that the dialogue select the current node. This will prepare the dialogue for
 		// running; as a side effect, our prepareForLines delegate may be called.
 		Dialogue.SetNode(startNode);
 
-		ContinueDialogue();
+		CallDeferred(MethodName.ContinueDialogue);
 	}
 
 	/// <summary>
@@ -383,7 +429,7 @@ public partial class DialogueRunner : Godot.Node
 		if (MainDialogueViewGroup == null)
 		{
 			GD.PushError("HandleLine: DialogueViewGroup == null");
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 			return;
 		}
 
@@ -415,7 +461,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			// Parsing the markup failed. We'll log a warning, and produce a markup result that just
 			// contains the raw text.
-			GD.PushWarning($"Failed to parse markup in \"{text}\": {e.Message}");
+			GD.PushWarning($"Failed to parse markup in '{text}': {e.Message}");
 			CurrentLine.Text = new Markup.MarkupParseResult
 			{
 				Text = text,
@@ -426,17 +472,21 @@ public partial class DialogueRunner : Godot.Node
 		GD.Print("Run line: " + CurrentLine.Text.Text);
 		using (var cts = new CancellationTokenSource())
 		{
-			await MainDialogueViewGroup.RunLine(
+			try
+			{
+				await MainDialogueViewGroup.RunLine(
 				CurrentLine,
 				() => cts.Cancel(),
 				cts.Token
 			);
+			}
+			catch (OperationCanceledException) { }
 		}
 
 		GD.Print("Dismiss line");
 		await MainDialogueViewGroup.DismissLine(CurrentLine);
 
-		ContinueDialogue();
+		CallDeferred(MethodName.ContinueDialogue);
 	}
 
 	private async Task HandleOptions(OptionSet optionSet)
@@ -446,7 +496,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			GD.PushError("options.Options == null");
 			Dialogue.SetSelectedOption(0);
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 			return;
 		}
 
@@ -455,7 +505,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			GD.PushError("options.Options.Length == 0");
 			Dialogue.SetSelectedOption(0);
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 			return;
 		}
 
@@ -463,7 +513,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			GD.PushError("HandleOptions: DialogueViewGroup == null");
 			Dialogue.SetSelectedOption(options[0].ID);
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 			return;
 		}
 
@@ -513,7 +563,7 @@ public partial class DialogueRunner : Godot.Node
 		{
 			GD.PushError($"selectedOptionIndex ({selectedOptionIndex}) is out of range; numOptions = {numOptions}");
 			Dialogue.SetSelectedOption(options[0].ID);
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 			return;
 		}
 
@@ -530,7 +580,7 @@ public partial class DialogueRunner : Godot.Node
 		}
 		else
 		{
-			ContinueDialogue();
+			CallDeferred(MethodName.ContinueDialogue);
 		}
 	}
 
@@ -547,7 +597,9 @@ public partial class DialogueRunner : Godot.Node
 		MainDialogueViewGroup.DialogueComplete();
 	}
 
-	private void ContinueDialogue(bool dontRestart = false)
+	private void ContinueDialogue() => ContinueDialogue(false);
+
+	private void ContinueDialogue(bool dontRestart)
 	{
 		if (dontRestart == true)
 		{
@@ -563,65 +615,36 @@ public partial class DialogueRunner : Godot.Node
 
 	#endregion Dialogue Callback Handlers
 
-	private static async Task WaitForTask(Task task, Action onTaskComplete)
-	{
-		if (task == null)
-		{
-			GD.PushError("task == null");
-			onTaskComplete?.Invoke();
-			return;
-		}
-
-		await task;
-		onTaskComplete?.Invoke();
-	}
-
-	private Dialogue CreateDialogueInstance()
+	protected virtual Dialogue CreateDialogueInstance()
 	{
 		if (!IsInsideTree())
 		{
-			GD.PushError("CreateDialogueInstance: !IsInsideTree");
+			GD.PushError($"{nameof(CreateDialogueInstance)}: !{nameof(IsInsideTree)}");
 			return null;
 		}
 
-		if (VariableStorage == null)
-		{
-			// If we don't have a variable storage, create an InMemoryVariableStorage and make it
-			// use that.
-			VariableStorage = new VariableStorage();
-
-			// Let the user know what we're doing.
-			if (VerboseLogging)
-			{
-				GD.Print($"Dialogue Runner has no Variable Storage; creating a {nameof(VariableStorage)}", this);
-			}
-		}
-
 		// Create the main Dialogue runner, and pass our variableStorage to it
-		var dialogue = new Dialogue(VariableStorage)
+		_dialogue = new Dialogue(VariableStorage)
 		{
-			// Set up the logging system.
-			LogDebugMessage = delegate (string message)
-			{
-				if (VerboseLogging)
-				{
-					GD.Print(message);
-				}
-			},
-			LogErrorMessage = delegate (string message)
-			{
-				GD.PushError(message);
-			},
-
-			PrepareForLinesHandler = (lineIds) => LineProvider?.PrepareForLines(lineIds),
+			LogDebugMessage = (message) => GD.Print(message),
+			LogErrorMessage = (message) => GD.PushError(message),
+			PrepareForLinesHandler = (lineIds) => LineProvider.PrepareForLines(lineIds),
 			LineHandler = (line) => _ = HandleLine(line),
 			CommandHandler = HandleCommand,
 			OptionsHandler = (options) => _ = HandleOptions(options),
-			NodeStartHandler = (node) => CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.NodeStarted, node),
-			NodeCompleteHandler = (node) => CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.NodeCompleted, node),
+			NodeStartHandler = (node) => EmitSignal(SignalName.NodeStarted, node),
+			NodeCompleteHandler = (node) => EmitSignal(SignalName.NodeCompleted, node),
 			DialogueCompleteHandler = HandleDialogueComplete,
 		};
 
-		return dialogue;
+		return _dialogue;
+	}
+
+	private static async Task WaitForTask(Task task, Action onTaskComplete)
+	{
+		await task;
+
+		var callable = Callable.From(onTaskComplete);
+		callable.CallDeferred();
 	}
 }

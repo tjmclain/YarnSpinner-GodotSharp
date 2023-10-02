@@ -6,33 +6,35 @@ namespace Yarn.GodotSharp
 	[GlobalClass]
 	public partial class LineProvider : Resource
 	{
-		private bool _linesAvailable = false;
+		private bool _preparingLines = false;
 
 		[Signal]
-		public delegate void LinesBecameAvailableEventHandler();
+		public delegate void LinesAvailableEventHandler();
 
 		[Export]
 		public bool UseGodotTranslations { get; set; } = false;
 
 		public StringTable StringTable { get; set; }
 
-		public bool LinesAvailable
+		public bool PreparingLines
 		{
-			get => _linesAvailable;
+			get => _preparingLines;
 			protected set
 			{
-				_linesAvailable = value;
-				if (value)
+				_preparingLines = value;
+				if (!value)
 				{
-					EmitSignal(SignalName.LinesBecameAvailable);
+					EmitSignal(SignalName.LinesAvailable);
 				}
 			}
 		}
 
 		public virtual void PrepareForLines(IEnumerable<string> lineIds)
 		{
+			GD.Print($"{nameof(LineProvider)}.{nameof(PrepareForLines)}");
+
 			// Do nothing by default
-			LinesAvailable = true;
+			PreparingLines = false;
 		}
 
 		public virtual LocalizedLine GetLocalizedLine(Line line)
@@ -65,7 +67,7 @@ namespace Yarn.GodotSharp
 
 		protected virtual Resource GetAsset(string lineId)
 		{
-			// Do not return an asset
+			// Do not return an asset by default
 			return null;
 		}
 	}

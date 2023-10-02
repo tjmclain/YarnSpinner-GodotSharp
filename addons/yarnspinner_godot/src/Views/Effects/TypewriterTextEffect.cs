@@ -15,9 +15,10 @@ namespace Yarn.GodotSharp.Views.Effects
 		{
 			if (label == null)
 			{
-				GD.PrintErr("label == null");
+				GD.PrintErr("TypewriterTextEffect.Animate: label == null");
 				return;
 			}
+
 			if (token.IsCancellationRequested)
 			{
 				return;
@@ -35,19 +36,22 @@ namespace Yarn.GodotSharp.Views.Effects
 
 			for (int i = 0; i < count; i++)
 			{
-				if (token.IsCancellationRequested)
-				{
-					GD.Print("TypewriterTextEffect.Animate: token.IsCancellationRequested == true");
-					label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
-					return;
-				}
-
 				label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, i + 1);
-
 				await Task.Delay(ms, token);
 			}
 
 			label.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
+		}
+
+		public override void CancelAnimation(RichTextLabel label)
+		{
+			if (label == null)
+			{
+				GD.PrintErr("TypewriterTextEffect.CancelAnimation: label == null");
+				return;
+			}
+
+			label.VisibleCharacters = -1;
 		}
 	}
 }

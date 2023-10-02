@@ -11,15 +11,10 @@ namespace Yarn.GodotSharp.Views;
 [GlobalClass]
 public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHandler
 {
-	#region Fields
+	private Control _previousLineContainer = null;
+	private OptionView.OptionSelectedEventHandler _onOptionSelected = null;
 
-	protected readonly List<OptionView> _optionViewsPool = new();
-	protected LocalizedLine _previousLine = null;
-	protected Control _previousLineContainer = null;
-
-	#endregion Fields
-
-	#region Properties
+	#region Exports
 
 	[Export]
 	public virtual PackedScene OptionViewPrototype { get; set; } = null;
@@ -37,22 +32,30 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 		set => _previousLineContainer = value;
 	}
 
-	#endregion Properties
+	#endregion Exports
 
-	#region Public Methods
+	protected LocalizedLine PreviousLine { get; private set; } = null;
+	protected List<OptionView> OptionViews { get; private set; } = new();
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		// Collect all of the already instantiated options
+		var optionViews = OptionViewsContainer.GetChildren()
+			.Where(x => typeof(OptionView).IsAssignableFrom(x.GetType()))
+			.Select(x => x as OptionView);
+
+		OptionViews.Clear();
+		OptionViews.AddRange(optionViews);
+
 		// Clear pool and recycling any existing views
-		_optionViewsPool.Clear();
-		RecyleOptionViews();
+		DismissOptionViews();
 		Hide();
 	}
 
 	public async Task RunLine(LocalizedLine line, Action interruptLine, CancellationToken externalToken)
 	{
-		_previousLine = line;
+		PreviousLine = line;
 		await Task.CompletedTask;
 	}
 
@@ -61,137 +64,136 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 		await Task.CompletedTask;
 	}
 
+	#region IRunOptionsHandler
+
 	public virtual async Task RunOptions(DialogueOption[] options, Action<int> selectOption, CancellationToken token)
 	{
+		GD.Print($"{nameof(RunOptions)}: {Name}");
+
 		if (options == null)
 		{
-			throw new InvalidDataException("options == null");
+			GD.PushError("RunOptions: options == null");
+			return;
 		}
 
 		if (options.Length == 0)
 		{
-			throw new TaskCanceledException("options.Length == 0");
+			GD.PushError("RunOptions: options.Length == 0");
+			return;
 		}
 
-		//SetPreviousLineLabelText(_previousLine);
+		CallDeferred(MethodName.SetPreviousLineLabelText);
 
-		var tasks = new List<Task<int>>(options.Length);
+		if (OptionViews.Count < options.Length)
+		{
+			CallDeferred(MethodName.InstantiateOptionViewsUpTo, options.Length);
+
+			await GodotUtility.WaitForProcessFrame();
+		}
+
+		var tcs = new TaskCompletionSource<int>();
+		_onOptionSelected = new OptionView.OptionSelectedEventHandler((result) => tcs.SetResult(result));
+
 		for (int i = 0; i < options.Length; i++)
 		{
-			var option = options[i];
-			if (!TryGetOptionView(out var optionView))
+			if (OptionViews.Count <= i)
 			{
+				GD.PushError($"RunOptions: optionViews.Count ({OptionViews.Count}) <= {i}");
 				continue;
 			}
 
-			optionView.SetOption(option, i);
-
-			var task = Task.Run(async () =>
-				{
-					if (token.IsCancellationRequested)
-					{
-						//token.ThrowIfCancellationRequested();
-						return -1;
-					}
-
-					var awaiter = ToSignal(optionView, OptionView.SignalName.OptionSelected);
-					await awaiter;
-
-					if (token.IsCancellationRequested)
-					{
-						//token.ThrowIfCancellationRequested();
-						return -1;
-					}
-
-					var result = awaiter.GetResult();
-					if (result == null || result.Length == 0)
-					{
-						throw new ArgumentException("result == null || result.Length == 0");
-					}
-
-					return result[0].AsInt32();
-				}, token);
-
-			tasks.Add(task);
-
-			var selected = await Task.WhenAny(tasks);
-
-			if (token.IsCancellationRequested)
+			var optionView = OptionViews[i];
+			if (optionView == null)
 			{
-				//token.ThrowIfCancellationRequested();
-				return;
+				GD.PushError($"RunOptions: optionView == null; i = {i}");
+				continue;
 			}
 
-			int selectedIndex = selected.Result;
-
-			if (selectedIndex < 0 || selectedIndex >= options.Length)
-			{
-				GD.PushError($"selectIndex = {selectedIndex}, options.Length = {options.Length}");
-			}
-
-			GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
-			selectOption?.Invoke(selectedIndex);
+			optionView.CallDeferred(CanvasItem.MethodName.Show);
+			optionView.CallDeferred(OptionView.MethodName.SetOption, options[i], i);
+			optionView.OptionSelected += _onOptionSelected;
 		}
+
+		CallDeferred(CanvasItem.MethodName.Show);
+
+		int selectedIndex = await tcs.Task;
+
+		if (selectedIndex < 0 || selectedIndex >= options.Length)
+		{
+			GD.PushError($"selectIndex = {selectedIndex}, options.Length = {options.Length}");
+		}
+
+		GD.Print($"RunOptions: selectedIndex = {selectedIndex}");
+		selectOption?.Invoke(selectedIndex);
 	}
 
 	public virtual async Task DismissOptions(DialogueOption[] options, int selectedOptionIndex)
 	{
-		RecyleOptionViews();
+		CallDeferred(MethodName.DismissOptionViews);
+		CallDeferred(CanvasItem.MethodName.Hide);
+
 		await Task.CompletedTask;
 	}
 
-	#endregion Public Methods
+	#endregion IRunOptionsHandler
 
-	#region Protected Methods
-
-	protected virtual void SetPreviousLineLabelText(LocalizedLine line)
+	protected virtual void SetPreviousLineLabelText()
 	{
 		if (PreviousLineLabel == null)
 		{
 			return;
 		}
 
-		if (line == null)
+		if (PreviousLine == null)
 		{
 			PreviousLineContainer.Hide();
 			return;
 		}
 
 		PreviousLineContainer.Show();
-		PreviousLineLabel.Text = line.Text.Text;
+		PreviousLineLabel.Text = PreviousLine.Text.Text;
 		PreviousLineLabel.VisibleCharacters = -1;
 	}
 
-	protected virtual bool TryGetOptionView(out OptionView optionView)
+	protected virtual void InstantiateOptionView()
 	{
-		if (_optionViewsPool.Any())
+		if (OptionViewPrototype == null)
 		{
-			optionView = _optionViewsPool.First();
-			optionView.Show();
-			return true;
+			GD.PushError("InstantiateOptionView: OptionViewPrototype == null");
+			return;
 		}
 
-		if (OptionViewPrototype != null)
+		if (OptionViewsContainer == null)
 		{
-			optionView = OptionViewPrototype.InstantiateOrNull<OptionView>();
-			if (optionView != null)
-			{
-				return true;
-			}
+			GD.PushError("InstantiateOptionView: OptionViewsContainer == null");
+			return;
 		}
 
-		GD.PushError($"Failed to create OptionView; OptionViewPrototype = {OptionViewPrototype}");
-		optionView = null;
-		return false;
+		var optionView = OptionViewPrototype.InstantiateOrNull<OptionView>();
+		OptionViewsContainer.AddChild(optionView);
+		OptionViews.Add(optionView);
 	}
 
-	protected virtual void RecyleOptionViews()
+	protected virtual void InstantiateOptionViewsUpTo(int total)
 	{
-		var optionViews = OptionViewsContainer.GetChildren()
-			.Where(x => typeof(OptionView).IsAssignableFrom(x.GetType()))
-			.Select(x => x as OptionView);
+		int count = OptionViews.Count;
+		int delta = total - count;
+		if (delta <= 0)
+		{
+			return;
+		}
 
-		foreach (var optionView in optionViews)
+		for (int i = 0; i < delta; i++)
+		{
+			InstantiateOptionView();
+		}
+
+		GD.Print($"{nameof(InstantiateOptionViewsUpTo)}: instantiated {delta} {nameof(OptionView)}s");
+	}
+
+	protected virtual void DismissOptionViews()
+	{
+		foreach (var optionView in OptionViews)
 		{
 			if (optionView == null)
 			{
@@ -199,11 +201,8 @@ public partial class OptionsListView : Control, IRunOptionsHandler, IRunLineHand
 				continue;
 			}
 
+			optionView.OptionSelected -= _onOptionSelected;
 			optionView.Hide();
 		}
-
-		_optionViewsPool.AddRange(optionViews);
 	}
-
-	#endregion Protected Methods
 }

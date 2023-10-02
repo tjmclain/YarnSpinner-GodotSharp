@@ -9,6 +9,8 @@ namespace Yarn.GodotSharp.Views;
 [GlobalClass]
 public partial class LineView : AsyncViewControl, IRunLineHandler
 {
+	private Control _characterNameContainer;
+
 	[Export]
 	public RichTextLabel LineText { get; set; } = null;
 
@@ -16,7 +18,11 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 	public RichTextLabel CharacterNameText { get; set; } = null;
 
 	[Export]
-	public Control CharacterNameContainer { get; set; } = null;
+	public Control CharacterNameContainer
+	{
+		get => _characterNameContainer ?? CharacterNameText;
+		set => _characterNameContainer = value;
+	}
 
 	[Export]
 	public TextEffect TextAnimationEffect { get; set; } = null;
@@ -27,9 +33,13 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 	[Export]
 	public StringName ContinueInputAction { get; set; } = string.Empty;
 
+	#region Godot.Node
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		base._Ready();
+
 		if (ContinueButton != null)
 		{
 			ContinueButton.Pressed -= ContinueDialogue;
@@ -38,7 +48,6 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 			ContinueButton.Hide();
 		}
 
-		SafeDisposeInternalTokenSource();
 		Hide();
 	}
 
@@ -70,23 +79,26 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		ContinueDialogue();
 	}
 
+	#endregion Godot.Node
+
+	#region IRunLineHandler
+
 	public virtual async Task RunLine(
 		LocalizedLine line,
 		Action interruptLine,
 		CancellationToken externalToken
 	)
 	{
-		GD.Print($"LineView.RunLine - Begin; Name = {Name}");
+		GD.Print($"LineView.RunLine: Name = {Name}");
 
 		if (externalToken.IsCancellationRequested)
 		{
-			//externalToken.ThrowIfCancellationRequested();
 			return;
 		}
 
 		if (LineText == null)
 		{
-			GD.PushError("LineText == null");
+			GD.PushError("LineView.RunLine: LineText == null");
 			return;
 		}
 
@@ -97,73 +109,71 @@ public partial class LineView : AsyncViewControl, IRunLineHandler
 		LineText.SetDeferred(RichTextLabel.PropertyName.Text, line.TextWithoutCharacterName);
 		LineText.SetDeferred(RichTextLabel.PropertyName.VisibleCharacters, -1);
 
-		SetCharacterName(line.CharacterName);
+		CallDeferred(MethodName.SetCharacterName, line);
 
 		if (TextAnimationEffect != null)
 		{
-			SafeDisposeInternalTokenSource();
 			using (var cts = CreateLinkedTokenSource(externalToken))
 			{
-				GD.Print("TextAnimationEffect.Animate: Begin");
-
+				GD.Print("LineView.RunLine: TextAnimationEffect.Animate");
 				try
 				{
 					await TextAnimationEffect.Animate(LineText, cts.Token);
 				}
 				catch (OperationCanceledException)
 				{
-					GD.Print("Skipped TextAnimationEffect.Animate");
+					GD.Print("LineView.RunLine: TextAnimationEffect.CancelAnimation");
+					TextAnimationEffect.CallDeferred(TextEffect.MethodName.CancelAnimation, LineText);
 				}
 			}
 		}
 
-		SafeDisposeInternalTokenSource();
 		using (var cts = CreateLinkedTokenSource(externalToken))
 		{
-			GD.Print("WaitForCancellation");
-			await WaitForCancellation(cts.Token);
+			GD.Print("LineView.RunLine: WaitForCancellation");
+			try
+			{
+				await WaitForCancellation(cts.Token);
+			}
+			catch (OperationCanceledException)
+			{
+			}
 		}
 
-		ContinueButton?.Hide();
+		ContinueButton?.CallDeferred(CanvasItem.MethodName.Hide);
 
-		SafeDisposeInternalTokenSource();
-
-		GD.Print($"LineView.RunLine - End; Name = {Name}");
-
-		// request an interruption if no one else has yet
-		if (!externalToken.IsCancellationRequested)
-		{
-			GD.Print("interruptLine.Invoke");
-			interruptLine?.Invoke();
-		}
-	}
-
-	public virtual void SetCharacterName(string characterName)
-	{
-		if (string.IsNullOrEmpty(characterName))
-		{
-			CharacterNameContainer?.CallDeferred(CanvasItem.MethodName.Hide);
-		}
-		else
-		{
-			CharacterNameContainer?.CallDeferred(CanvasItem.MethodName.Show);
-		}
-
-		CharacterNameText?.SetDeferred(RichTextLabel.PropertyName.Text, characterName);
+		interruptLine?.Invoke();
 	}
 
 	public virtual async Task DismissLine(LocalizedLine line)
 	{
 		GD.Print("LineView.DismissLine");
+
 		SafeDisposeInternalTokenSource();
+
 		ContinueButton?.CallDeferred(CanvasItem.MethodName.Hide);
 		CallDeferred(CanvasItem.MethodName.Hide);
+
 		await Task.CompletedTask;
+	}
+
+	#endregion IRunLineHandler
+
+	public virtual void SetCharacterName(LocalizedLine line)
+	{
+		if (CharacterNameContainer != null)
+		{
+			CharacterNameContainer.Visible = !string.IsNullOrEmpty(line?.CharacterName);
+		}
+
+		if (CharacterNameText != null)
+		{
+			CharacterNameText.Text = line?.CharacterName;
+		}
 	}
 
 	public virtual void ContinueDialogue()
 	{
-		GD.Print("LineView.ContinueDialogue");
 		SafeCancelInternalTokenSource();
 	}
 }

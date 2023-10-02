@@ -18,7 +18,12 @@ namespace Yarn.GodotSharp.Views
 		protected bool IsCancellationRequested
 			=> InternalTokenSource != null && InternalTokenSource.IsCancellationRequested;
 
-		#region Godot.Control
+		#region Godot.Node
+
+		public override void _Ready()
+		{
+			SafeDisposeInternalTokenSource();
+		}
 
 		protected override void Dispose(bool disposing)
 		{
@@ -26,7 +31,7 @@ namespace Yarn.GodotSharp.Views
 			base.Dispose(disposing);
 		}
 
-		#endregion Godot.Control
+		#endregion Godot.Node
 
 		protected virtual CancellationToken GetInternalCancellationToken()
 		{
@@ -53,6 +58,8 @@ namespace Yarn.GodotSharp.Views
 
 		protected virtual CancellationTokenSource CreateLinkedTokenSource(CancellationToken otherToken)
 		{
+			SafeDisposeInternalTokenSource();
+
 			return CancellationTokenSource.CreateLinkedTokenSource(
 				GetInternalCancellationToken(),
 				otherToken
@@ -77,6 +84,7 @@ namespace Yarn.GodotSharp.Views
 				return false;
 			}
 
+			GD.Print($"{Name}: InternalTokenSource.Cancel");
 			InternalTokenSource.Cancel();
 			return true;
 		}

@@ -3,7 +3,7 @@ using Godot;
 
 namespace Yarn.GodotSharp
 {
-	public class LocalizedLine
+	public partial class LocalizedLine : RefCounted
 	{
 		/// <summary>
 		/// DialogueLine's ID
